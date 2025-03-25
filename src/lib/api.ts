@@ -108,168 +108,56 @@ export const uploadComponentImage = async (file: File, path: string) => {
   return publicUrl;
 };
 
-// Update Components.tsx to use API
-<lov-write file_path="src/pages/Components.tsx">
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import Navbar from '@/components/Navbar';
-import ComponentCard from '@/components/ComponentCard';
-import { 
-  Button,
-  Card,
-  CardContent
-} from '@/components/ui';
-import { PlusCircle, Filter, RefreshCw } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
-import { getComponents, getCategories } from '@/lib/api';
-import { useAuth } from '@/context/AuthContext';
+// User management operations
+export const getUserRole = async (userId: string) => {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', userId)
+    .single();
 
-const Components = () => {
-  const { isAdmin } = useAuth();
-  const [filter, setFilter] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('');
-
-  // Fetch components
-  const { data: components = [], isLoading } = useQuery({
-    queryKey: ['components'],
-    queryFn: getComponents
-  });
-
-  // Fetch categories
-  const { data: categories = [] } = useQuery({
-    queryKey: ['categories'],
-    queryFn: getCategories
-  });
-
-  // Filter components based on search term and category
-  const filteredComponents = components.filter(component => {
-    const matchesSearch = component.title.toLowerCase().includes(filter.toLowerCase()) ||
-      (component.description || '').toLowerCase().includes(filter.toLowerCase()) ||
-      (component.tags || []).some(tag => tag.toLowerCase().includes(filter.toLowerCase()));
-    
-    const matchesCategory = !categoryFilter || component.category === categoryFilter;
-    
-    return matchesSearch && matchesCategory;
-  });
-
-  return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <Navbar />
-      
-      <main className="flex-grow container mx-auto px-4 py-8">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tighter">Componentes</h1>
-            <p className="text-muted-foreground mt-1">
-              Explore e utilize componentes Elementor pré-construídos.
-            </p>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            {isAdmin && (
-              <Button asChild className="hover-lift" size="sm">
-                <Link to="/components/new">
-                  <PlusCircle className="h-4 w-4 mr-1" />
-                  Novo Componente
-                </Link>
-              </Button>
-            )}
-            {isAdmin && (
-              <Button asChild variant="outline" size="sm">
-                <Link to="/admin">
-                  <RefreshCw className="h-4 w-4 mr-1" />
-                  Painel Admin
-                </Link>
-              </Button>
-            )}
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="md:col-span-3">
-            <div className="relative">
-              <input
-                type="search"
-                placeholder="Buscar componentes por título, descrição ou tags..."
-                className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                value={filter}
-                onChange={(e) => setFilter(e.target.value)}
-              />
-            </div>
-          </div>
-          
-          <div>
-            <select
-              className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              value={categoryFilter}
-              onChange={(e) => setCategoryFilter(e.target.value)}
-            >
-              <option value="">Todas as categorias</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {isLoading ? (
-          <div className="flex items-center justify-center py-16">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          </div>
-        ) : filteredComponents.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredComponents.map((component) => (
-              <Link key={component.id} to={`/component/${component.id}`}>
-                <ComponentCard 
-                  component={{
-                    id: component.id,
-                    title: component.title,
-                    description: component.description || '',
-                    category: component.category,
-                    type: component.type,
-                    jsonCode: component.json_code,
-                    previewImage: component.preview_image,
-                    tags: component.tags || [],
-                    dateCreated: component.created_at,
-                    dateUpdated: component.updated_at,
-                    visibility: component.visibility
-                  }} 
-                />
-              </Link>
-            ))}
-          </div>
-        ) : (
-          <Card className="border-dashed">
-            <CardContent className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="rounded-full bg-primary/10 p-3 mb-4">
-                <Filter className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="text-lg font-semibold mb-2">Nenhum componente encontrado</h3>
-              <p className="text-muted-foreground max-w-md mb-4">
-                Não encontramos nenhum componente com os filtros aplicados. Tente ajustar sua busca ou criar um novo componente.
-              </p>
-              {isAdmin && (
-                <Button asChild>
-                  <Link to="/components/new">
-                    <PlusCircle className="h-4 w-4 mr-1" />
-                    Criar Componente
-                  </Link>
-                </Button>
-              )}
-            </CardContent>
-          </Card>
-        )}
-      </main>
-      
-      <footer className="border-t py-6">
-        <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          &copy; {new Date().getFullYear()} Bloqx Studio. Todos os direitos reservados.
-        </div>
-      </footer>
-    </div>
-  );
+  if (error) throw error;
+  return data?.role || 'user';
 };
 
-export default Components;
+export const updateUserRole = async (userId: string, role: 'admin' | 'user') => {
+  const { error } = await supabase
+    .from('profiles')
+    .update({ role, updated_at: new Date().toISOString() })
+    .eq('id', userId);
+
+  if (error) throw error;
+  return true;
+};
+
+export const getUsers = async () => {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return data;
+};
+
+// Admin dashboard operations
+export const getComponentStats = async () => {
+  const { data: components, error: componentsError } = await supabase
+    .from('components')
+    .select('*');
+
+  if (componentsError) throw componentsError;
+
+  const { data: categories, error: categoriesError } = await supabase
+    .from('categories')
+    .select('*');
+
+  if (categoriesError) throw categoriesError;
+
+  return {
+    totalComponents: components?.length || 0,
+    totalCategories: categories?.length || 0,
+    publicComponents: components?.filter(c => c.visibility === 'public').length || 0,
+    privateComponents: components?.filter(c => c.visibility === 'private').length || 0
+  };
+};
