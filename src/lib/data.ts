@@ -1,4 +1,3 @@
-
 export interface ElementorComponent {
   id: string;
   title: string;
@@ -35,6 +34,7 @@ export const categories: Category[] = [
   }
 ];
 
+// Make sure the components array is exported so we can modify it
 export const components: ElementorComponent[] = [
   {
     id: "hero-lancamento",

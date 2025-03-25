@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
@@ -22,6 +21,7 @@ import { useForm } from 'react-hook-form';
 import { useToast } from '@/hooks/use-toast';
 import { Save, FileJson, X, Wand2 } from 'lucide-react';
 import CodeViewer from '@/components/CodeViewer';
+import { getSampleComponents, components as globalComponents } from '@/lib/data';
 
 // Form validation schema using Zod
 const formSchema = z.object({
@@ -151,7 +151,7 @@ const ComponentCreate = () => {
     // Split tags by commas
     const tagsList = values.tags ? values.tags.split(',').map(tag => tag.trim()) : [];
     
-    // In a real implementation, this would save to a database
+    // Create a new component object
     const newComponent = {
       id: `comp-${Date.now()}`,
       title: values.title,
@@ -164,10 +164,14 @@ const ComponentCreate = () => {
       jsonCode: values.jsonCode
     };
     
+    // Add the new component to our components array
+    // In a real app, this would be an API call
+    globalComponents.push(newComponent);
+    
     // Show success message
     toast({
       title: "Componente criado!",
-      description: "Seu componente foi criado com sucesso.",
+      description: "Seu componente foi criado e salvo com sucesso.",
     });
     
     // Navigate back to components page
