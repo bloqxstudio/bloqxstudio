@@ -20,7 +20,8 @@ import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { useToast } from '@/hooks/use-toast';
-import { Save, FileJson, X } from 'lucide-react';
+import { Save, FileJson, X, Wand2 } from 'lucide-react';
+import CodeViewer from '@/components/CodeViewer';
 
 // Form validation schema using Zod
 const formSchema = z.object({
@@ -33,9 +34,33 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
+// Function to clean Elementor JSON
+const cleanElementorJson = (dirtyJson: string): string => {
+  try {
+    // Parse the JSON first to make sure it's valid
+    const parsed = JSON.parse(dirtyJson);
+    
+    // Extract only what's needed for Elementor components
+    // This is a simplified version - you may need to adjust based on your exact requirements
+    const cleaned = {
+      elements: parsed.elements || [],
+      settings: parsed.settings || {},
+    };
+    
+    // Return the cleaned JSON formatted with 2 spaces
+    return JSON.stringify(cleaned, null, 2);
+  } catch (e) {
+    // If parsing fails, return the original string
+    console.error("Error cleaning JSON:", e);
+    return dirtyJson;
+  }
+};
+
 const ComponentCreate = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [previewJson, setPreviewJson] = useState('');
+  const [showPreview, setShowPreview] = useState(false);
   
   // Create form with React Hook Form and Zod validation
   const form = useForm<FormValues>({
@@ -57,6 +82,55 @@ const ComponentCreate = () => {
     } catch (e) {
       return false;
     }
+  };
+
+  // Handle clean and format button
+  const handleCleanJson = () => {
+    const currentJson = form.getValues('jsonCode');
+    
+    if (!currentJson) {
+      toast({
+        title: "Nenhum código para limpar",
+        description: "Por favor, insira um código JSON antes de limpar.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    try {
+      const cleanedJson = cleanElementorJson(currentJson);
+      form.setValue('jsonCode', cleanedJson);
+      setPreviewJson(cleanedJson);
+      setShowPreview(true);
+      
+      toast({
+        title: "Código limpo com sucesso!",
+        description: "O JSON foi formatado e limpo para o padrão Elementor.",
+      });
+    } catch (e) {
+      toast({
+        title: "Erro ao limpar o código",
+        description: "O texto fornecido não pôde ser limpo corretamente. Verifique se é um JSON válido.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Preview JSON
+  const handlePreviewJson = () => {
+    const currentJson = form.getValues('jsonCode');
+    
+    if (!validateJson(currentJson)) {
+      toast({
+        title: "JSON inválido",
+        description: "O texto fornecido não é um JSON válido. Não é possível visualizar.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setPreviewJson(currentJson);
+    setShowPreview(true);
   };
 
   // Form submission handler
@@ -208,6 +282,28 @@ const ComponentCreate = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Código JSON do Elementor</FormLabel>
+                      <div className="flex items-center gap-2 mb-2">
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          size="sm"
+                          onClick={handleCleanJson}
+                          className="gap-1"
+                        >
+                          <Wand2 className="h-4 w-4" />
+                          Limpar e Formatar
+                        </Button>
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          size="sm"
+                          onClick={handlePreviewJson}
+                          className="gap-1"
+                        >
+                          <FileJson className="h-4 w-4" />
+                          Visualizar
+                        </Button>
+                      </div>
                       <FormControl>
                         <Textarea 
                           placeholder='{"type": "elementor", "elements": [...]}'
@@ -222,6 +318,13 @@ const ComponentCreate = () => {
                     </FormItem>
                   )}
                 />
+                
+                {showPreview && (
+                  <div className="mt-4 pt-4 border-t">
+                    <h3 className="text-lg font-medium mb-3">Pré-visualização:</h3>
+                    <CodeViewer code={previewJson} title="JSON Formatado" />
+                  </div>
+                )}
                 
                 <div className="flex justify-end">
                   <Button type="submit" className="gap-2">

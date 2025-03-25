@@ -3,7 +3,7 @@
 export { Button } from "./button";
 export { Badge } from "./badge";
 export { Separator } from "./separator";
-export { Card, CardContent } from "./card";
+export { Card, CardContent, CardHeader, CardTitle, CardDescription } from "./card";
 export { Input } from "./input";
 export { Textarea } from "./textarea";
 export {
