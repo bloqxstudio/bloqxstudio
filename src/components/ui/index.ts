@@ -15,3 +15,13 @@ export {
   FormLabel,
   FormMessage
 } from "./form";
+export {
+  Table,
+  TableHeader,
+  TableBody,
+  TableFooter,
+  TableHead,
+  TableRow,
+  TableCell,
+  TableCaption
+} from "./table";

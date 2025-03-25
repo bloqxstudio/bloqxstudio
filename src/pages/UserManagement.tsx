@@ -1,5 +1,4 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthContext';
@@ -61,16 +60,33 @@ const UserManagement = () => {
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Fetch users
+  // Fetch users with proper error handling
   const { data: users = [], isLoading, refetch } = useQuery({
     queryKey: ['users'],
     queryFn: fetchUsers,
-    enabled: isAdmin,
-    onError: (error) => {
+    enabled: isAdmin
+  });
+
+  // Add separate effect for error handling
+  useEffect(() => {
+    const handleQueryError = (error: Error) => {
       console.error('Error fetching users:', error);
       toast.error('Erro ao carregar usuários. Verifique se você tem permissões de administrador.');
-    }
-  });
+    };
+
+    // Set up global error handling for query errors
+    const unsubscribe = queryClient.getQueryCache().subscribe(
+      (event) => {
+        if (event.type === 'error' && event.query.queryKey[0] === 'users') {
+          handleQueryError(event.error as Error);
+        }
+      }
+    );
+
+    return () => {
+      unsubscribe();
+    };
+  }, [queryClient]);
 
   // Update role mutation
   const updateRoleMutation = useMutation({

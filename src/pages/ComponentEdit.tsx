@@ -60,10 +60,12 @@ const ComponentEdit = () => {
     queryKey: ['component', id],
     queryFn: () => id ? getComponentById(id) : Promise.reject('ID não fornecido'),
     enabled: !!id,
-    onError: (error) => {
-      console.error('Error fetching component:', error);
-      toast.error('Erro ao carregar o componente');
-      navigate('/admin');
+    meta: {
+      onError: (error: Error) => {
+        console.error('Error fetching component:', error);
+        toast.error('Erro ao carregar o componente');
+        navigate('/admin');
+      }
     }
   });
 
@@ -123,6 +125,19 @@ const ComponentEdit = () => {
   const onSubmit = (data: FormData) => {
     updateMutation.mutate(data);
   };
+
+  // Add error handling for useQuery
+  useEffect(() => {
+    const handleError = (error: any) => {
+      console.error('Error fetching component:', error);
+      toast.error('Erro ao carregar o componente');
+      navigate('/admin');
+    };
+
+    if (component === undefined && !isLoadingComponent) {
+      handleError(new Error('Component not found'));
+    }
+  }, [component, isLoadingComponent, navigate]);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
