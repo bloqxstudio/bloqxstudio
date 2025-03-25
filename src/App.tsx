@@ -8,6 +8,9 @@ import Index from "./pages/Index";
 import Components from "./pages/Components";
 import ComponentDetail from "./pages/ComponentDetail";
 import ComponentCreate from "./pages/ComponentCreate";
+import ComponentEdit from "./pages/ComponentEdit";
+import AdminPanel from "./pages/AdminPanel";
+import UserManagement from "./pages/UserManagement";
 import NotFound from "./pages/NotFound";
 import { AuthProvider } from "./context/AuthContext";
 import Login from "./pages/Login";
@@ -32,6 +35,21 @@ const App = () => (
             <Route path="/components/new" element={
               <ProtectedRoute adminOnly>
                 <ComponentCreate />
+              </ProtectedRoute>
+            } />
+            <Route path="/components/edit/:id" element={
+              <ProtectedRoute adminOnly>
+                <ComponentEdit />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin" element={
+              <ProtectedRoute adminOnly>
+                <AdminPanel />
+              </ProtectedRoute>
+            } />
+            <Route path="/admin/users" element={
+              <ProtectedRoute adminOnly>
+                <UserManagement />
               </ProtectedRoute>
             } />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

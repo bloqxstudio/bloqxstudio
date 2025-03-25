@@ -109,3 +109,22 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Grant execute to authenticated users (Restrict this in production by creating a service role)
 GRANT EXECUTE ON FUNCTION public.set_user_role TO authenticated;
+
+-- Create a view for user management (admin-only)
+CREATE OR REPLACE VIEW public.users_view AS
+SELECT
+  id,
+  email,
+  created_at,
+  raw_user_meta_data->>'role' as role
+FROM auth.users;
+
+-- Create policy to allow only admins to view the users
+CREATE POLICY "Only admins can view users_view"
+ON public.users_view
+FOR SELECT
+TO authenticated
+USING (auth.jwt() ->> 'role' = 'admin');
+
+-- Ensure the users_view is protected
+ALTER VIEW public.users_view OWNER TO authenticated;
