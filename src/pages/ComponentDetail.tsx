@@ -217,7 +217,7 @@ const ComponentDetail = () => {
                   <div>
                     <p className="font-medium">Categoria:</p>
                     <p className="text-muted-foreground">
-                      {getSampleCategories().find(c => c.id === component.category)?.name || component.category}
+                      {component.category}
                     </p>
                   </div>
                   <div>

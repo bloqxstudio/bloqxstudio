@@ -1,155 +1,91 @@
 
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import ComponentCard from '@/components/ComponentCard';
-import { 
-  getSampleComponents, 
-  getSampleCategories, 
-  getSampleComponentsByCategory 
-} from '@/lib/data';
+import { getSampleComponents } from '@/lib/data';
 import { 
   Button,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Card,
+  CardContent
 } from '@/components/ui';
-import { FilterX, SlidersHorizontal } from 'lucide-react';
+import { PlusCircle, Filter } from 'lucide-react';
 
 const Components = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const categoryFilter = searchParams.get('category');
   const [components, setComponents] = useState(getSampleComponents());
-  const categories = getSampleCategories();
-  const [activeFilter, setActiveFilter] = useState<string | null>(categoryFilter);
-  const [sort, setSort] = useState<string>('newest');
+  const [filter, setFilter] = useState('');
 
-  useEffect(() => {
-    let filteredComponents = categoryFilter 
-      ? getSampleComponentsByCategory(categoryFilter) 
-      : getSampleComponents();
-    
-    // Apply sorting
-    if (sort === 'newest') {
-      filteredComponents = [...filteredComponents].sort(
-        (a, b) => new Date(b.dateCreated).getTime() - new Date(a.dateCreated).getTime()
-      );
-    } else if (sort === 'oldest') {
-      filteredComponents = [...filteredComponents].sort(
-        (a, b) => new Date(a.dateCreated).getTime() - new Date(b.dateCreated).getTime()
-      );
-    } else if (sort === 'a-z') {
-      filteredComponents = [...filteredComponents].sort(
-        (a, b) => a.title.localeCompare(b.title)
-      );
-    } else if (sort === 'z-a') {
-      filteredComponents = [...filteredComponents].sort(
-        (a, b) => b.title.localeCompare(a.title)
-      );
-    }
-    
-    setComponents(filteredComponents);
-    setActiveFilter(categoryFilter);
-  }, [categoryFilter, sort]);
-
-  const handleFilterChange = (categoryId: string) => {
-    if (categoryId === activeFilter) {
-      // Clear filter
-      searchParams.delete('category');
-      setSearchParams(searchParams);
-    } else {
-      // Apply filter
-      searchParams.set('category', categoryId);
-      setSearchParams(searchParams);
-    }
-  };
-
-  const clearFilters = () => {
-    searchParams.delete('category');
-    setSearchParams(searchParams);
-    setActiveFilter(null);
-  };
-
-  const handleSortChange = (value: string) => {
-    setSort(value);
-  };
+  // Filter components based on search term
+  const filteredComponents = components.filter(component => 
+    component.title.toLowerCase().includes(filter.toLowerCase()) ||
+    component.description.toLowerCase().includes(filter.toLowerCase()) ||
+    component.tags.some(tag => tag.toLowerCase().includes(filter.toLowerCase()))
+  );
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       
-      <main className="flex-grow py-8 px-4">
-        <div className="container mx-auto">
-          <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-bold tracking-tighter">Componentes</h1>
-              <p className="text-muted-foreground mt-1">
-                Encontre e gerencie seus componentes Elementor
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground hidden md:inline">Ordenar por:</span>
-              </div>
-              <Select defaultValue={sort} onValueChange={handleSortChange}>
-                <SelectTrigger className="w-[160px]">
-                  <SelectValue placeholder="Ordenar por" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="newest">Mais recentes</SelectItem>
-                  <SelectItem value="oldest">Mais antigos</SelectItem>
-                  <SelectItem value="a-z">A-Z</SelectItem>
-                  <SelectItem value="z-a">Z-A</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+      <main className="flex-grow container mx-auto px-4 py-8">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tighter">Componentes</h1>
+            <p className="text-muted-foreground mt-1">
+              Explore e utilize componentes Elementor pré-construídos.
+            </p>
           </div>
-
-          <div className="mb-6">
-            <div className="flex items-center gap-2 flex-wrap">
-              {categories.map((category) => (
-                <Button
-                  key={category.id}
-                  variant={activeFilter === category.id ? "default" : "outline"}
-                  size="sm"
-                  className="mb-2"
-                  onClick={() => handleFilterChange(category.id)}
-                >
-                  {category.name}
-                </Button>
-              ))}
-              {activeFilter && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="mb-2 text-muted-foreground"
-                  onClick={clearFilters}
-                >
-                  <FilterX className="h-4 w-4 mr-1" />
-                  Limpar filtros
-                </Button>
-              )}
-            </div>
+          
+          <div className="flex items-center gap-2">
+            <Button asChild className="hover-lift" size="sm">
+              <Link to="/components/new">
+                <PlusCircle className="h-4 w-4 mr-1" />
+                Novo Componente
+              </Link>
+            </Button>
+            <Button variant="outline" size="sm" className="gap-1">
+              <Filter className="h-4 w-4" />
+              Filtrar
+            </Button>
           </div>
-
-          {components.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground">Nenhum componente encontrado com os filtros atuais.</p>
-              <Button variant="link" onClick={clearFilters} className="mt-2">
-                Limpar filtros
-              </Button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-up">
-              {components.map((component) => (
-                <ComponentCard key={component.id} component={component} />
-              ))}
-            </div>
-          )}
         </div>
+        
+        <div className="relative mb-8">
+          <input
+            type="search"
+            placeholder="Buscar componentes por título, descrição ou tags..."
+            className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+          />
+        </div>
+
+        {filteredComponents.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {filteredComponents.map((component) => (
+              <Link key={component.id} to={`/component/${component.id}`}>
+                <ComponentCard component={component} />
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <Card className="border-dashed">
+            <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="rounded-full bg-primary/10 p-3 mb-4">
+                <Filter className="h-6 w-6 text-primary" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2">Nenhum componente encontrado</h3>
+              <p className="text-muted-foreground max-w-md mb-4">
+                Não encontramos nenhum componente com os filtros aplicados. Tente ajustar sua busca ou criar um novo componente.
+              </p>
+              <Button asChild>
+                <Link to="/components/new">
+                  <PlusCircle className="h-4 w-4 mr-1" />
+                  Criar Componente
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+        )}
       </main>
       
       <footer className="border-t py-6">
