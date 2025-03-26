@@ -18,7 +18,7 @@ const ComponentCreate = () => {
           <div>
             <h1 className="text-3xl font-bold tracking-tighter">Criar novo componente</h1>
             <p className="text-muted-foreground mt-1">
-              Adicione um novo componente Elementor à biblioteca
+              Apenas o título e o código JSON são obrigatórios
             </p>
           </div>
           <Button variant="outline" size="sm" onClick={() => navigate('/components')}>

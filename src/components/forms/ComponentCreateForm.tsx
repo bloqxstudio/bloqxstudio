@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useToast } from '@/hooks/use-toast';
-import { Save, Upload, Image } from 'lucide-react';
+import { Save, Upload } from 'lucide-react';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { createComponent, uploadComponentImage, getCategories } from '@/lib/api';
 import { supabase } from '@/integrations/supabase/client';
@@ -173,11 +173,11 @@ const ComponentCreateForm = () => {
       // Create component
       const newComponent = {
         title: values.title,
-        description: values.description,
+        description: values.description || '',
         type: "elementor",
         code: values.jsonCode,
         json_code: values.jsonCode,
-        category: values.category,
+        category: values.category || 'uncategorized',
         preview_image: previewImageUrl,
         tags: tagsList,
         visibility: values.visibility,
@@ -208,7 +208,7 @@ const ComponentCreateForm = () => {
                 name="title"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Título</FormLabel>
+                    <FormLabel>Título*</FormLabel>
                     <FormControl>
                       <Input placeholder="Hero de lançamento" {...field} />
                     </FormControl>
@@ -231,7 +231,7 @@ const ComponentCreateForm = () => {
                         className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
                         {...field}
                       >
-                        <option value="" disabled>Selecione uma categoria</option>
+                        <option value="">Selecione uma categoria (opcional)</option>
                         {categories.map((category) => (
                           <option key={category.id} value={category.id}>
                             {category.name}
@@ -240,7 +240,7 @@ const ComponentCreateForm = () => {
                       </select>
                     </FormControl>
                     <FormDescription>
-                      Selecione a categoria do componente
+                      Selecione a categoria do componente (opcional)
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
@@ -262,7 +262,7 @@ const ComponentCreateForm = () => {
                     />
                   </FormControl>
                   <FormDescription>
-                    Explique brevemente para que serve este componente
+                    Explique brevemente para que serve este componente (opcional)
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -315,7 +315,7 @@ const ComponentCreateForm = () => {
                     <Input placeholder="hero, lançamento, produto" {...field} />
                   </FormControl>
                   <FormDescription>
-                    Adicione tags separadas por vírgula
+                    Adicione tags separadas por vírgula (opcional)
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -344,7 +344,7 @@ const ComponentCreateForm = () => {
                     onChange={handleFileChange}
                   />
                   <p className="text-sm text-muted-foreground">
-                    {selectedFile ? selectedFile.name : "Nenhum arquivo selecionado"}
+                    {selectedFile ? selectedFile.name : "Nenhum arquivo selecionado (opcional)"}
                   </p>
                 </div>
                 
@@ -362,7 +362,7 @@ const ComponentCreateForm = () => {
                 )}
               </div>
               <FormDescription>
-                Adicione uma imagem para representar visualmente o componente
+                Adicione uma imagem para representar visualmente o componente (opcional)
               </FormDescription>
             </div>
             
@@ -371,7 +371,7 @@ const ComponentCreateForm = () => {
               name="jsonCode"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Código JSON do Elementor</FormLabel>
+                  <FormLabel>Código JSON do Elementor*</FormLabel>
                   <ComponentFormActions 
                     onCleanJson={handleCleanJson}
                     onPreviewJson={handlePreviewJson}
