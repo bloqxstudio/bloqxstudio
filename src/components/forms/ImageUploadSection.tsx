@@ -6,8 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Upload } from 'lucide-react';
 
 interface ImageUploadSectionProps {
-  selectedFile: File | null;
   imagePreview: string | null;
+  selectedFile?: File | null;
   onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 

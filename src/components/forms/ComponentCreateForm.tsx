@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { createComponent, uploadComponentImage, getCategories } from '@/lib/api';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   Card, 
   CardContent,
@@ -181,7 +182,9 @@ const ComponentCreateForm = () => {
       if (selectedFile) {
         setIsUploading(true);
         try {
-          imageUrl = await uploadComponentImage(selectedFile);
+          // Generate a unique filename
+          const filename = `${Date.now()}-${selectedFile.name}`;
+          imageUrl = await uploadComponentImage(selectedFile, filename);
         } catch (error) {
           console.error('Error uploading image:', error);
           toast.error('Erro ao fazer upload da imagem. O componente será criado sem imagem.');
@@ -190,10 +193,24 @@ const ComponentCreateForm = () => {
         }
       }
       
-      // Create the component
+      // Get current user data
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData?.user?.id) {
+        toast.error('Usuário não autenticado. Faça login novamente.');
+        return;
+      }
+      
+      // Create the component with required fields
       const componentData = {
-        ...values,
-        image: imageUrl
+        title: values.title,
+        description: values.description || '',
+        category: values.category || 'uncategorized',
+        code: 'elementor', // Required field
+        json_code: values.jsonCode,
+        preview_image: imageUrl,
+        tags: values.tags ? values.tags.split(',').map(tag => tag.trim()) : [],
+        visibility: values.visibility,
+        created_by: userData.user.id
       };
       
       createMutation.mutate(componentData);
@@ -218,8 +235,9 @@ const ComponentCreateForm = () => {
             </div>
             
             <ImageUploadSection 
-              handleFileChange={handleFileChange} 
+              onFileChange={handleFileChange} 
               imagePreview={imagePreview} 
+              selectedFile={selectedFile}
             />
             
             <JsonCodeSection 

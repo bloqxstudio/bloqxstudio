@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Toggle } from '@/components/ui/toggle';
-import { Wand2, Eye, ArrowUpToDot, ChevronsUpDown } from 'lucide-react';
+import { Wand2, Eye, ArrowUpFromDot, ChevronsUpDown } from 'lucide-react';
 
 interface ComponentFormActionsProps {
   onCleanJson: () => void;
@@ -55,7 +55,7 @@ const ComponentFormActions: React.FC<ComponentFormActionsProps> = ({
         aria-label="Remover estilos"
         className="flex items-center gap-1 h-9 px-3"
       >
-        <ArrowUpToDot size={14} />
+        <ArrowUpFromDot size={14} />
         <span>Estilo Wireframe</span>
       </Toggle>
 
