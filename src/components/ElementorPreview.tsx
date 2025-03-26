@@ -11,7 +11,7 @@ interface ElementorPreviewProps {
   jsonContent: string;
 }
 
-const ElementorPreview: React.FC<ElementorPreviewProps> = ({ jsonContent }) => {
+export const ElementorPreview: React.FC<ElementorPreviewProps> = ({ jsonContent }) => {
   const [parsedContent, setParsedContent] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -201,6 +201,32 @@ const renderWidget = (widgetType: string, settings: any, title: string) => {
           </div>
         </div>
       );
+      
+    case 'price-table':
+    case 'price-list':
+      const priceTitle = settings?.heading_title || 'Título do Plano';
+      const priceAmount = settings?.price || '99';
+      const priceCurrency = settings?.price_currency_symbol || 'R$';
+      const pricePeriod = settings?.period || '/mês';
+      
+      return (
+        <div className="mb-4 p-4 bg-white rounded-lg shadow-sm">
+          <div className="text-xs text-gray-400 mb-1">{title}</div>
+          <div className="text-center">
+            <h3 className="font-medium text-gray-800 mb-2">{priceTitle}</h3>
+            <div className="flex justify-center items-baseline mb-2">
+              <span className="text-sm text-gray-500">{priceCurrency}</span>
+              <span className="text-3xl font-bold text-gray-800 mx-1">{priceAmount}</span>
+              <span className="text-sm text-gray-500">{pricePeriod}</span>
+            </div>
+            <div className="pt-4">
+              <Button variant="outline" className="w-full bg-gray-800 text-white hover:bg-gray-700">
+                Botão Principal
+              </Button>
+            </div>
+          </div>
+        </div>
+      );
     
     default:
       return (
@@ -236,5 +262,3 @@ const determineImageAspectRatio = (settings: any): 'square' | 'video' | 'portrai
   
   return 'video';
 };
-
-export default ElementorPreview;
