@@ -34,8 +34,8 @@ import { cleanElementorJson, validateJson } from '@/utils/jsonUtils';
 
 const formSchema = z.object({
   title: z.string().min(3, { message: 'Título deve ter pelo menos 3 caracteres' }),
-  description: z.string().min(10, { message: 'Descrição deve ter pelo menos 10 caracteres' }),
-  category: z.string().min(1, { message: 'Categoria é obrigatória' }),
+  description: z.string().optional(),
+  category: z.string().optional(),
   code: z.string().min(10, { message: 'Código é obrigatório' }),
   visibility: z.enum(['public', 'private'], { message: 'Visibilidade deve ser pública ou privada' })
 });

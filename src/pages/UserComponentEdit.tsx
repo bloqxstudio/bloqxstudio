@@ -34,8 +34,8 @@ import { cleanElementorJson, validateJson } from '@/utils/jsonUtils';
 
 const formSchema = z.object({
   title: z.string().min(3, { message: 'Título deve ter pelo menos 3 caracteres' }),
-  description: z.string().min(10, { message: 'Descrição deve ter pelo menos 10 caracteres' }),
-  category: z.string().min(1, { message: 'Categoria é obrigatória' }),
+  description: z.string().optional(),
+  category: z.string().optional(),
   visibility: z.enum(['public', 'private'], { message: 'Visibilidade deve ser pública ou privada' })
 });
 
@@ -91,7 +91,7 @@ const UserComponentEdit = () => {
       form.reset({
         title: component.title,
         description: component.description || '',
-        category: component.category,
+        category: component.category || '',
         visibility: component.visibility
       });
       setIsLoading(false);
@@ -218,7 +218,7 @@ const UserComponentEdit = () => {
                             className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                             {...field}
                           >
-                            <option value="" disabled>Selecione uma categoria</option>
+                            <option value="">Selecione uma categoria</option>
                             {categories.map((category) => (
                               <option key={category.id} value={category.id}>
                                 {category.name}

@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Component, UpdateComponent, NewComponent, Category, UpdateCategory, NewCategory } from '@/lib/database.types';
 import { toast } from 'sonner';
@@ -74,14 +73,23 @@ export const getUserComponents = async (userId: string) => {
 };
 
 export const getComponentById = async (id: string) => {
-  const { data, error } = await supabase
-    .from('components')
-    .select('*')
-    .eq('id', id)
-    .single();
-  
-  if (error) throw error;
-  return data as Component;
+  try {
+    const { data, error } = await supabase
+      .from('components')
+      .select('*')
+      .eq('id', id)
+      .single();
+    
+    if (error) {
+      console.error('Erro ao obter componente por ID:', error);
+      throw error;
+    }
+    
+    return data as Component;
+  } catch (error) {
+    console.error('Erro ao buscar componente:', error);
+    throw error;
+  }
 };
 
 export const getComponentsByCategory = async (categoryId: string) => {

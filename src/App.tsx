@@ -35,7 +35,7 @@ const App: React.FC = () => {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AuthProvider>
-          <Toaster position="top-right" />
+          <Toaster position="bottom-left" />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
