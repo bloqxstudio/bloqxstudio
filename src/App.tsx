@@ -25,7 +25,7 @@ const queryClient = new QueryClient({
       staleTime: 60 * 1000, // 1 minute
       retry: 1, // Reduzir o número de tentativas para melhorar performance
       refetchOnWindowFocus: false,
-      cacheTime: 5 * 60 * 1000, // Aumentar o tempo de cache para 5 minutos
+      gcTime: 5 * 60 * 1000, // Aumentar o tempo de cache para 5 minutos (using gcTime instead of cacheTime)
     },
   },
 });
