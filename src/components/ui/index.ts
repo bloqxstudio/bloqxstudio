@@ -37,5 +37,4 @@ export {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-  AlertDialogOverlay,
 } from "./alert-dialog";

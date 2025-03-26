@@ -16,6 +16,7 @@ import AdminPanel from '@/pages/AdminPanel';
 import UserManagement from '@/pages/UserManagement';
 import NotFound from '@/pages/NotFound';
 
+// Create the QueryClient instance outside of the component
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -26,41 +27,43 @@ const queryClient = new QueryClient({
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <AuthProvider>
-          <Toaster position="top-right" />
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/components" element={<Components />} />
-            <Route path="/components/new" element={
-              <ProtectedRoute>
-                <ComponentCreate />
-              </ProtectedRoute>
-            } />
-            <Route path="/component/:id" element={<ComponentDetail />} />
-            <Route path="/component/edit/:id" element={
-              <ProtectedRoute adminOnly>
-                <ComponentEdit />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin" element={
-              <ProtectedRoute adminOnly>
-                <AdminPanel />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/users" element={
-              <ProtectedRoute adminOnly>
-                <UserManagement />
-              </ProtectedRoute>
-            } />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AuthProvider>
-      </BrowserRouter>
-    </QueryClientProvider>
+    <React.StrictMode>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <AuthProvider>
+            <Toaster position="top-right" />
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              <Route path="/components" element={<Components />} />
+              <Route path="/components/new" element={
+                <ProtectedRoute>
+                  <ComponentCreate />
+                </ProtectedRoute>
+              } />
+              <Route path="/component/:id" element={<ComponentDetail />} />
+              <Route path="/component/edit/:id" element={
+                <ProtectedRoute adminOnly>
+                  <ComponentEdit />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin" element={
+                <ProtectedRoute adminOnly>
+                  <AdminPanel />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/users" element={
+                <ProtectedRoute adminOnly>
+                  <UserManagement />
+                </ProtectedRoute>
+              } />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AuthProvider>
+        </BrowserRouter>
+      </QueryClientProvider>
+    </React.StrictMode>
   );
 }
 
