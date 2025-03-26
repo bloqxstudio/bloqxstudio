@@ -1,32 +1,39 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import Navbar from '@/components/Navbar';
 import ComponentCard from '@/components/ComponentCard';
-import { getSampleComponents, getSampleCategories } from '@/lib/data';
+import { getSampleCategories } from '@/lib/data';
 import { Component } from '@/lib/database.types';
 import { ArrowRight, Layers, Code, Copy, Zap } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
+
 const Index = () => {
-  const featuredComponents = getSampleComponents().slice(0, 3);
   const categories = getSampleCategories();
 
-  // Create a mapping function to convert ElementorComponent to Component
-  const mapToComponent = (component: any): Component => ({
-    id: component.id,
-    title: component.title,
-    description: component.description,
-    preview_image: component.previewImage,
-    category: component.category,
-    code: component.jsonCode,
-    json_code: component.jsonCode,
-    tags: component.tags,
-    type: component.type || 'elementor',
-    visibility: 'public',
-    created_at: component.dateCreated || new Date().toISOString(),
-    updated_at: component.dateUpdated || new Date().toISOString(),
-    created_by: 'system'
+  // Fetch featured components from Supabase
+  const { data: featuredComponents = [], isLoading, error } = useQuery({
+    queryKey: ['featuredComponents'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('components')
+        .select('*')
+        .eq('visibility', 'public')
+        .order('created_at', { ascending: false })
+        .limit(3);
+      
+      if (error) {
+        console.error('Error fetching featured components:', error);
+        throw error;
+      }
+      
+      return data as Component[];
+    },
   });
+
   return <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       
@@ -122,9 +129,25 @@ const Index = () => {
               </Button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {featuredComponents.map(component => <ComponentCard key={component.id} component={mapToComponent(component)} />)}
-            </div>
+            {isLoading ? (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">Carregando componentes...</p>
+              </div>
+            ) : error ? (
+              <div className="text-center py-12">
+                <p className="text-red-500">Erro ao carregar componentes. Tente novamente mais tarde.</p>
+              </div>
+            ) : featuredComponents.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">Nenhum componente encontrado. Adicione alguns componentes!</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {featuredComponents.map(component => (
+                  <ComponentCard key={component.id} component={component} />
+                ))}
+              </div>
+            )}
           </div>
         </section>
 

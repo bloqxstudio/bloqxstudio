@@ -1,9 +1,8 @@
 
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import CodeViewer from '@/components/CodeViewer';
-import { getSampleComponentById } from '@/lib/data';
 import { useAuth } from '@/context/AuthContext';
 import { 
   Button, 
@@ -14,26 +13,45 @@ import {
 } from '@/components/ui';
 import { ArrowLeft, Calendar, Copy, Download, Tag, Lock } from 'lucide-react';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { Component } from '@/lib/database.types';
+import { useQuery } from '@tanstack/react-query';
 
 const ComponentDetail = () => {
   const { id } = useParams<{ id: string }>();
-  const [component, setComponent] = useState(getSampleComponentById(id || ''));
   const [isScrolled, setIsScrolled] = useState(false);
   const { user } = useAuth();
+  const navigate = useNavigate();
+
+  // Use React Query to fetch the component data
+  const { data: component, isLoading, error } = useQuery({
+    queryKey: ['component', id],
+    queryFn: async () => {
+      if (!id) return null;
+      
+      const { data, error } = await supabase
+        .from('components')
+        .select('*')
+        .eq('id', id)
+        .single();
+      
+      if (error) {
+        console.error('Error fetching component:', error);
+        throw error;
+      }
+      
+      return data as Component;
+    },
+  });
 
   useEffect(() => {
-    if (id) {
-      const componentData = getSampleComponentById(id);
-      setComponent(componentData);
-    }
-
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 100);
     };
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [id]);
+  }, []);
 
   const handleCopyCode = () => {
     if (!user) {
@@ -42,7 +60,9 @@ const ComponentDetail = () => {
     }
     
     if (component) {
-      navigator.clipboard.writeText(component.jsonCode);
+      // Use json_code if available, otherwise fall back to code
+      const codeToCopy = component.json_code || component.code;
+      navigator.clipboard.writeText(codeToCopy);
       toast.success('Código copiado para a área de transferência!');
     }
   };
@@ -55,7 +75,9 @@ const ComponentDetail = () => {
     
     if (component) {
       const element = document.createElement('a');
-      const file = new Blob([component.jsonCode], { type: 'application/json' });
+      // Use json_code if available, otherwise fall back to code
+      const codeToCopy = component.json_code || component.code;
+      const file = new Blob([codeToCopy], { type: 'application/json' });
       element.href = URL.createObjectURL(file);
       element.download = `${component.id}.json`;
       document.body.appendChild(element);
@@ -65,7 +87,25 @@ const ComponentDetail = () => {
     }
   };
 
-  if (!component) {
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex flex-col bg-background">
+        <Navbar />
+        <main className="flex-grow py-12 px-4 container mx-auto">
+          <div className="text-center py-12">
+            <h1 className="text-2xl font-bold mb-4">Carregando componente...</h1>
+            <p className="text-muted-foreground mb-6">
+              Aguarde enquanto buscamos as informações do componente.
+            </p>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error || !component) {
     return (
       <div className="min-h-screen flex flex-col bg-background">
         <Navbar />
@@ -145,17 +185,17 @@ const ComponentDetail = () => {
               <div className="flex flex-wrap items-center gap-3 mt-4">
                 <div className="flex items-center text-sm text-muted-foreground">
                   <Calendar className="h-4 w-4 mr-1" />
-                  Criado em: {new Date(component.dateCreated).toLocaleDateString('pt-BR')}
+                  Criado em: {new Date(component.created_at).toLocaleDateString('pt-BR')}
                 </div>
                 <div className="flex items-center text-sm text-muted-foreground">
                   <Calendar className="h-4 w-4 mr-1" />
-                  Atualizado em: {new Date(component.dateUpdated).toLocaleDateString('pt-BR')}
+                  Atualizado em: {new Date(component.updated_at).toLocaleDateString('pt-BR')}
                 </div>
               </div>
               
               <div className="flex items-center gap-2 mt-4">
                 <Tag className="h-4 w-4 text-muted-foreground" />
-                {component.tags.map((tag, i) => (
+                {component.tags && component.tags.map((tag, i) => (
                   <Badge key={i} variant="secondary">
                     {tag}
                   </Badge>
@@ -169,7 +209,7 @@ const ComponentDetail = () => {
               <h2 className="text-xl font-bold">Visualização</h2>
               <div className="rounded-lg overflow-hidden border bg-muted/20">
                 <img 
-                  src={component.previewImage || '/placeholder.svg'} 
+                  src={component.preview_image || '/placeholder.svg'} 
                   alt={component.title}
                   className="w-full max-h-[400px] object-contain"
                 />
@@ -179,7 +219,7 @@ const ComponentDetail = () => {
             <div className="space-y-4">
               <h2 className="text-xl font-bold">Código Elementor</h2>
               <CodeViewer 
-                code={component.jsonCode}
+                code={component.json_code || component.code}
                 title="Código JSON para Elementor"
                 fileName={`${component.id}.json`}
                 restricted={true}
@@ -242,7 +282,7 @@ const ComponentDetail = () => {
                 <div className="space-y-3 text-sm">
                   <div>
                     <p className="font-medium">Tipo de componente:</p>
-                    <p className="text-muted-foreground">{component.type}</p>
+                    <p className="text-muted-foreground">{component.type || 'elementor'}</p>
                   </div>
                   <div>
                     <p className="font-medium">Categoria:</p>
