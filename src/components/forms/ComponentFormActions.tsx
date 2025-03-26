@@ -56,13 +56,15 @@ const ComponentFormActions: React.FC<ComponentFormActionsProps> = ({
           pressed={removeStyles}
           onPressedChange={onToggleRemoveStyles}
           className="gap-1 text-xs"
-          title="Remover todos os estilos visuais, mantendo apenas conteúdo e estrutura"
+          title="Aplicar estilo de wireframe premium e nomenclatura Client-First"
         >
           <Paintbrush className="h-4 w-4" />
-          Remover Estilos
+          Estilo Wireframe
         </Toggle>
         <span className="text-xs text-muted-foreground">
-          {removeStyles ? "Estrutura básica sem estilos" : "Manter estilos visuais"}
+          {removeStyles 
+            ? "Wireframe com nomenclatura Client-First" 
+            : "Manter estilos originais"}
         </span>
       </div>
     </div>

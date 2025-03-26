@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -30,7 +29,6 @@ import {
 import { ArrowLeft, Save, Paintbrush, Wand2 } from 'lucide-react';
 import { cleanElementorJson, validateJson } from '@/utils/jsonUtils';
 
-// Update validation schema to match new database structure
 const formSchema = z.object({
   title: z.string().min(3, { message: 'Título deve ter pelo menos 3 caracteres' }),
   description: z.string().min(10, { message: 'Descrição deve ter pelo menos 10 caracteres' }),
@@ -49,7 +47,6 @@ const ComponentEdit = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [removeStyles, setRemoveStyles] = useState(false);
 
-  // Redirect if not an admin
   useEffect(() => {
     if (!isAdmin) {
       toast.error('Acesso restrito apenas para administradores');
@@ -57,7 +54,6 @@ const ComponentEdit = () => {
     }
   }, [isAdmin, navigate]);
 
-  // Get component data
   const { data: component, isLoading: isLoadingComponent } = useQuery({
     queryKey: ['component', id],
     queryFn: () => id ? getComponentById(id) : Promise.reject('ID não fornecido'),
@@ -71,13 +67,11 @@ const ComponentEdit = () => {
     }
   });
 
-  // Get categories
   const { data: categories = [] } = useQuery({
     queryKey: ['categories'],
     queryFn: getCategories
   });
 
-  // Setup form
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -89,7 +83,6 @@ const ComponentEdit = () => {
     }
   });
 
-  // Update form values when component data is loaded
   useEffect(() => {
     if (component) {
       form.reset({
@@ -103,7 +96,6 @@ const ComponentEdit = () => {
     }
   }, [component, form]);
 
-  // Update mutation
   const updateMutation = useMutation({
     mutationFn: (data: UpdateComponent) => {
       if (!id) throw new Error('ID não fornecido');
@@ -121,12 +113,10 @@ const ComponentEdit = () => {
     }
   });
 
-  // Handle form submission
   const onSubmit = (data: FormData) => {
     updateMutation.mutate(data);
   };
 
-  // Add error handling for useQuery
   useEffect(() => {
     const handleError = (error: any) => {
       console.error('Error fetching component:', error);
@@ -139,7 +129,6 @@ const ComponentEdit = () => {
     }
   }, [component, isLoadingComponent, navigate]);
 
-  // Handle cleaning JSON
   const handleCleanJson = () => {
     const currentCode = form.getValues('code');
     
@@ -149,18 +138,16 @@ const ComponentEdit = () => {
     }
     
     try {
-      // First validate the JSON structure
       if (!validateJson(currentCode)) {
         toast.error('O código não é um JSON válido. Verifique a sintaxe.');
         return;
       }
       
-      // Clean and format the JSON with the removeStyles flag
       const cleanedJson = cleanElementorJson(currentCode, removeStyles);
       form.setValue('code', cleanedJson);
       
       const successMessage = removeStyles 
-        ? 'JSON limpo, formatado e todos os estilos foram removidos com sucesso!'
+        ? 'JSON limpo e formatado com estilo wireframe premium e nomenclatura Client-First!'
         : 'JSON limpo e formatado com sucesso!';
       
       toast.success(successMessage);
@@ -170,14 +157,12 @@ const ComponentEdit = () => {
     }
   };
 
-  // Toggle remove styles
   const handleToggleRemoveStyles = () => {
     setRemoveStyles(!removeStyles);
-    // Provide feedback to the user
     if (!removeStyles) {
-      toast.info('Modo de remoção de estilos ativado. Ao limpar o JSON, todos os estilos visuais serão removidos.');
+      toast.info('Modo wireframe ativado. Ao limpar o JSON, será aplicado estilo wireframe premium com nomenclatura Client-First.');
     } else {
-      toast.info('Modo de remoção de estilos desativado. Os estilos visuais serão preservados.');
+      toast.info('Modo wireframe desativado. Os estilos originais serão preservados.');
     }
   };
 
@@ -338,13 +323,15 @@ const ComponentEdit = () => {
                               pressed={removeStyles}
                               onPressedChange={handleToggleRemoveStyles}
                               className="gap-1 text-xs"
-                              title="Remover todos os estilos visuais, mantendo apenas conteúdo e estrutura"
+                              title="Aplicar estilo de wireframe premium e nomenclatura Client-First"
                             >
                               <Paintbrush className="h-4 w-4" />
-                              Remover Estilos
+                              Estilo Wireframe
                             </Toggle>
                             <span className="text-xs text-muted-foreground">
-                              {removeStyles ? "Estrutura básica sem estilos" : "Manter estilos visuais"}
+                              {removeStyles 
+                                ? "Wireframe com nomenclatura Client-First" 
+                                : "Manter estilos originais"}
                             </span>
                           </div>
                         </div>

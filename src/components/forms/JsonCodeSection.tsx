@@ -43,11 +43,11 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
     setRemoveStyles(!removeStyles);
     // Provide feedback to the user
     if (!removeStyles) {
-      toast.info('Modo de remoção de estilos ativado. Ao limpar o JSON, todos os estilos visuais serão removidos.', {
+      toast.info('Modo wireframe ativado. Ao limpar o JSON, será aplicado estilo wireframe premium com nomenclatura Client-First.', {
         duration: 3000,
       });
     } else {
-      toast.info('Modo de remoção de estilos desativado. Os estilos visuais serão preservados.', {
+      toast.info('Modo wireframe desativado. Os estilos originais serão preservados.', {
         duration: 3000,
       });
     }

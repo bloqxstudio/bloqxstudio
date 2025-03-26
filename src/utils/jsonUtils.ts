@@ -68,14 +68,62 @@ const cleanElement = (element: any, index: string, removeStyles: boolean = false
   
   const result = { ...element };
   
-  // Add title based on type and index
+  // Add title based on type and index with Client-First naming convention
   const elementType = element.elType || "unknown";
   const widgetType = element.widgetType || "";
-  result._title = `${index.padStart(2, '0')}_${elementType}${widgetType ? `_${widgetType}` : ""}`;
+  
+  // Create Client-First style naming based on element type
+  let clientFirstPrefix = "";
+  let componentName = "";
+  
+  if (elementType === "section") {
+    componentName = "section";
+  } else if (elementType === "column") {
+    componentName = "column";
+  } else if (widgetType) {
+    // Convert widget type to client-first naming
+    componentName = widgetType.replace(/[-_]/g, '').toLowerCase();
+  }
+  
+  // Create a client-first style class name
+  clientFirstPrefix = `${componentName}${index.padStart(2, '0')}`;
+  result._title = `${clientFirstPrefix}_${elementType}${widgetType ? `_${widgetType}` : ""}`;
   
   // Clean settings
   if (result.settings && typeof result.settings === 'object') {
     result.settings = cleanSettings(result.settings, removeStyles);
+    
+    // Add client-first class names if removing styles (applying wireframe)
+    if (removeStyles && result.settings) {
+      // Apply Client-First naming convention CSS classes
+      if (!result.settings.css_classes) {
+        result.settings.css_classes = '';
+      }
+      
+      if (elementType === "section") {
+        // Add section class
+        result.settings.css_classes += ` ${clientFirstPrefix}_wrapper section-padding`;
+      } else if (elementType === "column") {
+        // Add column class
+        result.settings.css_classes += ` ${clientFirstPrefix}_container`;
+      } else if (widgetType) {
+        // Add appropriate class based on widget type
+        if (widgetType === "heading") {
+          result.settings.css_classes += ` ${clientFirstPrefix}_heading`;
+        } else if (widgetType === "text-editor") {
+          result.settings.css_classes += ` ${clientFirstPrefix}_text`;
+        } else if (widgetType === "button") {
+          result.settings.css_classes += ` ${clientFirstPrefix}_btn btn_primary`;
+        } else if (widgetType === "image") {
+          result.settings.css_classes += ` ${clientFirstPrefix}_image-wrapper`;
+        } else {
+          result.settings.css_classes += ` ${clientFirstPrefix}_${widgetType.replace(/[-_]/g, '-')}`;
+        }
+      }
+      
+      // Trim and clean up classes
+      result.settings.css_classes = result.settings.css_classes.trim().replace(/\s+/g, ' ');
+    }
   }
   
   // Copy only necessary properties
@@ -108,13 +156,63 @@ const styleProperties = [
   'text_align', 'align', 'font_size', 'font_weight', 'line_height', 'letter_spacing',
   'text_color', 'text_shadow', 'text_stroke', 'text_decoration', 'text_transform',
   'style', 'animation', 'hover_animation', 'hover_', 'space_between', 'css_filters',
-  'custom_css', 'css_classes', 'height', 'min_height', 'width', 'min_width', 'max_width',
+  'custom_css', 'height', 'min_height', 'width', 'min_width', 'max_width',
   'image_size', 'size', 'gap', 'item_gap', 'column_gap', 'row_gap', 'vertical_align',
   'horizontal_align', 'flex_', 'link_hover_', 'icon_color', 'icon_size', 'icon_padding',
   'overlay_', 'gradient_', 'rotate', 'transform', 'border_radius', 'image_hover_',
   'image_border_radius', 'css_background_animation', 'custom_height', 'custom_width',
   'item_width', 'position', 'overflow', 'z_index', 'color_', '_color', '_typography'
 ];
+
+// Standard wireframe style properties to apply when removing custom styles
+const wireframeStyleDefaults = {
+  // Text elements
+  heading: {
+    title_color: "#444444",
+    typography_typography: "custom",
+  },
+  'text-editor': {
+    text_color: "#444444",
+    typography_typography: "custom",
+  },
+  // Container elements
+  section: {
+    background_color: "#F7F6F3",
+    border_radius: { size: 4, unit: 'px' },
+    box_shadow_box_shadow_type: "yes",
+    box_shadow_box_shadow: {
+      horizontal: 0, vertical: 2, blur: 10, spread: 0, 
+      color: "rgba(0, 0, 0, 0.05)", position: "outside"
+    }
+  },
+  column: {
+    background_color: "#FFFFFF",
+    border_radius: { size: 4, unit: 'px' },
+    box_shadow_box_shadow_type: "yes",
+    box_shadow_box_shadow: {
+      horizontal: 0, vertical: 2, blur: 10, spread: 0, 
+      color: "rgba(0, 0, 0, 0.05)", position: "outside"
+    },
+    padding: { top: "20", right: "20", bottom: "20", left: "20", unit: 'px' }
+  },
+  button: {
+    background_color: "#FFFFFF",
+    button_text_color: "#000000",
+    border_border: "solid",
+    border_width: { top: "1", right: "1", bottom: "1", left: "1", unit: 'px' },
+    border_color: "#000000",
+    border_radius: { size: 4, unit: 'px' }
+  },
+  image: {
+    background_color: "#E3E1DC",
+    border_radius: { size: 4, unit: 'px' }
+  },
+  // Default for any other element type
+  default: {
+    background_color: "#FFFFFF",
+    border_radius: { size: 4, unit: 'px' }
+  }
+};
 
 // Check if a property is style-related
 const isStyleProperty = (key: string): boolean => {
@@ -143,11 +241,32 @@ const shouldRemoveProperty = (key: string, removeStyles: boolean = false): boole
   return removePatterns.some(pattern => key.includes(pattern)) || isStyleProperty(key);
 };
 
+// Apply wireframe styles based on widget type
+const applyWireframeStyles = (settings: any, widgetType: string, elType: string): any => {
+  const result = { ...settings };
+  
+  // Determine which default styles to apply
+  let defaultStyles;
+  
+  if (widgetType && wireframeStyleDefaults[widgetType]) {
+    defaultStyles = wireframeStyleDefaults[widgetType];
+  } else if (elType && wireframeStyleDefaults[elType]) {
+    defaultStyles = wireframeStyleDefaults[elType];
+  } else {
+    defaultStyles = wireframeStyleDefaults.default;
+  }
+  
+  // Apply the default styles
+  return { ...result, ...defaultStyles };
+};
+
 // Clean settings object by removing unnecessary properties
 const cleanSettings = (settings: any, removeStyles: boolean = false): any => {
   if (!settings || typeof settings !== 'object') return settings;
   
   const cleanedSettings: any = {};
+  const widgetType = settings._widget_type || settings.widgetType;
+  const elType = settings._element_type || settings.elType;
   
   // Process each setting
   Object.entries(settings).forEach(([key, value]) => {
@@ -155,7 +274,7 @@ const cleanSettings = (settings: any, removeStyles: boolean = false): any => {
     if (shouldRemoveProperty(key, removeStyles)) return;
     
     // Keep content-related properties even in style stripping mode
-    const contentProperties = ['title', 'editor', 'item_title', 'heading_title', 'text', 'html', 'content', 'description', 'url', 'link', 'image', 'selected_icon'];
+    const contentProperties = ['title', 'editor', 'item_title', 'heading_title', 'text', 'html', 'content', 'description', 'url', 'link', 'image', 'selected_icon', 'css_classes'];
     
     if (removeStyles && !contentProperties.some(prop => key.includes(prop)) && typeof value === 'object' && value !== null) {
       // For non-content objects, check if they're style-related
@@ -170,6 +289,11 @@ const cleanSettings = (settings: any, removeStyles: boolean = false): any => {
       cleanedSettings[key] = normalizedValue;
     }
   });
+  
+  // If we're removing styles, apply wireframe styles
+  if (removeStyles) {
+    return applyWireframeStyles(cleanedSettings, widgetType, elType);
+  }
   
   return cleanedSettings;
 };
