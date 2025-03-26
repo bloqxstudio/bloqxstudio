@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -8,7 +7,6 @@ import ComponentCard from '@/components/ComponentCard';
 import { getSampleComponents, getSampleCategories } from '@/lib/data';
 import { Component } from '@/lib/database.types';
 import { ArrowRight, Layers, Code, Copy, Zap } from 'lucide-react';
-
 const Index = () => {
   const featuredComponents = getSampleComponents().slice(0, 3);
   const categories = getSampleCategories();
@@ -29,9 +27,7 @@ const Index = () => {
     updated_at: component.dateUpdated || new Date().toISOString(),
     created_by: 'system'
   });
-
-  return (
-    <div className="min-h-screen flex flex-col bg-background">
+  return <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       
       <main className="flex-grow">
@@ -41,9 +37,7 @@ const Index = () => {
             <div className="inline-block rounded-lg bg-primary/10 px-3 py-1 text-sm text-primary">
               Documentação simplificada para Elementor
             </div>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter max-w-3xl mx-auto">
-              Gerencie seus componentes Elementor em um só lugar
-            </h1>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tighter max-w-3xl mx-auto">Colocar aqui a copy que quiser sem precisar codar.</h1>
             <p className="text-muted-foreground text-base sm:text-lg md:text-xl max-w-[800px] mx-auto">
               Organize, compartilhe e reutilize seus blocos de código JSON para Elementor. Uma biblioteca centralizada para todos os seus componentes.
             </p>
@@ -129,9 +123,7 @@ const Index = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {featuredComponents.map((component) => (
-                <ComponentCard key={component.id} component={mapToComponent(component)} />
-              ))}
+              {featuredComponents.map(component => <ComponentCard key={component.id} component={mapToComponent(component)} />)}
             </div>
           </div>
         </section>
@@ -149,8 +141,7 @@ const Index = () => {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              {categories.map((category) => (
-                <Link to={`/components?category=${category.slug}`} key={category.id}>
+              {categories.map(category => <Link to={`/components?category=${category.slug}`} key={category.id}>
                   <Card className="hover:shadow-md transition-all duration-300 hover:border-primary cursor-pointer h-full">
                     <CardContent className="p-6 flex flex-col">
                       <h3 className="text-xl font-medium mb-2">{category.name}</h3>
@@ -161,8 +152,7 @@ const Index = () => {
                       </Button>
                     </CardContent>
                   </Card>
-                </Link>
-              ))}
+                </Link>)}
             </div>
           </div>
         </section>
@@ -207,8 +197,6 @@ const Index = () => {
           </div>
         </div>
       </footer>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
