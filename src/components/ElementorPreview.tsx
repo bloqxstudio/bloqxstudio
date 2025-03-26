@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { PlaceholderImage } from '@/components/ui/placeholder-image';
 import { Button } from '@/components/ui/button';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle as LucideAlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { validateJson } from '@/utils/jsonUtils';
 
@@ -11,7 +11,7 @@ interface ElementorPreviewProps {
   jsonContent: string;
 }
 
-export const ElementorPreview: React.FC<ElementorPreviewProps> = ({ jsonContent }) => {
+const ElementorPreview: React.FC<ElementorPreviewProps> = ({ jsonContent }) => {
   const [parsedContent, setParsedContent] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,7 +41,7 @@ export const ElementorPreview: React.FC<ElementorPreviewProps> = ({ jsonContent 
   if (error) {
     return (
       <Alert variant="destructive" className="mb-4">
-        <AlertCircle className="h-4 w-4" />
+        <LucideAlertCircle className="h-4 w-4" />
         <AlertTitle>Erro na visualização</AlertTitle>
         <AlertDescription>{error}</AlertDescription>
       </Alert>
@@ -57,15 +57,13 @@ export const ElementorPreview: React.FC<ElementorPreviewProps> = ({ jsonContent 
   }
 
   return (
-    <div className="preview-container">
-      <Card className="overflow-hidden shadow-md">
-        <CardContent className="p-0">
-          <div className="bg-gray-50 p-4 space-y-6">
-            {renderElementorContent(parsedContent.elements)}
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+    <Card className="overflow-hidden shadow-md">
+      <CardContent className="p-0">
+        <div className="bg-gray-100 p-4 space-y-8">
+          {renderElementorContent(parsedContent.elements)}
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
@@ -102,7 +100,7 @@ const renderElement = (element: any) => {
         : 12;
       
       return (
-        <div className={`col-span-${colSpan} bg-white p-4 rounded`}>
+        <div className={`col-span-${colSpan} bg-gray-50 p-4 rounded`}>
           <div className="text-xs text-gray-400 mb-2">{title}</div>
           {elements && renderElementorContent(elements)}
         </div>
@@ -170,7 +168,7 @@ const renderWidget = (widgetType: string, settings: any, title: string) => {
           <PlaceholderImage 
             aspectRatio={aspectRatio} 
             text={altText}
-            className="w-full bg-gray-200" 
+            className="w-full" 
           />
         </div>
       );
@@ -190,7 +188,7 @@ const renderWidget = (widgetType: string, settings: any, title: string) => {
       const iconBoxDescription = settings?.description_text || 'Descrição do item. Este é um texto genérico usado como placeholder.';
       
       return (
-        <div className="mb-4 p-4 bg-white rounded-lg shadow-sm">
+        <div className="mb-4 p-4 bg-gray-50 rounded-lg shadow-sm">
           <div className="text-xs text-gray-400 mb-1">{title}</div>
           <div className="flex gap-4">
             <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">

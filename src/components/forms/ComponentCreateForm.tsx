@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -23,6 +22,7 @@ import TagsSection from './TagsSection';
 import ImageUploadSection from './ImageUploadSection';
 import JsonCodeSection from './JsonCodeSection';
 import FormSubmitButton from './FormSubmitButton';
+import WireframeExample from '@/components/WireframeExample';
 
 const ComponentCreateForm = () => {
   const navigate = useNavigate();
@@ -33,6 +33,8 @@ const ComponentCreateForm = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [removeStyles, setRemoveStyles] = useState(false);
+  const [wireframeMode, setWireframeMode] = useState(false);
+  const [showWireframeExample, setShowWireframeExample] = useState(false);
 
   // Fetch categories
   const { data: categories = [] } = useQuery({
@@ -110,12 +112,46 @@ const ComponentCreateForm = () => {
       // Clean and format the JSON with the wireframe modes
       const cleanedJson = cleanElementorJson(currentJson, removeStyles);
       form.setValue('jsonCode', cleanedJson);
+      setPreviewJson(cleanedJson);
+      setShowPreview(true);
       
-      toast.success('JSON limpo e formatado com sucesso!');
+      toast.success('JSON limpo e formatado com estilo wireframe!');
+      
+      // Show wireframe example
+      setShowWireframeExample(true);
     } catch (e) {
       console.error('Error cleaning JSON:', e);
       toast.error('Erro ao processar o JSON. Verifique o formato e tente novamente.', {
         id: 'clean-error',
+      });
+    }
+  };
+
+  const handlePreviewJson = () => {
+    const currentJson = form.getValues('jsonCode');
+    
+    if (!currentJson) {
+      toast.warning('Nenhum código para visualizar');
+      return;
+    }
+    
+    try {
+      // Check if it's valid JSON
+      if (!validateJson(currentJson)) {
+        toast.error('O código não é um JSON válido. Verifique a sintaxe.', {
+          duration: 3000,
+        });
+        return;
+      }
+      
+      // Format and display
+      const formattedJson = JSON.stringify(JSON.parse(currentJson), null, 2);
+      setPreviewJson(formattedJson);
+      setShowPreview(true);
+    } catch (e) {
+      console.error('Error previewing JSON:', e);
+      toast.error('Erro ao formatar o JSON. Verifique a sintaxe.', {
+        duration: 3000,
       });
     }
   };
@@ -197,9 +233,20 @@ const ComponentCreateForm = () => {
               showPreview={showPreview}
               setShowPreview={setShowPreview}
               onCleanJson={handleCleanJson} 
+              onPreviewJson={handlePreviewJson}
               removeStyles={removeStyles}
               setRemoveStyles={setRemoveStyles}
             />
+            
+            {showWireframeExample && (
+              <div className="mt-4 pt-4 border-t">
+                <h3 className="text-lg font-medium mb-3">Exemplo de Wireframe:</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Veja abaixo um exemplo do estilo wireframe que será aplicado ao seu componente:
+                </p>
+                <WireframeExample />
+              </div>
+            )}
             
             <FormSubmitButton isSubmitting={createMutation.isPending || isUploading} />
           </form>

@@ -7,15 +7,14 @@ import { FormValues } from './componentFormSchema';
 import ComponentFormActions from './ComponentFormActions';
 import { validateJson, cleanElementorJson } from '@/utils/jsonUtils';
 import { toast } from 'sonner';
-import { ElementorPreview } from '@/components/ElementorPreview';
-import { Button } from '@/components/ui/button';
-import { Eye, EyeOff } from 'lucide-react';
+import ElementorPreview from '@/components/ElementorPreview';
 
 interface JsonCodeSectionProps {
   form: UseFormReturn<FormValues>;
   showPreview: boolean;
   setShowPreview: (value: boolean) => void;
   onCleanJson: () => void;
+  onPreviewJson: () => void;
   removeStyles: boolean;
   setRemoveStyles: (value: boolean) => void;
 }
@@ -25,11 +24,12 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
   showPreview,
   setShowPreview,
   onCleanJson, 
+  onPreviewJson,
   removeStyles,
   setRemoveStyles
 }) => {
   const [isValidJson, setIsValidJson] = useState(true);
-  const [previewJson, setPreviewJson] = useState('');
+  const [previewJsonContent, setPreviewJsonContent] = useState<string>('');
   
   // Validate JSON whenever it changes
   useEffect(() => {
@@ -37,9 +37,6 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
     if (currentJson) {
       const isValid = validateJson(currentJson);
       setIsValidJson(isValid);
-      if (isValid) {
-        setPreviewJson(currentJson);
-      }
     }
   }, [form.watch('jsonCode')]);
 
@@ -47,7 +44,7 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
     setRemoveStyles(!removeStyles);
     // Provide feedback to the user
     if (!removeStyles) {
-      toast.info('Estilo wireframe ativado. Textos serão genéricos, cores em tons de cinza, e elementos terão nomes amigáveis.', {
+      toast.info('Estilo wireframe ativado. Textos serão genéricos em português, cores em tons de cinza, e elementos terão nomes amigáveis.', {
         duration: 3000,
       });
       
@@ -58,17 +55,8 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
       } else if (!currentDescription) {
         form.setValue('description', '[WIREFRAME] Componente em estilo wireframe');
       }
-      
-      // Clean and apply wireframe style immediately
-      const currentJson = form.getValues('jsonCode');
-      if (validateJson(currentJson)) {
-        const processedJson = cleanElementorJson(currentJson, true);
-        form.setValue('jsonCode', processedJson);
-        setPreviewJson(processedJson);
-        toast.success('JSON convertido para estilo wireframe!');
-      }
     } else {
-      toast.info('Estilo wireframe desativado.', {
+      toast.info('Estilo wireframe desativado. Os estilos originais serão preservados.', {
         duration: 3000,
       });
       
@@ -80,31 +68,17 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
     }
   };
 
-  const handleCleanJson = () => {
+  const handlePreview = () => {
     const currentJson = form.getValues('jsonCode');
     if (validateJson(currentJson)) {
-      // Apply wireframe style and clean the code right away
-      const processedJson = removeStyles ? cleanElementorJson(currentJson, true) : cleanElementorJson(currentJson, false);
-      form.setValue('jsonCode', processedJson);
-      setPreviewJson(processedJson);
-      toast.success('JSON limpo e formatado com sucesso!');
+      // Apply wireframe style to preview if enabled
+      const processedJson = removeStyles ? cleanElementorJson(currentJson, true) : currentJson;
+      setPreviewJsonContent(processedJson);
+      setShowPreview(true);
+      onPreviewJson();
     } else {
-      toast.error('JSON inválido. Verifique a sintaxe antes de limpar.');
+      toast.error('JSON inválido. Verifique a sintaxe antes de visualizar.');
     }
-  };
-
-  const togglePreview = () => {
-    if (!showPreview) {
-      // When enabling preview, update the preview JSON
-      const currentJson = form.getValues('jsonCode');
-      if (validateJson(currentJson)) {
-        setPreviewJson(currentJson);
-      } else {
-        toast.error('JSON inválido. Verifique a sintaxe antes de visualizar.');
-        return;
-      }
-    }
-    setShowPreview(!showPreview);
   };
 
   return (
@@ -114,30 +88,10 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
         name="jsonCode"
         render={({ field }) => (
           <FormItem>
-            <div className="flex justify-between items-center">
-              <FormLabel>Código JSON do Elementor*</FormLabel>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={togglePreview}
-                className="flex items-center gap-1"
-              >
-                {showPreview ? (
-                  <>
-                    <EyeOff size={14} />
-                    <span>Ocultar Preview</span>
-                  </>
-                ) : (
-                  <>
-                    <Eye size={14} />
-                    <span>Mostrar Preview</span>
-                  </>
-                )}
-              </Button>
-            </div>
+            <FormLabel>Código JSON do Elementor*</FormLabel>
             <ComponentFormActions 
-              onCleanJson={handleCleanJson}
+              onCleanJson={onCleanJson}
+              onPreviewJson={handlePreview}
               hasValidJson={isValidJson}
               removeStyles={removeStyles}
               onToggleRemoveStyles={handleToggleRemoveStyles}
@@ -175,12 +129,10 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
         )}
       />
       
-      {showPreview && previewJson && (
-        <div className="mt-6 mb-8">
-          <h3 className="text-lg font-medium mb-2">Visualização do Componente</h3>
-          <div className="border rounded-lg p-4 bg-gray-50 max-h-[500px] overflow-y-auto">
-            <ElementorPreview jsonContent={previewJson} />
-          </div>
+      {showPreview && previewJsonContent && (
+        <div className="mt-6 pt-4 border-t">
+          <h3 className="text-lg font-medium mb-3">Visualização do componente:</h3>
+          <ElementorPreview jsonContent={previewJsonContent} />
         </div>
       )}
     </>
