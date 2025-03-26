@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Component, UpdateComponent, NewComponent, Category, UpdateCategory, NewCategory } from '@/lib/database.types';
 import { toast } from 'sonner';
@@ -18,11 +19,14 @@ export const getComponents = async () => {
     console.log('Dados do usuário:', userData?.user);
     console.log('É admin:', isAdmin);
     
-    // Se o usuário for admin, obter todos os componentes; caso contrário, apenas obter os públicos
+    // Para usuários não logados, buscar apenas componentes públicos
     let query = supabase.from('components').select('*');
     
-    // Sempre buscamos componentes públicos, esteja o usuário logado ou não
-    if (!isAdmin) {
+    // Se o usuário for admin, obter todos os componentes; caso contrário, apenas obter os públicos
+    if (!isAdmin && userData?.user) {
+      query = query.or(`visibility.eq.public,created_by.eq.${userData.user.id}`);
+    } else if (!userData?.user) {
+      // Usuário não está logado, mostrar apenas componentes públicos
       query = query.eq('visibility', 'public');
     }
     

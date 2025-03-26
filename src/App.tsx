@@ -39,13 +39,15 @@ const App: React.FC = () => {
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            {/* Componentes acessíveis sem login */}
             <Route path="/components" element={<Components />} />
+            <Route path="/component/:id" element={<ComponentDetail />} />
+            {/* Rotas protegidas */}
             <Route path="/components/new" element={
               <ProtectedRoute>
                 <ComponentCreate />
               </ProtectedRoute>
             } />
-            <Route path="/component/:id" element={<ComponentDetail />} />
             <Route path="/component/edit/:id" element={
               <ProtectedRoute adminOnly>
                 <ComponentEdit />

@@ -39,7 +39,6 @@ const profileSchema = z.object({
 
 // Schema para validação da troca de senha
 const passwordSchema = z.object({
-  currentPassword: z.string().min(6, 'A senha atual deve ter pelo menos 6 caracteres'),
   newPassword: z.string().min(6, 'A nova senha deve ter pelo menos 6 caracteres'),
   confirmPassword: z.string().min(6, 'Confirme a nova senha')
 }).refine(data => data.newPassword === data.confirmPassword, {
@@ -75,7 +74,6 @@ const UserProfile = () => {
   const passwordForm = useForm<PasswordFormValues>({
     resolver: zodResolver(passwordSchema),
     defaultValues: {
-      currentPassword: '',
       newPassword: '',
       confirmPassword: ''
     }
