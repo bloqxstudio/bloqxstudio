@@ -4,7 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { Suspense, useState } from "react";
+import { Suspense, useState, useEffect } from "react";
 import Index from "./pages/Index";
 import Components from "./pages/Components";
 import ComponentDetail from "./pages/ComponentDetail";
@@ -61,10 +61,26 @@ const queryClient = new QueryClient({
 
 const App = () => {
   const [error, setError] = useState<Error | null>(null);
+  const [initialized, setInitialized] = useState(false);
+
+  // Initialization check
+  useEffect(() => {
+    // Add a small delay to ensure DOM is fully loaded
+    const timer = setTimeout(() => {
+      setInitialized(true);
+    }, 100);
+    
+    return () => clearTimeout(timer);
+  }, []);
 
   // Error handler
   if (error) {
     return <ErrorFallback error={error} />;
+  }
+
+  // Initial loading
+  if (!initialized) {
+    return <LoadingFallback />;
   }
 
   return (
