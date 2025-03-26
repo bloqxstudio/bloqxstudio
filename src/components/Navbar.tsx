@@ -6,13 +6,14 @@ import { Button } from '@/components/ui/button';
 import { PlusCircle, Home, Grid, Search, Shield } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import AuthButtons from '@/components/AuthButtons';
+import UserMenu from '@/components/UserMenu';
 
 interface NavbarProps {
   className?: string;
 }
 
 const Navbar: React.FC<NavbarProps> = ({ className }) => {
-  const { isAdmin } = useAuth();
+  const { isAdmin, user } = useAuth();
   const location = useLocation();
   
   return (
@@ -71,7 +72,7 @@ const Navbar: React.FC<NavbarProps> = ({ className }) => {
               className="h-9 w-[200px] md:w-[250px] rounded-md border border-input bg-transparent pl-8 pr-3 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
             />
           </div>
-          {isAdmin && (
+          {user && (
             <Button asChild size="sm" className="hover-lift mr-2">
               <Link to="/components/new">
                 <PlusCircle className="mr-1 h-4 w-4" />
@@ -79,7 +80,7 @@ const Navbar: React.FC<NavbarProps> = ({ className }) => {
               </Link>
             </Button>
           )}
-          <AuthButtons />
+          {user ? <UserMenu /> : <AuthButtons />}
         </div>
       </div>
     </header>

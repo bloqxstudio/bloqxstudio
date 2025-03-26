@@ -1,30 +1,43 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Component, UpdateComponent, NewComponent, Category, UpdateCategory, NewCategory } from '@/lib/database.types';
 
 // Component CRUD operations
 export const getComponents = async () => {
-  const { data: userData, error: userError } = await supabase.auth.getUser();
+  console.log('Fetching components from database...');
   
-  // Verificar se o usuário é admin através dos metadados
-  const isAdmin = userData?.user?.user_metadata?.role === 'admin';
-  console.log('User data:', userData?.user);
-  console.log('Is admin:', isAdmin);
-  
-  // If the user is an admin, get all components; otherwise, only get public ones
-  let query = supabase.from('components').select('*');
-  
-  if (!isAdmin) {
-    query = query.eq('visibility', 'public');
+  try {
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+    
+    if (userError) {
+      console.error('Error fetching user data:', userError);
+    }
+    
+    // Verificar se o usuário é admin através dos metadados
+    const isAdmin = userData?.user?.user_metadata?.role === 'admin';
+    console.log('User data:', userData?.user);
+    console.log('Is admin:', isAdmin);
+    
+    // If the user is an admin, get all components; otherwise, only get public ones
+    let query = supabase.from('components').select('*');
+    
+    if (!isAdmin) {
+      query = query.eq('visibility', 'public');
+    }
+    
+    const { data, error } = await query.order('created_at', { ascending: false });
+    
+    if (error) {
+      console.error('Error fetching components:', error);
+      throw error;
+    }
+    
+    console.log('Components fetched successfully:', data?.length || 0, 'components');
+    return data as Component[] || [];
+  } catch (error) {
+    console.error('Unexpected error in getComponents:', error);
+    // Return an empty array instead of throwing to prevent app crashes
+    return [] as Component[];
   }
-  
-  const { data, error } = await query.order('created_at', { ascending: false });
-  
-  if (error) {
-    console.error('Error fetching components:', error);
-    throw error;
-  }
-  return data as Component[];
 };
 
 export const getComponentById = async (id: string) => {

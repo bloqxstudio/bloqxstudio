@@ -1,5 +1,6 @@
 
-import React from 'react-dom/client'
+import React from 'react'
+import { createRoot } from 'react-dom/client'
 import { StrictMode } from 'react'
 import App from './App.tsx'
 import './index.css'
@@ -24,6 +25,3 @@ if (!container) {
     container.innerHTML = '<div style="color: red; padding: 20px;">Failed to initialize the application. Please check the console for more details.</div>';
   }
 }
-
-// Import createRoot separately to avoid React import conflicts
-import { createRoot } from 'react-dom/client';

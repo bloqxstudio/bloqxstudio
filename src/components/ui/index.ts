@@ -38,3 +38,18 @@ export {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "./alert-dialog";
+// Add Dropdown Menu exports for user menu
+export {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from "./dropdown-menu";
+// Add Avatar components for user menu
+export {
+  Avatar,
+  AvatarFallback,
+  AvatarImage
+} from "./avatar";

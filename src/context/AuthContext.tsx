@@ -37,50 +37,65 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     // Set up auth state listener first
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      console.log("Auth state changed", session?.user?.email);
-      console.log("User metadata:", session?.user?.user_metadata);
-      setSession(session);
-      setUser(session?.user ?? null);
-      setIsAdmin(session?.user ? isUserAdmin(session.user) : false);
+    const auth = supabase.auth;
+    if (!auth) {
+      console.error("Supabase auth is not available");
+      setIsError(true);
       setIsLoading(false);
-    });
-
-    // Then get initial session
-    const initializeAuth = async () => {
-      try {
-        const { data, error } = await supabase.auth.getSession();
-        
-        if (error) {
-          console.error("Error fetching auth session:", error);
-          setIsError(true);
-          toast.error("Failed to connect to authentication service");
-        } else {
-          setSession(data.session);
-          setUser(data.session?.user ?? null);
-          
-          // Log user info for debugging
-          console.log("Session user:", data.session?.user);
-          console.log("User metadata:", data.session?.user?.user_metadata);
-          
-          const admin = data.session?.user ? isUserAdmin(data.session.user) : false;
-          console.log("Is admin:", admin);
-          setIsAdmin(admin);
-        }
-      } catch (err) {
-        console.error("Unexpected auth error:", err);
-        setIsError(true);
-        toast.error("Authentication service unavailable");
-      } finally {
+      return () => {};
+    }
+    
+    try {
+      const { data: { subscription } } = auth.onAuthStateChange((_event, session) => {
+        console.log("Auth state changed", session?.user?.email);
+        console.log("User metadata:", session?.user?.user_metadata);
+        setSession(session);
+        setUser(session?.user ?? null);
+        setIsAdmin(session?.user ? isUserAdmin(session.user) : false);
         setIsLoading(false);
-      }
-    };
+      });
 
-    initializeAuth();
+      // Then get initial session
+      const initializeAuth = async () => {
+        try {
+          const { data, error } = await auth.getSession();
+          
+          if (error) {
+            console.error("Error fetching auth session:", error);
+            setIsError(true);
+            toast.error("Failed to connect to authentication service");
+          } else {
+            setSession(data.session);
+            setUser(data.session?.user ?? null);
+            
+            // Log user info for debugging
+            console.log("Session user:", data.session?.user);
+            console.log("User metadata:", data.session?.user?.user_metadata);
+            
+            const admin = data.session?.user ? isUserAdmin(data.session.user) : false;
+            console.log("Is admin:", admin);
+            setIsAdmin(admin);
+          }
+        } catch (err) {
+          console.error("Unexpected auth error:", err);
+          setIsError(true);
+          toast.error("Authentication service unavailable");
+        } finally {
+          setIsLoading(false);
+        }
+      };
 
-    return () => {
-      subscription.unsubscribe();
-    };
+      initializeAuth();
+
+      return () => {
+        subscription.unsubscribe();
+      };
+    } catch (error) {
+      console.error("Error setting up auth listener:", error);
+      setIsError(true);
+      setIsLoading(false);
+      return () => {};
+    }
   }, []);
 
   const signIn = async (email: string, password: string) => {
