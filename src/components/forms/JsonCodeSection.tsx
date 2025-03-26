@@ -7,6 +7,7 @@ import { FormValues } from './componentFormSchema';
 import ComponentFormActions from './ComponentFormActions';
 import { validateJson, cleanElementorJson } from '@/utils/jsonUtils';
 import { toast } from 'sonner';
+import ElementorPreview from '@/components/ElementorPreview';
 
 interface JsonCodeSectionProps {
   form: UseFormReturn<FormValues>;
@@ -130,6 +131,13 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
           </FormItem>
         )}
       />
+      
+      {showPreview && validateJson(form.getValues('jsonCode')) && (
+        <div className="mt-4">
+          <h3 className="text-lg font-medium mb-2">Visualização</h3>
+          <ElementorPreview jsonContent={form.getValues('jsonCode')} />
+        </div>
+      )}
     </>
   );
 };

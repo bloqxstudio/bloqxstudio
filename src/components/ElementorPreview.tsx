@@ -237,4 +237,6 @@ const determineImageAspectRatio = (settings: any): 'square' | 'video' | 'portrai
   return 'video';
 };
 
+// Fix the export by making it a default export AND a named export
+export { ElementorPreview };
 export default ElementorPreview;
