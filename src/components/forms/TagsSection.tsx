@@ -18,9 +18,13 @@ const TagsSection: React.FC<TagsSectionProps> = ({ form }) => {
         <FormItem>
           <FormLabel>Tags</FormLabel>
           <FormControl>
-            <Input placeholder="hero, lançamento, produto" {...field} />
+            <Input 
+              placeholder="hero, lançamento, produto" 
+              {...field} 
+              aria-describedby="tags-description"
+            />
           </FormControl>
-          <FormDescription>
+          <FormDescription id="tags-description">
             Adicione tags separadas por vírgula (opcional)
           </FormDescription>
           <FormMessage />

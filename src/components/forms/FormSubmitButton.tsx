@@ -14,10 +14,12 @@ const FormSubmitButton: React.FC<FormSubmitButtonProps> = ({ isLoading }) => {
         type="submit" 
         className="gap-2" 
         disabled={isLoading}
+        aria-disabled={isLoading}
       >
         {isLoading ? (
           <>
-            <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
+            <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" 
+                 aria-hidden="true" />
             Salvando...
           </>
         ) : (

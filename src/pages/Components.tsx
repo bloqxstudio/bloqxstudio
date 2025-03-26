@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import ComponentCard from '@/components/ComponentCard';
 import { useAuth } from '@/context/AuthContext';
@@ -16,7 +16,8 @@ import { toast } from 'sonner';
 
 const Components = () => {
   const [filter, setFilter] = useState('');
-  const { user } = useAuth(); // Remove isAdmin check
+  const { user, isAdmin } = useAuth(); // Ensure we're checking isAdmin
+  const navigate = useNavigate();
   
   // Fetch components from Supabase
   const { data: components = [], isLoading, error } = useQuery({
@@ -31,6 +32,11 @@ const Components = () => {
       toast.error('Erro ao carregar componentes. Tente novamente.');
     }
   }, [error]);
+  
+  // Handle create button click
+  const handleCreateClick = () => {
+    navigate('/components/new');
+  };
 
   // Filter components based on search term
   const filteredComponents = components.filter(component => 
@@ -52,12 +58,12 @@ const Components = () => {
           </div>
           
           <div className="flex items-center gap-2">
-            <Button asChild className="hover-lift" size="sm">
-              <Link to="/components/new">
+            {isAdmin && (
+              <Button onClick={handleCreateClick} className="hover-lift" size="sm">
                 <PlusCircle className="h-4 w-4 mr-1" />
                 Novo Componente
-              </Link>
-            </Button>
+              </Button>
+            )}
             <Button variant="outline" size="sm" className="gap-1">
               <Filter className="h-4 w-4" />
               Filtrar
@@ -95,12 +101,12 @@ const Components = () => {
               <p className="text-muted-foreground max-w-md mb-4">
                 Não encontramos nenhum componente com os filtros aplicados. Tente ajustar sua busca ou criar um novo componente.
               </p>
-              <Button asChild>
-                <Link to="/components/new">
+              {isAdmin && (
+                <Button onClick={handleCreateClick}>
                   <PlusCircle className="h-4 w-4 mr-1" />
                   Criar Componente
-                </Link>
-              </Button>
+                </Button>
+              )}
             </CardContent>
           </Card>
         )}

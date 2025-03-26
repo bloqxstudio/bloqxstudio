@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui';
@@ -10,15 +10,32 @@ import { toast } from 'sonner';
 
 const ComponentCreate = () => {
   const navigate = useNavigate();
-  const { user } = useAuth(); // Remove isAdmin check
-
-  // Optional: Add a check to ensure the user is logged in
-  React.useEffect(() => {
+  const { user, isAdmin } = useAuth(); // Make sure we get both user and isAdmin
+  
+  // Check if user is logged in and is an admin
+  useEffect(() => {
     if (!user) {
-      toast.error('Você precisa estar logado para criar um componente');
+      toast.error('Você precisa estar logado para acessar esta página');
       navigate('/login');
+      return;
     }
-  }, [user, navigate]);
+    
+    // Redirect non-admin users
+    if (!isAdmin) {
+      toast.error('Apenas administradores podem criar componentes');
+      navigate('/components');
+    }
+  }, [user, isAdmin, navigate]);
+
+  // Handle cancel button click
+  const handleCancel = () => {
+    navigate('/components');
+  };
+
+  // Only render the form if user is logged in and is an admin
+  if (!user || !isAdmin) {
+    return null; // Don't render anything while redirecting
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -32,7 +49,7 @@ const ComponentCreate = () => {
               Apenas o título e o código JSON são obrigatórios
             </p>
           </div>
-          <Button variant="outline" size="sm" onClick={() => navigate('/components')}>
+          <Button variant="outline" size="sm" onClick={handleCancel}>
             <X className="h-4 w-4 mr-1" />
             Cancelar
           </Button>
