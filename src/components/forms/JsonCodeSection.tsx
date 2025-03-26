@@ -7,7 +7,6 @@ import { FormValues } from './componentFormSchema';
 import ComponentFormActions from './ComponentFormActions';
 import { validateJson, cleanElementorJson } from '@/utils/jsonUtils';
 import { toast } from 'sonner';
-import { ElementorPreview } from '@/components/ElementorPreview';
 
 interface JsonCodeSectionProps {
   form: UseFormReturn<FormValues>;
@@ -27,7 +26,6 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
   setRemoveStyles
 }) => {
   const [isValidJson, setIsValidJson] = useState(true);
-  const [previewJson, setPreviewJson] = useState('');
   
   // Validate JSON whenever it changes
   useEffect(() => {
@@ -35,13 +33,8 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
     if (currentJson) {
       const isValid = validateJson(currentJson);
       setIsValidJson(isValid);
-      
-      // Update preview
-      if (isValid && showPreview) {
-        setPreviewJson(currentJson);
-      }
     }
-  }, [form.watch('jsonCode'), showPreview]);
+  }, [form.watch('jsonCode')]);
 
   const handleToggleRemoveStyles = () => {
     setRemoveStyles(!removeStyles);
@@ -79,33 +72,6 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
     }
   };
 
-  const handleShowPreview = () => {
-    const currentJson = form.getValues('jsonCode');
-    
-    if (!currentJson) {
-      toast.warning('Nenhum código para visualizar');
-      return;
-    }
-    
-    try {
-      // Check if it's valid JSON
-      if (!validateJson(currentJson)) {
-        toast.error('O código não é um JSON válido. Verifique a sintaxe.', {
-          duration: 3000,
-        });
-        return;
-      }
-      
-      setPreviewJson(currentJson);
-      setShowPreview(true);
-    } catch (e) {
-      console.error('Error previewing JSON:', e);
-      toast.error('Erro ao visualizar o JSON. Verifique a sintaxe.', {
-        duration: 3000,
-      });
-    }
-  };
-
   const handleCleanJson = () => {
     const currentJson = form.getValues('jsonCode');
     if (validateJson(currentJson)) {
@@ -113,11 +79,6 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
       const processedJson = removeStyles ? cleanElementorJson(currentJson, true) : cleanElementorJson(currentJson, false);
       form.setValue('jsonCode', processedJson);
       toast.success('JSON limpo e formatado com sucesso!');
-      
-      // Update preview if showing
-      if (showPreview) {
-        setPreviewJson(processedJson);
-      }
     } else {
       toast.error('JSON inválido. Verifique a sintaxe antes de limpar.');
     }
@@ -136,8 +97,6 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
               hasValidJson={isValidJson}
               removeStyles={removeStyles}
               onToggleRemoveStyles={handleToggleRemoveStyles}
-              onTogglePreview={() => setShowPreview(!showPreview)}
-              showPreview={showPreview}
             />
             <FormControl>
               <Textarea 
@@ -171,15 +130,6 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
           </FormItem>
         )}
       />
-      
-      {showPreview && previewJson && (
-        <div className="mt-6 space-y-4">
-          <h3 className="text-lg font-medium">Visualização do JSON {removeStyles ? '(Wireframe)' : ''}</h3>
-          <div className="border rounded-lg p-4 bg-gray-50">
-            <ElementorPreview jsonContent={previewJson} />
-          </div>
-        </div>
-      )}
     </>
   );
 };
