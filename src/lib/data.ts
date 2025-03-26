@@ -34,7 +34,7 @@ export const categories: Category[] = [
   }
 ];
 
-// Make sure the components array is exported so we can modify it
+// Export components as globalComponents to maintain existing functionality in other files
 export const components: ElementorComponent[] = [
   {
     id: "hero-lancamento",
@@ -289,6 +289,9 @@ export const components: ElementorComponent[] = [
 }`
   }
 ];
+
+// Export an alias of components as globalComponents
+export const globalComponents = components;
 
 export const getSampleComponents = () => {
   return components;
