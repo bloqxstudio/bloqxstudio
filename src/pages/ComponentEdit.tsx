@@ -28,14 +28,13 @@ import {
 } from '@/components/ui';
 import { ArrowLeft, Save } from 'lucide-react';
 
-// Validation schema
+// Update validation schema to match new database structure
 const formSchema = z.object({
   title: z.string().min(3, { message: 'Título deve ter pelo menos 3 caracteres' }),
   description: z.string().min(10, { message: 'Descrição deve ter pelo menos 10 caracteres' }),
   category: z.string().min(1, { message: 'Categoria é obrigatória' }),
-  json_code: z.string().min(10, { message: 'Código JSON é obrigatório' }),
-  visibility: z.enum(['public', 'private'], { message: 'Visibilidade deve ser pública ou privada' }),
-  type: z.string().min(1, { message: 'Tipo é obrigatório' })
+  code: z.string().min(10, { message: 'Código é obrigatório' }),
+  visibility: z.enum(['public', 'private'], { message: 'Visibilidade deve ser pública ou privada' })
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -82,9 +81,8 @@ const ComponentEdit = () => {
       title: '',
       description: '',
       category: '',
-      json_code: '',
-      visibility: 'public' as const,
-      type: ''
+      code: '',
+      visibility: 'public' as const
     }
   });
 
@@ -95,9 +93,8 @@ const ComponentEdit = () => {
         title: component.title,
         description: component.description || '',
         category: component.category,
-        json_code: component.json_code,
-        visibility: component.visibility,
-        type: component.type
+        code: component.code,
+        visibility: component.visibility
       });
       setIsLoading(false);
     }
@@ -208,57 +205,29 @@ const ComponentEdit = () => {
                     )}
                   />
                   
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormField
-                      control={form.control}
-                      name="category"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Categoria</FormLabel>
-                          <FormControl>
-                            <select
-                              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                              {...field}
-                            >
-                              <option value="" disabled>Selecione uma categoria</option>
-                              {categories.map((category) => (
-                                <option key={category.id} value={category.id}>
-                                  {category.name}
-                                </option>
-                              ))}
-                            </select>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    
-                    <FormField
-                      control={form.control}
-                      name="type"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Tipo</FormLabel>
-                          <FormControl>
-                            <select
-                              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                              {...field}
-                            >
-                              <option value="" disabled>Selecione um tipo</option>
-                              <option value="section">Seção</option>
-                              <option value="header">Cabeçalho</option>
-                              <option value="footer">Rodapé</option>
-                              <option value="form">Formulário</option>
-                              <option value="card">Card</option>
-                              <option value="button">Botão</option>
-                              <option value="other">Outro</option>
-                            </select>
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+                  <FormField
+                    control={form.control}
+                    name="category"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Categoria</FormLabel>
+                        <FormControl>
+                          <select
+                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                            {...field}
+                          >
+                            <option value="" disabled>Selecione uma categoria</option>
+                            {categories.map((category) => (
+                              <option key={category.id} value={category.id}>
+                                {category.name}
+                              </option>
+                            ))}
+                          </select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                   
                   <FormField
                     control={form.control}
@@ -300,20 +269,20 @@ const ComponentEdit = () => {
                   
                   <FormField
                     control={form.control}
-                    name="json_code"
+                    name="code"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Código JSON</FormLabel>
+                        <FormLabel>Código</FormLabel>
                         <FormControl>
                           <Textarea 
-                            placeholder="Código JSON do componente" 
+                            placeholder="Código do componente" 
                             {...field} 
                             rows={12}
                             className="font-mono text-xs"
                           />
                         </FormControl>
                         <FormDescription>
-                          Cole o código JSON exportado do Elementor
+                          Cole o código do componente
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
