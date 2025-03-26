@@ -24,9 +24,11 @@ import {
   Card,
   CardContent,
   CardHeader,
-  CardTitle
+  CardTitle,
+  Toggle
 } from '@/components/ui';
-import { ArrowLeft, Save } from 'lucide-react';
+import { ArrowLeft, Save, Paintbrush, Wand2 } from 'lucide-react';
+import { cleanElementorJson, validateJson } from '@/utils/jsonUtils';
 
 // Update validation schema to match new database structure
 const formSchema = z.object({
@@ -45,6 +47,7 @@ const ComponentEdit = () => {
   const { user, isAdmin } = useAuth();
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(true);
+  const [removeStyles, setRemoveStyles] = useState(false);
 
   // Redirect if not an admin
   useEffect(() => {
@@ -135,6 +138,48 @@ const ComponentEdit = () => {
       handleError(new Error('Component not found'));
     }
   }, [component, isLoadingComponent, navigate]);
+
+  // Handle cleaning JSON
+  const handleCleanJson = () => {
+    const currentCode = form.getValues('code');
+    
+    if (!currentCode) {
+      toast('Nenhum código para limpar');
+      return;
+    }
+    
+    try {
+      // First validate the JSON structure
+      if (!validateJson(currentCode)) {
+        toast.error('O código não é um JSON válido. Verifique a sintaxe.');
+        return;
+      }
+      
+      // Clean and format the JSON with the removeStyles flag
+      const cleanedJson = cleanElementorJson(currentCode, removeStyles);
+      form.setValue('code', cleanedJson);
+      
+      const successMessage = removeStyles 
+        ? 'JSON limpo, formatado e todos os estilos foram removidos com sucesso!'
+        : 'JSON limpo e formatado com sucesso!';
+      
+      toast.success(successMessage);
+    } catch (e) {
+      console.error('Error cleaning JSON:', e);
+      toast.error('Erro ao processar o JSON. Verifique se é um código válido.');
+    }
+  };
+
+  // Toggle remove styles
+  const handleToggleRemoveStyles = () => {
+    setRemoveStyles(!removeStyles);
+    // Provide feedback to the user
+    if (!removeStyles) {
+      toast.info('Modo de remoção de estilos ativado. Ao limpar o JSON, todos os estilos visuais serão removidos.');
+    } else {
+      toast.info('Modo de remoção de estilos desativado. Os estilos visuais serão preservados.');
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -273,6 +318,36 @@ const ComponentEdit = () => {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Código</FormLabel>
+                        <div className="space-y-3 mb-2">
+                          <div className="flex items-center gap-2">
+                            <Button 
+                              type="button" 
+                              variant="outline" 
+                              size="sm"
+                              onClick={handleCleanJson}
+                              className="gap-1"
+                              title="Limpa o JSON, remove propriedades desnecessárias e formata o código"
+                            >
+                              <Wand2 className="h-4 w-4" />
+                              Limpar e Formatar
+                            </Button>
+                          </div>
+                          
+                          <div className="flex items-center gap-2">
+                            <Toggle 
+                              pressed={removeStyles}
+                              onPressedChange={handleToggleRemoveStyles}
+                              className="gap-1 text-xs"
+                              title="Remover todos os estilos visuais, mantendo apenas conteúdo e estrutura"
+                            >
+                              <Paintbrush className="h-4 w-4" />
+                              Remover Estilos
+                            </Toggle>
+                            <span className="text-xs text-muted-foreground">
+                              {removeStyles ? "Estrutura básica sem estilos" : "Manter estilos visuais"}
+                            </span>
+                          </div>
+                        </div>
                         <FormControl>
                           <Textarea 
                             placeholder="Código do componente" 

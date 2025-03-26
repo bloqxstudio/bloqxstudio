@@ -15,6 +15,8 @@ interface JsonCodeSectionProps {
   previewJson: string;
   onCleanJson: () => void;
   onPreviewJson: () => void;
+  removeStyles: boolean;
+  setRemoveStyles: (value: boolean) => void;
 }
 
 const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({ 
@@ -22,7 +24,9 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
   showPreview, 
   previewJson, 
   onCleanJson, 
-  onPreviewJson 
+  onPreviewJson,
+  removeStyles,
+  setRemoveStyles
 }) => {
   const [isValidJson, setIsValidJson] = useState(true);
   
@@ -34,6 +38,20 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
       setIsValidJson(isValid);
     }
   }, [form.watch('jsonCode')]);
+
+  const handleToggleRemoveStyles = () => {
+    setRemoveStyles(!removeStyles);
+    // Provide feedback to the user
+    if (!removeStyles) {
+      toast.info('Modo de remoção de estilos ativado. Ao limpar o JSON, todos os estilos visuais serão removidos.', {
+        duration: 3000,
+      });
+    } else {
+      toast.info('Modo de remoção de estilos desativado. Os estilos visuais serão preservados.', {
+        duration: 3000,
+      });
+    }
+  };
 
   return (
     <>
@@ -47,6 +65,8 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
               onCleanJson={onCleanJson}
               onPreviewJson={onPreviewJson}
               hasValidJson={isValidJson}
+              removeStyles={removeStyles}
+              onToggleRemoveStyles={handleToggleRemoveStyles}
             />
             <FormControl>
               <Textarea 

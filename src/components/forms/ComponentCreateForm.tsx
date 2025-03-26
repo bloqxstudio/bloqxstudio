@@ -32,6 +32,7 @@ const ComponentCreateForm = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [removeStyles, setRemoveStyles] = useState(false);
 
   // Fetch categories
   const { data: categories = [] } = useQuery({
@@ -106,13 +107,17 @@ const ComponentCreateForm = () => {
         });
       }
       
-      // Clean and format the JSON
-      const cleanedJson = cleanElementorJson(currentJson);
+      // Clean and format the JSON with the removeStyles flag
+      const cleanedJson = cleanElementorJson(currentJson, removeStyles);
       form.setValue('jsonCode', cleanedJson);
       setPreviewJson(cleanedJson);
       setShowPreview(true);
       
-      toast.success('JSON limpo e formatado com sucesso!', {
+      const successMessage = removeStyles 
+        ? 'JSON limpo, formatado e todos os estilos foram removidos com sucesso!'
+        : 'JSON limpo e formatado com sucesso!';
+      
+      toast.success(successMessage, {
         id: 'clean-success',
       });
     } catch (e) {
@@ -229,6 +234,8 @@ const ComponentCreateForm = () => {
               previewJson={previewJson}
               onCleanJson={handleCleanJson}
               onPreviewJson={handlePreviewJson}
+              removeStyles={removeStyles}
+              setRemoveStyles={setRemoveStyles}
             />
             
             <FormSubmitButton isLoading={createMutation.isPending || isUploading} />
