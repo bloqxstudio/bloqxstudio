@@ -1,12 +1,30 @@
-
-export const cleanElementorJson = (dirtyJson: string, removeStyles: boolean = false): string => {
+export const cleanElementorJson = (jsonString: string, removeStyles = false, createWireframe = false): string => {
   try {
-    const parsed = JSON.parse(dirtyJson);
+    // First, validate the JSON
+    if (!validateJson(jsonString)) {
+      throw new Error('Invalid JSON format');
+    }
+
+    // Parse the JSON
+    const jsonObj = JSON.parse(jsonString);
+
+    // Validate that it's an Elementor JSON
+    if (!validateElementorJson(jsonObj)) {
+      throw new Error('Not a valid Elementor JSON');
+    }
+
+    // If wireframe mode is enabled, apply wireframe transformation
+    if (createWireframe) {
+      return transformToWireframe(jsonString);
+    }
+
+    // Otherwise, apply regular cleaning with or without styles
+    const parsed = JSON.parse(jsonString);
     const cleaned = formatElementorJson(parsed, removeStyles);
     return JSON.stringify(cleaned, null, 2);
   } catch (e) {
     console.error("Error cleaning JSON:", e);
-    return dirtyJson;
+    return jsonString;
   }
 };
 
@@ -615,4 +633,212 @@ const normalizeValue = (value: any, removeStyles: boolean = false, key: string =
   
   // Return primitives as is
   return value;
+};
+
+/**
+ * Transforms Elementor JSON content into a high-fidelity wireframe version
+ * - Preserves layout structure and hierarchy
+ * - Replaces content with Brazilian Portuguese placeholders
+ * - Applies grayscale aesthetic using Tailwind classes
+ * - Renames elements using Client-First methodology
+ */
+export const transformToWireframe = (jsonContent: string): string => {
+  try {
+    // Parse the JSON content
+    const parsedJson = JSON.parse(jsonContent);
+    
+    // Apply wireframe transformation recursively to all elements
+    if (parsedJson.elements && Array.isArray(parsedJson.elements)) {
+      transformElementsToWireframe(parsedJson.elements);
+    }
+    
+    // Return the transformed JSON as a formatted string
+    return JSON.stringify(parsedJson, null, 2);
+  } catch (error) {
+    console.error('Error transforming to wireframe:', error);
+    return jsonContent;
+  }
+};
+
+const transformElementsToWireframe = (elements: any[], parentType = '', depth = 0, sectionIndex = 0) => {
+  const sectionTypes = ['section', 'container', 'column', 'widget'];
+  const componentTypes = ['hero', 'features', 'testimonial', 'cta', 'pricing', 'faq', 'stats', 'team', 'services', 'contact', 'footer', 'header'];
+  
+  elements.forEach((element, index) => {
+    // Determine component type based on element attributes or position
+    let componentType = '';
+    if (depth === 0) {
+      componentType = componentTypes[sectionIndex % componentTypes.length];
+      sectionIndex++;
+    } else {
+      componentType = parentType;
+    }
+    
+    // Generate semantic name based on element type and component context
+    const elementType = element.elType || '';
+    const widgetType = element.widgetType || '';
+    
+    // Apply wireframe styling based on element type
+    applyWireframeStyling(element, elementType, widgetType, componentType);
+    
+    // Rename the element using Client-First methodology
+    renameElement(element, elementType, widgetType, componentType, index);
+    
+    // Replace content with Brazilian Portuguese placeholders
+    replaceContentWithPlaceholders(element, widgetType);
+    
+    // Process child elements recursively if they exist
+    if (element.elements && Array.isArray(element.elements)) {
+      transformElementsToWireframe(
+        element.elements, 
+        componentType, 
+        depth + 1, 
+        sectionIndex
+      );
+    }
+  });
+};
+
+const applyWireframeStyling = (element: any, elementType: string, widgetType: string, componentType: string) => {
+  // Base styling for all elements
+  if (!element.settings) {
+    element.settings = {};
+  }
+  
+  // Remove backgrounds, borders and custom colors
+  delete element.settings.background_color;
+  delete element.settings.background_image;
+  delete element.settings.background_overlay;
+  delete element.settings.background_overlay_color;
+  delete element.settings.background_overlay_image;
+  
+  // Preserve layout properties
+  // (We don't touch margin, padding, width, height, alignment)
+  
+  // Apply wireframe styling based on element type
+  switch (elementType) {
+    case 'section':
+      element.settings._background_color = '#F7F6F3';
+      element.settings._css_classes = `${componentType}_wrapper bg-gray-100 rounded-lg p-8 md:p-12 shadow-sm`;
+      break;
+      
+    case 'column':
+      element.settings._css_classes = `${componentType}_column`;
+      break;
+      
+    case 'widget':
+      applyWidgetWireframeStyling(element, widgetType, componentType);
+      break;
+  }
+};
+
+const applyWidgetWireframeStyling = (element: any, widgetType: string, componentType: string) => {
+  switch (widgetType) {
+    case 'heading':
+      element.settings.title_color = '#333333';
+      element.settings._css_classes = `${componentType}_heading text-gray-800 font-semibold`;
+      break;
+      
+    case 'text-editor':
+      element.settings.text_color = '#666666';
+      element.settings._css_classes = `${componentType}_text text-gray-600`;
+      break;
+      
+    case 'button':
+      element.settings.button_text_color = '#FFFFFF';
+      element.settings.background_color = '#333333';
+      element.settings.hover_color = '#FFFFFF';
+      element.settings.hover_background_color = '#555555';
+      element.settings.border_radius = { size: 4, unit: 'px' };
+      element.settings._css_classes = `${componentType}_btn bg-gray-800 hover:bg-gray-700 text-white rounded`;
+      break;
+      
+    case 'image':
+      // Replace with placeholder image
+      delete element.settings.image;
+      element.settings._css_classes = `${componentType}_image-wrapper`;
+      break;
+      
+    case 'icon':
+      element.settings.primary_color = '#666666';
+      element.settings._css_classes = `${componentType}_icon-wrapper`;
+      break;
+  }
+};
+
+const renameElement = (element: any, elementType: string, widgetType: string, componentType: string, index: number) => {
+  if (!element.settings) {
+    element.settings = {};
+  }
+  
+  // Generate semantic ID based on component type and element type
+  const semanticId = generateSemanticId(elementType, widgetType, componentType, index);
+  
+  // Apply new ID to element
+  element.settings._element_id = semanticId;
+  
+  // If element already has CSS classes, add them to our new classes
+  let existingClasses = element.settings._css_classes || '';
+  if (existingClasses && !element.settings._css_classes.includes(componentType)) {
+    element.settings._css_classes = `${semanticId} ${existingClasses}`;
+  } else if (!element.settings._css_classes) {
+    element.settings._css_classes = semanticId;
+  }
+};
+
+const generateSemanticId = (elementType: string, widgetType: string, componentType: string, index: number): string => {
+  switch (elementType) {
+    case 'section':
+      return `${componentType}_section`;
+      
+    case 'column':
+      return `${componentType}_column-${index + 1}`;
+      
+    case 'widget':
+      switch (widgetType) {
+        case 'heading':
+          return `${componentType}_heading`;
+          
+        case 'text-editor':
+          return `${componentType}_text`;
+          
+        case 'button':
+          return `${componentType}_btn`;
+          
+        case 'image':
+          return `${componentType}_image`;
+          
+        case 'icon':
+          return `${componentType}_icon`;
+          
+        default:
+          return `${componentType}_${widgetType}-${index + 1}`;
+      }
+      
+    default:
+      return `${componentType}_element-${index + 1}`;
+  }
+};
+
+const replaceContentWithPlaceholders = (element: any, widgetType: string) => {
+  if (!element.settings) return;
+  
+  switch (widgetType) {
+    case 'heading':
+      // Check if heading is likely to be multi-line based on length
+      if (element.settings.title && element.settings.title.length > 25) {
+        element.settings.title = 'Título em Duas Linhas Com Destaque';
+      } else {
+        element.settings.title = 'Título Aqui';
+      }
+      break;
+      
+    case 'text-editor':
+      element.settings.editor = 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum.';
+      break;
+      
+    case 'button':
+      element.settings.text = 'Botão Principal';
+      break;
+  }
 };

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -5,7 +6,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { createComponent, uploadComponentImage, getCategories } from '@/lib/api';
-import { supabase } from '@/integrations/supabase/client';
 import { 
   Card, 
   CardContent,
@@ -22,6 +22,7 @@ import TagsSection from './TagsSection';
 import ImageUploadSection from './ImageUploadSection';
 import JsonCodeSection from './JsonCodeSection';
 import FormSubmitButton from './FormSubmitButton';
+import WireframeExample from '@/components/WireframeExample';
 
 const ComponentCreateForm = () => {
   const navigate = useNavigate();
@@ -32,6 +33,8 @@ const ComponentCreateForm = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [removeStyles, setRemoveStyles] = useState(false);
+  const [wireframeMode, setWireframeMode] = useState(false);
+  const [showWireframeExample, setShowWireframeExample] = useState(false);
 
   // Fetch categories
   const { data: categories = [] } = useQuery({
@@ -56,12 +59,12 @@ const ComponentCreateForm = () => {
     mutationFn: createComponent,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['components'] });
-      toast('Componente criado com sucesso!');
+      toast.success('Componente criado com sucesso!');
       navigate('/components');
     },
     onError: (error: any) => {
       console.error('Error creating component:', error);
-      toast('Erro ao criar componente: ' + (error?.message || 'Erro desconhecido'));
+      toast.error('Erro ao criar componente: ' + (error?.message || 'Erro desconhecido'));
     }
   });
 
@@ -83,7 +86,7 @@ const ComponentCreateForm = () => {
     const currentJson = form.getValues('jsonCode');
     
     if (!currentJson) {
-      toast('Nenhum código para limpar');
+      toast.warning('Nenhum código para limpar');
       return;
     }
     
@@ -106,23 +109,31 @@ const ComponentCreateForm = () => {
         });
       }
       
-      // Clean and format the JSON with the removeStyles flag
-      const cleanedJson = cleanElementorJson(currentJson, removeStyles);
+      // Clean and format the JSON with the wireframe modes
+      const cleanedJson = cleanElementorJson(currentJson, removeStyles, wireframeMode);
       form.setValue('jsonCode', cleanedJson);
       setPreviewJson(cleanedJson);
       setShowPreview(true);
       
-      const successMessage = removeStyles 
-        ? 'JSON limpo e formatado com estilo wireframe premium e nomenclatura Client-First!'
-        : 'JSON limpo e formatado com sucesso!';
+      let successMessage = 'JSON limpo e formatado com sucesso!';
+      
+      if (removeStyles && wireframeMode) {
+        successMessage = 'JSON transformado para wireframe completo com placeholders em português e nomenclatura Client-First!';
+        // Show wireframe example if both modes are active
+        setShowWireframeExample(true);
+      } else if (removeStyles) {
+        successMessage = 'JSON limpo e formatado com estilo wireframe premium e nomenclatura Client-First!';
+      } else if (wireframeMode) {
+        successMessage = 'JSON transformado para wireframe com placeholders em português!';
+      }
       
       toast.success(successMessage, {
         id: 'clean-success',
       });
     } catch (e) {
       console.error('Error cleaning JSON:', e);
-      toast.error('Erro ao processar o JSON. Verifique se é um código válido.', {
-        duration: 3000,
+      toast.error('Erro ao processar o JSON. Verifique o formato e tente novamente.', {
+        id: 'clean-error',
       });
     }
   };
@@ -130,84 +141,65 @@ const ComponentCreateForm = () => {
   const handlePreviewJson = () => {
     const currentJson = form.getValues('jsonCode');
     
-    if (!validateJson(currentJson)) {
-      toast.error('JSON inválido. O texto fornecido não é um JSON válido.', {
-        duration: 3000,
-      });
+    if (!currentJson) {
+      toast.warning('Nenhum código para visualizar');
       return;
     }
     
-    setPreviewJson(currentJson);
-    setShowPreview(true);
-    
-    // Check if it's an Elementor component
     try {
-      const parsed = JSON.parse(currentJson);
-      if (!validateElementorJson(parsed)) {
-        toast.warning('O JSON não parece ser um componente Elementor válido.', {
+      // Check if it's valid JSON
+      if (!validateJson(currentJson)) {
+        toast.error('O código não é um JSON válido. Verifique a sintaxe.', {
           duration: 3000,
         });
+        return;
       }
+      
+      // Format and display
+      const formattedJson = JSON.stringify(JSON.parse(currentJson), null, 2);
+      setPreviewJson(formattedJson);
+      setShowPreview(true);
     } catch (e) {
-      // This shouldn't happen since we already validated the JSON
-      console.error('Error parsing JSON:', e);
+      console.error('Error previewing JSON:', e);
+      toast.error('Erro ao formatar o JSON. Verifique a sintaxe.', {
+        duration: 3000,
+      });
     }
   };
 
   const onSubmit = async (values: FormValues) => {
-    console.log('Form submitted with values:', values);
-    
-    if (!validateJson(values.jsonCode)) {
-      toast.error('JSON inválido. O texto fornecido não é um JSON válido.');
-      return;
-    }
-
     try {
-      setIsUploading(true);
-      let previewImageUrl = null;
+      // Validate if the JSON field has content
+      if (!values.jsonCode) {
+        toast.error('Por favor, insira o código JSON do componente.');
+        return;
+      }
+
+      // Start the upload process
+      let imageUrl = null;
       
-      // Upload image if selected
       if (selectedFile) {
+        setIsUploading(true);
         try {
-          const fileName = `${Date.now()}-${selectedFile.name}`;
-          previewImageUrl = await uploadComponentImage(selectedFile, fileName);
-        } catch (uploadError) {
-          console.error('Error uploading image:', uploadError);
-          toast('Erro ao fazer upload da imagem, mas o componente será salvo sem imagem.');
+          imageUrl = await uploadComponentImage(selectedFile);
+        } catch (error) {
+          console.error('Error uploading image:', error);
+          toast.error('Erro ao fazer upload da imagem. O componente será criado sem imagem.');
+        } finally {
+          setIsUploading(false);
         }
       }
       
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast('Você precisa estar logado para criar componentes.');
-        navigate('/login');
-        return;
-      }
-      
-      const tagsList = values.tags ? values.tags.split(',').map(tag => tag.trim()) : [];
-      
-      // Create component
-      const newComponent = {
-        title: values.title,
-        description: values.description || '',
-        type: "elementor",
-        code: values.jsonCode,
-        json_code: values.jsonCode,
-        category: values.category || 'uncategorized',
-        preview_image: previewImageUrl,
-        tags: tagsList,
-        visibility: values.visibility,
-        created_by: user.id
+      // Create the component
+      const componentData = {
+        ...values,
+        image: imageUrl
       };
       
-      console.log('Creating component with:', newComponent);
-      createMutation.mutate(newComponent);
+      createMutation.mutate(componentData);
     } catch (error) {
-      console.error('Error in submit handler:', error);
-      toast('Erro ao criar componente. Verifique o console para mais detalhes.');
-    } finally {
-      setIsUploading(false);
+      console.error('Error in form submission:', error);
+      toast.error('Erro ao processar o formulário: ' + (error as Error).message);
     }
   };
 
@@ -217,27 +209,42 @@ const ComponentCreateForm = () => {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <BasicInfoSection form={form} categories={categories} />
+            
             <DescriptionSection form={form} />
-            <VisibilitySection form={form} />
-            <TagsSection form={form} />
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <VisibilitySection form={form} />
+              <TagsSection form={form} />
+            </div>
             
             <ImageUploadSection 
-              selectedFile={selectedFile}
-              imagePreview={imagePreview}
-              onFileChange={handleFileChange}
+              handleFileChange={handleFileChange} 
+              imagePreview={imagePreview} 
             />
             
             <JsonCodeSection 
-              form={form}
-              showPreview={showPreview}
-              previewJson={previewJson}
-              onCleanJson={handleCleanJson}
+              form={form} 
+              showPreview={showPreview} 
+              previewJson={previewJson} 
+              onCleanJson={handleCleanJson} 
               onPreviewJson={handlePreviewJson}
               removeStyles={removeStyles}
               setRemoveStyles={setRemoveStyles}
+              wireframeMode={wireframeMode}
+              setWireframeMode={setWireframeMode}
             />
             
-            <FormSubmitButton isLoading={createMutation.isPending || isUploading} />
+            {showWireframeExample && (
+              <div className="mt-4 pt-4 border-t">
+                <h3 className="text-lg font-medium mb-3">Exemplo de Wireframe:</h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Veja abaixo um exemplo do estilo wireframe que será aplicado ao seu componente:
+                </p>
+                <WireframeExample />
+              </div>
+            )}
+            
+            <FormSubmitButton isSubmitting={createMutation.isPending || isUploading} />
           </form>
         </Form>
       </CardContent>

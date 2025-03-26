@@ -17,6 +17,8 @@ interface JsonCodeSectionProps {
   onPreviewJson: () => void;
   removeStyles: boolean;
   setRemoveStyles: (value: boolean) => void;
+  wireframeMode: boolean;
+  setWireframeMode: (value: boolean) => void;
 }
 
 const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({ 
@@ -26,7 +28,9 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
   onCleanJson, 
   onPreviewJson,
   removeStyles,
-  setRemoveStyles
+  setRemoveStyles,
+  wireframeMode,
+  setWireframeMode
 }) => {
   const [isValidJson, setIsValidJson] = useState(true);
   
@@ -53,6 +57,20 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
     }
   };
 
+  const handleToggleWireframeMode = () => {
+    setWireframeMode(!wireframeMode);
+    // Provide feedback to the user
+    if (!wireframeMode) {
+      toast.info('Modo wireframe completo ativado. Textos serão substituídos por placeholders em português, imagens por placeholders, e nomenclatura Client-First será aplicada.', {
+        duration: 3000,
+      });
+    } else {
+      toast.info('Modo wireframe completo desativado.', {
+        duration: 3000,
+      });
+    }
+  };
+
   return (
     <>
       <FormField
@@ -67,6 +85,8 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
               hasValidJson={isValidJson}
               removeStyles={removeStyles}
               onToggleRemoveStyles={handleToggleRemoveStyles}
+              wireframeMode={wireframeMode}
+              onToggleWireframeMode={handleToggleWireframeMode}
             />
             <FormControl>
               <Textarea 
