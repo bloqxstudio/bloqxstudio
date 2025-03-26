@@ -18,18 +18,20 @@ export const getComponents = async () => {
     console.log('Dados do usuário:', userData?.user);
     console.log('É admin:', isAdmin);
     
-    // Para usuários não logados, buscar apenas componentes públicos
+    // Para todos os usuários (logados ou não), buscar componentes públicos
     let query = supabase.from('components').select('*');
     
-    // Se o usuário for admin, obter todos os componentes; caso contrário, apenas obter os públicos e os criados pelo usuário
-    if (!isAdmin && userData?.user) {
+    // Se o usuário estiver logado, mostrar componentes públicos e os criados pelo usuário
+    if (userData?.user) {
       query = query.or(`visibility.eq.public,created_by.eq.${userData.user.id}`);
-    } else if (!userData?.user) {
+    } else {
       // Usuário não está logado, mostrar apenas componentes públicos
       query = query.eq('visibility', 'public');
     }
     
-    const { data, error } = await query.order('created_at', { ascending: false });
+    const { data, error } = await query
+      .order('created_at', { ascending: false })
+      .limit(50); // Limitar número de resultados para melhorar performance
     
     if (error) {
       console.error('Erro ao buscar componentes:', error);
@@ -74,11 +76,17 @@ export const getUserComponents = async (userId: string) => {
 
 export const getComponentById = async (id: string) => {
   try {
+    // Adicionar timeout para evitar problemas de performance
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 segundos timeout
+    
     const { data, error } = await supabase
       .from('components')
       .select('*')
       .eq('id', id)
       .single();
+    
+    clearTimeout(timeoutId); // Limpar timeout se requisição completar antes
     
     if (error) {
       console.error('Erro ao obter componente por ID:', error);

@@ -18,13 +18,14 @@ import UserManagement from '@/pages/UserManagement';
 import UserProfile from '@/pages/UserProfile';
 import NotFound from '@/pages/NotFound';
 
-// Create a QueryClient instance
+// Create a QueryClient instance with improved performance settings
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 60 * 1000, // 1 minute
-      retry: 2,
+      retry: 1, // Reduzir o número de tentativas para melhorar performance
       refetchOnWindowFocus: false,
+      cacheTime: 5 * 60 * 1000, // Aumentar o tempo de cache para 5 minutos
     },
   },
 });
@@ -35,7 +36,7 @@ const App: React.FC = () => {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AuthProvider>
-          <Toaster position="bottom-left" />
+          <Toaster position="bottom-right" />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<Login />} />

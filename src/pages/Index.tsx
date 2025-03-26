@@ -10,28 +10,39 @@ import { Component } from '@/lib/database.types';
 import { ArrowRight, Layers, Code, Copy, Zap } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 const Index = () => {
   const categories = getSampleCategories();
 
-  // Fetch featured components from Supabase
+  // Fetch featured components from Supabase with improved error handling
   const { data: featuredComponents = [], isLoading, error } = useQuery({
     queryKey: ['featuredComponents'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('components')
-        .select('*')
-        .eq('visibility', 'public')
-        .order('created_at', { ascending: false })
-        .limit(3);
-      
-      if (error) {
-        console.error('Error fetching featured components:', error);
-        throw error;
+      try {
+        const { data, error } = await supabase
+          .from('components')
+          .select('*')
+          .eq('visibility', 'public')
+          .order('created_at', { ascending: false })
+          .limit(6); // Aumentado para 6 para mostrar mais componentes
+        
+        if (error) {
+          console.error('Error fetching featured components:', error);
+          toast.error('Não foi possível carregar os componentes.');
+          return [];
+        }
+        
+        return data as Component[];
+      } catch (e) {
+        console.error('Erro inesperado ao buscar componentes:', e);
+        return [];
       }
-      
-      return data as Component[];
     },
+    // Configurações para melhorar a performance
+    staleTime: 2 * 60 * 1000, // 2 minutos
+    retry: 1,
+    refetchOnMount: false,
   });
 
   return <div className="min-h-screen flex flex-col bg-background">
@@ -116,7 +127,7 @@ const Index = () => {
           </div>
         </section>
 
-        {/* Featured Components */}
+        {/* Featured Components - Sempre visíveis para todos os usuários */}
         <section className="py-16">
           <div className="container px-4 md:px-6">
             <div className="flex justify-between items-center mb-8">
@@ -130,16 +141,31 @@ const Index = () => {
             </div>
 
             {isLoading ? (
-              <div className="text-center py-12">
-                <p className="text-muted-foreground">Carregando componentes...</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[1, 2, 3].map((i) => (
+                  <Card key={i} className="animate-pulse">
+                    <div className="h-40 bg-muted/50 rounded-t-lg"></div>
+                    <CardContent className="p-4">
+                      <div className="h-6 bg-muted/50 rounded w-3/4 mb-2"></div>
+                      <div className="h-4 bg-muted/50 rounded w-full mb-2"></div>
+                      <div className="h-4 bg-muted/50 rounded w-2/3"></div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
             ) : error ? (
               <div className="text-center py-12">
                 <p className="text-red-500">Erro ao carregar componentes. Tente novamente mais tarde.</p>
+                <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
+                  Recarregar
+                </Button>
               </div>
             ) : featuredComponents.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-muted-foreground">Nenhum componente encontrado. Adicione alguns componentes!</p>
+                <Button asChild className="mt-4">
+                  <Link to="/components/new">Adicionar Componente</Link>
+                </Button>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
