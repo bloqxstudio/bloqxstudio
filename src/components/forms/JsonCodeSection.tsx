@@ -7,6 +7,9 @@ import { FormValues } from './componentFormSchema';
 import ComponentFormActions from './ComponentFormActions';
 import { validateJson, cleanElementorJson } from '@/utils/jsonUtils';
 import { toast } from 'sonner';
+import { ElementorPreview } from '@/components/ElementorPreview';
+import { Button } from '@/components/ui/button';
+import { Eye, EyeOff } from 'lucide-react';
 
 interface JsonCodeSectionProps {
   form: UseFormReturn<FormValues>;
@@ -26,6 +29,7 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
   setRemoveStyles
 }) => {
   const [isValidJson, setIsValidJson] = useState(true);
+  const [previewJson, setPreviewJson] = useState('');
   
   // Validate JSON whenever it changes
   useEffect(() => {
@@ -33,6 +37,9 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
     if (currentJson) {
       const isValid = validateJson(currentJson);
       setIsValidJson(isValid);
+      if (isValid) {
+        setPreviewJson(currentJson);
+      }
     }
   }, [form.watch('jsonCode')]);
 
@@ -57,6 +64,7 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
       if (validateJson(currentJson)) {
         const processedJson = cleanElementorJson(currentJson, true);
         form.setValue('jsonCode', processedJson);
+        setPreviewJson(processedJson);
         toast.success('JSON convertido para estilo wireframe!');
       }
     } else {
@@ -78,10 +86,25 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
       // Apply wireframe style and clean the code right away
       const processedJson = removeStyles ? cleanElementorJson(currentJson, true) : cleanElementorJson(currentJson, false);
       form.setValue('jsonCode', processedJson);
+      setPreviewJson(processedJson);
       toast.success('JSON limpo e formatado com sucesso!');
     } else {
       toast.error('JSON inválido. Verifique a sintaxe antes de limpar.');
     }
+  };
+
+  const togglePreview = () => {
+    if (!showPreview) {
+      // When enabling preview, update the preview JSON
+      const currentJson = form.getValues('jsonCode');
+      if (validateJson(currentJson)) {
+        setPreviewJson(currentJson);
+      } else {
+        toast.error('JSON inválido. Verifique a sintaxe antes de visualizar.');
+        return;
+      }
+    }
+    setShowPreview(!showPreview);
   };
 
   return (
@@ -91,7 +114,28 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
         name="jsonCode"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Código JSON do Elementor*</FormLabel>
+            <div className="flex justify-between items-center">
+              <FormLabel>Código JSON do Elementor*</FormLabel>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={togglePreview}
+                className="flex items-center gap-1"
+              >
+                {showPreview ? (
+                  <>
+                    <EyeOff size={14} />
+                    <span>Ocultar Preview</span>
+                  </>
+                ) : (
+                  <>
+                    <Eye size={14} />
+                    <span>Mostrar Preview</span>
+                  </>
+                )}
+              </Button>
+            </div>
             <ComponentFormActions 
               onCleanJson={handleCleanJson}
               hasValidJson={isValidJson}
@@ -130,6 +174,15 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
           </FormItem>
         )}
       />
+      
+      {showPreview && previewJson && (
+        <div className="mt-6">
+          <h3 className="text-lg font-medium mb-2">Visualização do Componente</h3>
+          <div className="border rounded-lg p-4 bg-gray-50">
+            <ElementorPreview jsonContent={previewJson} />
+          </div>
+        </div>
+      )}
     </>
   );
 };

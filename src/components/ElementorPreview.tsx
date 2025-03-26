@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { PlaceholderImage } from '@/components/ui/placeholder-image';
@@ -11,7 +10,7 @@ interface ElementorPreviewProps {
   jsonContent: string;
 }
 
-const ElementorPreview: React.FC<ElementorPreviewProps> = ({ jsonContent }) => {
+export const ElementorPreview: React.FC<ElementorPreviewProps> = ({ jsonContent }) => {
   const [parsedContent, setParsedContent] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
