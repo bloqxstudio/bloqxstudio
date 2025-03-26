@@ -62,6 +62,31 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Wireframe color palette
+				wireframe: {
+					base: '#F7F6F3',
+					element: '#FFFFFF',
+					placeholder: '#E3E1DC',
+					text: {
+						primary: '#333333',
+						secondary: '#666666'
+					},
+					accent: '#DCDAD5',
+					dark: '#333333'
+				},
+				// Standard neutral palette for wireframes
+				gray: {
+					50: '#F9F9FB',
+					100: '#F7F6F3',
+					200: '#E3E1DC',
+					300: '#DCDAD5',
+					400: '#B3B3B3',
+					500: '#888888',
+					600: '#666666',
+					700: '#444444',
+					800: '#333333',
+					900: '#222222'
 				}
 			},
 			borderRadius: {
