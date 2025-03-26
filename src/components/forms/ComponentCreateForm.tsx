@@ -120,35 +120,6 @@ const ComponentCreateForm = () => {
     }
   };
 
-  const handlePreviewJson = () => {
-    const currentJson = form.getValues('jsonCode');
-    
-    if (!currentJson) {
-      toast.warning('Nenhum código para visualizar');
-      return;
-    }
-    
-    try {
-      // Check if it's valid JSON
-      if (!validateJson(currentJson)) {
-        toast.error('O código não é um JSON válido. Verifique a sintaxe.', {
-          duration: 3000,
-        });
-        return;
-      }
-      
-      // Instead of showing preview, clean and format the JSON directly
-      const cleanedJson = removeStyles ? cleanElementorJson(currentJson, true) : currentJson;
-      form.setValue('jsonCode', cleanedJson);
-      toast.success('JSON formatado com sucesso!');
-    } catch (e) {
-      console.error('Error previewing JSON:', e);
-      toast.error('Erro ao formatar o JSON. Verifique a sintaxe.', {
-        duration: 3000,
-      });
-    }
-  };
-
   const onSubmit = async (values: FormValues) => {
     try {
       // Validate if the JSON field has content
@@ -226,7 +197,6 @@ const ComponentCreateForm = () => {
               showPreview={showPreview}
               setShowPreview={setShowPreview}
               onCleanJson={handleCleanJson} 
-              onPreviewJson={handlePreviewJson}
               removeStyles={removeStyles}
               setRemoveStyles={setRemoveStyles}
             />
