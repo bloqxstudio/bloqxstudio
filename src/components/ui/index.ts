@@ -6,6 +6,7 @@ export { Separator } from "./separator";
 export { Card, CardContent, CardHeader, CardTitle, CardDescription } from "./card";
 export { Input } from "./input";
 export { Textarea } from "./textarea";
+export { Toggle, toggleVariants } from "./toggle";
 export {
   Form,
   FormControl,
