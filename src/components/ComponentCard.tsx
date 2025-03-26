@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ElementorComponent } from '@/lib/data';
+import { Component } from '@/lib/database.types';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/dialog';
 
 interface ComponentCardProps {
-  component: ElementorComponent;
+  component: Component;
   className?: string;
 }
 
@@ -35,9 +35,17 @@ const ComponentCard: React.FC<ComponentCardProps> = ({ component, className }) =
       return;
     }
     
-    navigator.clipboard.writeText(component.jsonCode);
+    // Use json_code if available, otherwise fall back to code
+    const codeContent = component.json_code || component.code;
+    navigator.clipboard.writeText(codeContent);
     toast.success('Código copiado para a área de transferência!');
   };
+
+  // Determine image source with fallback
+  const imageSrc = component.preview_image || '/placeholder.svg';
+
+  // Get tags as array, ensuring backward compatibility
+  const tags = component.tags || [];
 
   return (
     <>
@@ -49,7 +57,7 @@ const ComponentCard: React.FC<ComponentCardProps> = ({ component, className }) =
         <Link to={`/component/${component.id}`}>
           <CardHeader className="p-0 relative h-[200px] overflow-hidden group">
             <img 
-              src={component.previewImage || '/placeholder.svg'} 
+              src={imageSrc} 
               alt={component.title}
               className={`w-full h-full object-cover transition-transform duration-700 ${isHovered ? 'scale-105' : 'scale-100'}`}
             />
@@ -59,6 +67,13 @@ const ComponentCard: React.FC<ComponentCardProps> = ({ component, className }) =
                 Ver detalhes
               </Button>
             </div>
+            {component.visibility === 'private' && (
+              <div className="absolute top-2 right-2">
+                <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
+                  <Lock className="h-3 w-3 mr-1" /> Privado
+                </Badge>
+              </div>
+            )}
           </CardHeader>
           <CardContent className="p-4">
             <h3 className="font-medium text-lg truncate">{component.title}</h3>
@@ -70,14 +85,14 @@ const ComponentCard: React.FC<ComponentCardProps> = ({ component, className }) =
         <CardFooter className="p-4 pt-0 flex items-center justify-between gap-4">
           <div className="flex items-center gap-1 flex-wrap">
             <Tag className="h-3 w-3 text-muted-foreground" />
-            {component.tags.slice(0, 2).map((tag, i) => (
+            {tags.slice(0, 2).map((tag, i) => (
               <Badge key={i} variant="secondary" className="text-xs px-2 py-0 h-5">
                 {tag}
               </Badge>
             ))}
-            {component.tags.length > 2 && (
+            {tags.length > 2 && (
               <Badge variant="outline" className="text-xs px-1 py-0 h-5">
-                +{component.tags.length - 2}
+                +{tags.length - 2}
               </Badge>
             )}
           </div>

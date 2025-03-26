@@ -19,6 +19,7 @@ import Register from "./pages/Register";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { Skeleton } from "./components/ui/skeleton";
 import { Progress } from "./components/ui/progress";
+import { useComponentsMigration } from "./hooks/useComponentsMigration";
 
 // Create a fallback loading component
 const LoadingFallback = () => (
@@ -59,6 +60,12 @@ const queryClient = new QueryClient({
   },
 });
 
+// Component to handle component migration
+const MigrationHandler = ({ children }: { children: React.ReactNode }) => {
+  useComponentsMigration();
+  return <>{children}</>;
+};
+
 const App = () => {
   const [error, setError] = useState<Error | null>(null);
   const [initialized, setInitialized] = useState(false);
@@ -87,41 +94,43 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <AuthProvider>
-          <Toaster />
-          <Sonner />
-          <Suspense fallback={<LoadingFallback />}>
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Index />} />
-                <Route path="/components" element={<Components />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/component/:id" element={<ComponentDetail />} />
-                <Route path="/components/new" element={
-                  <ProtectedRoute adminOnly>
-                    <ComponentCreate />
-                  </ProtectedRoute>
-                } />
-                <Route path="/components/edit/:id" element={
-                  <ProtectedRoute adminOnly>
-                    <ComponentEdit />
-                  </ProtectedRoute>
-                } />
-                <Route path="/admin" element={
-                  <ProtectedRoute adminOnly>
-                    <AdminPanel />
-                  </ProtectedRoute>
-                } />
-                <Route path="/admin/users" element={
-                  <ProtectedRoute adminOnly>
-                    <UserManagement />
-                  </ProtectedRoute>
-                } />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </BrowserRouter>
-          </Suspense>
+          <MigrationHandler>
+            <Toaster />
+            <Sonner />
+            <Suspense fallback={<LoadingFallback />}>
+              <BrowserRouter>
+                <Routes>
+                  <Route path="/" element={<Index />} />
+                  <Route path="/components" element={<Components />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/component/:id" element={<ComponentDetail />} />
+                  <Route path="/components/new" element={
+                    <ProtectedRoute adminOnly>
+                      <ComponentCreate />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/components/edit/:id" element={
+                    <ProtectedRoute adminOnly>
+                      <ComponentEdit />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin" element={
+                    <ProtectedRoute adminOnly>
+                      <AdminPanel />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/admin/users" element={
+                    <ProtectedRoute adminOnly>
+                      <UserManagement />
+                    </ProtectedRoute>
+                  } />
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </BrowserRouter>
+            </Suspense>
+          </MigrationHandler>
         </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>

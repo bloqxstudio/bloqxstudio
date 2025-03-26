@@ -1,9 +1,13 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useToast } from '@/hooks/use-toast';
-import { Save } from 'lucide-react';
+import { Save, Upload, Image } from 'lucide-react';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
+import { createComponent, uploadComponentImage, getCategories } from '@/lib/api';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   Button, 
   Card, 
@@ -19,7 +23,6 @@ import {
   FormMessage,
 } from '@/components/ui';
 import CodeViewer from '@/components/CodeViewer';
-import { globalComponents } from '@/lib/data';
 import { formSchema, type FormValues } from './componentFormSchema';
 import { cleanElementorJson, validateJson } from '@/utils/jsonUtils';
 import ComponentFormActions from './ComponentFormActions';
@@ -27,19 +30,65 @@ import ComponentFormActions from './ComponentFormActions';
 const ComponentCreateForm = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [previewJson, setPreviewJson] = useState('');
   const [showPreview, setShowPreview] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+
+  // Fetch categories
+  const { data: categories = [] } = useQuery({
+    queryKey: ['categories'],
+    queryFn: getCategories,
+  });
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: '',
       description: '',
-      category: 'componentes',
+      category: '',
       tags: '',
-      jsonCode: ''
+      jsonCode: '',
+      visibility: 'public'
     }
   });
+
+  // Mutation for creating component
+  const createMutation = useMutation({
+    mutationFn: createComponent,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['components'] });
+      toast({
+        title: "Componente criado!",
+        description: "Seu componente foi criado e salvo com sucesso.",
+      });
+      navigate('/components');
+    },
+    onError: (error) => {
+      console.error('Error creating component:', error);
+      toast({
+        title: "Erro ao criar componente",
+        description: "Ocorreu um erro ao salvar o componente. Tente novamente.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setSelectedFile(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleCleanJson = () => {
     const currentJson = form.getValues('jsonCode');
@@ -88,7 +137,7 @@ const ComponentCreateForm = () => {
     setShowPreview(true);
   };
 
-  const onSubmit = (values: FormValues) => {
+  const onSubmit = async (values: FormValues) => {
     if (!validateJson(values.jsonCode)) {
       toast({
         title: "JSON inválido",
@@ -98,28 +147,54 @@ const ComponentCreateForm = () => {
       return;
     }
 
-    const tagsList = values.tags ? values.tags.split(',').map(tag => tag.trim()) : [];
-    
-    const newComponent = {
-      id: `comp-${Date.now()}`,
-      title: values.title,
-      description: values.description,
-      type: "elementor",
-      dateCreated: new Date().toISOString().split('T')[0],
-      dateUpdated: new Date().toISOString().split('T')[0],
-      tags: tagsList,
-      category: values.category,
-      jsonCode: values.jsonCode
-    };
-    
-    globalComponents.push(newComponent);
-    
-    toast({
-      title: "Componente criado!",
-      description: "Seu componente foi criado e salvo com sucesso.",
-    });
-    
-    navigate('/components');
+    try {
+      setIsUploading(true);
+      let previewImageUrl = null;
+      
+      // Upload image if selected
+      if (selectedFile) {
+        const fileName = `${Date.now()}-${selectedFile.name}`;
+        previewImageUrl = await uploadComponentImage(selectedFile, fileName);
+      }
+      
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast({
+          title: "Não autenticado",
+          description: "Você precisa estar logado para criar componentes.",
+          variant: "destructive"
+        });
+        return;
+      }
+      
+      const tagsList = values.tags ? values.tags.split(',').map(tag => tag.trim()) : [];
+      
+      // Create component
+      const newComponent = {
+        title: values.title,
+        description: values.description,
+        type: "elementor",
+        code: values.jsonCode,
+        json_code: values.jsonCode,
+        category: values.category,
+        preview_image: previewImageUrl,
+        tags: tagsList,
+        visibility: values.visibility,
+        created_by: user.id
+      };
+      
+      createMutation.mutate(newComponent);
+    } catch (error) {
+      console.error('Error creating component:', error);
+      toast({
+        title: "Erro ao criar componente",
+        description: "Ocorreu um erro ao salvar o componente. Tente novamente.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -156,8 +231,12 @@ const ComponentCreateForm = () => {
                         className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
                         {...field}
                       >
-                        <option value="componentes">Componentes</option>
-                        <option value="bloqx-kit">Bloqx Kit</option>
+                        <option value="" disabled>Selecione uma categoria</option>
+                        {categories.map((category) => (
+                          <option key={category.id} value={category.id}>
+                            {category.name}
+                          </option>
+                        ))}
                       </select>
                     </FormControl>
                     <FormDescription>
@@ -192,6 +271,42 @@ const ComponentCreateForm = () => {
             
             <FormField
               control={form.control}
+              name="visibility"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Visibilidade</FormLabel>
+                  <div className="flex gap-4">
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        value="public"
+                        checked={field.value === 'public'}
+                        onChange={() => field.onChange('public')}
+                        className="h-4 w-4 text-primary border-gray-300 focus:ring-primary"
+                      />
+                      <span>Público</span>
+                    </label>
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        value="private"
+                        checked={field.value === 'private'}
+                        onChange={() => field.onChange('private')}
+                        className="h-4 w-4 text-primary border-gray-300 focus:ring-primary"
+                      />
+                      <span>Privado</span>
+                    </label>
+                  </div>
+                  <FormDescription>
+                    Componentes públicos ficam visíveis para todos os usuários
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
               name="tags"
               render={({ field }) => (
                 <FormItem>
@@ -206,6 +321,50 @@ const ComponentCreateForm = () => {
                 </FormItem>
               )}
             />
+            
+            {/* Image upload field */}
+            <div className="space-y-2">
+              <FormLabel>Imagem de Pré-visualização</FormLabel>
+              <div className="border border-input rounded-md p-4">
+                <div className="flex items-center gap-4">
+                  <Button 
+                    type="button"
+                    variant="outline"
+                    onClick={() => document.getElementById('image-upload')?.click()}
+                    className="gap-2"
+                  >
+                    <Upload className="h-4 w-4" />
+                    Selecionar Imagem
+                  </Button>
+                  <Input 
+                    id="image-upload"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleFileChange}
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    {selectedFile ? selectedFile.name : "Nenhum arquivo selecionado"}
+                  </p>
+                </div>
+                
+                {imagePreview && (
+                  <div className="mt-4">
+                    <p className="text-sm font-medium mb-2">Pré-visualização:</p>
+                    <div className="relative w-full h-40 bg-muted rounded-md overflow-hidden">
+                      <img 
+                        src={imagePreview} 
+                        alt="Preview" 
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+              <FormDescription>
+                Adicione uma imagem para representar visualmente o componente
+              </FormDescription>
+            </div>
             
             <FormField
               control={form.control}
@@ -240,9 +399,22 @@ const ComponentCreateForm = () => {
             )}
             
             <div className="flex justify-end">
-              <Button type="submit" className="gap-2">
-                <Save className="h-4 w-4" />
-                Salvar Componente
+              <Button 
+                type="submit" 
+                className="gap-2" 
+                disabled={createMutation.isPending || isUploading}
+              >
+                {createMutation.isPending || isUploading ? (
+                  <>
+                    <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
+                    Salvando...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4" />
+                    Salvar Componente
+                  </>
+                )}
               </Button>
             </div>
           </form>

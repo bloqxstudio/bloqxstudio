@@ -4,10 +4,17 @@ import { Component, UpdateComponent, NewComponent, Category, UpdateCategory, New
 
 // Component CRUD operations
 export const getComponents = async () => {
-  const { data, error } = await supabase
-    .from('components')
-    .select('*')
-    .order('created_at', { ascending: false });
+  const { user } = await supabase.auth.getUser();
+  const isAdmin = user?.user_metadata?.role === 'admin';
+  
+  // If the user is an admin, get all components; otherwise, only get public ones
+  let query = supabase.from('components').select('*');
+  
+  if (!isAdmin) {
+    query = query.eq('visibility', 'public');
+  }
+  
+  const { data, error } = await query.order('created_at', { ascending: false });
   
   if (error) throw error;
   return data as Component[];
@@ -25,11 +32,18 @@ export const getComponentById = async (id: string) => {
 };
 
 export const getComponentsByCategory = async (categoryId: string) => {
-  const { data, error } = await supabase
-    .from('components')
+  const { user } = await supabase.auth.getUser();
+  const isAdmin = user?.user_metadata?.role === 'admin';
+  
+  let query = supabase.from('components')
     .select('*')
-    .eq('category', categoryId)
-    .order('created_at', { ascending: false });
+    .eq('category', categoryId);
+  
+  if (!isAdmin) {
+    query = query.eq('visibility', 'public');
+  }
+  
+  const { data, error } = await query.order('created_at', { ascending: false });
   
   if (error) throw error;
   return data as Component[];

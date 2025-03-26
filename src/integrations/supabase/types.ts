@@ -17,7 +17,11 @@ export type Database = {
           created_by: string | null
           description: string | null
           id: string
+          json_code: string | null
+          preview_image: string | null
+          tags: string[] | null
           title: string
+          type: string | null
           updated_at: string
           visibility: string
         }
@@ -28,7 +32,11 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           id?: string
+          json_code?: string | null
+          preview_image?: string | null
+          tags?: string[] | null
           title: string
+          type?: string | null
           updated_at?: string
           visibility?: string
         }
@@ -39,7 +47,11 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           id?: string
+          json_code?: string | null
+          preview_image?: string | null
+          tags?: string[] | null
           title?: string
+          type?: string | null
           updated_at?: string
           visibility?: string
         }

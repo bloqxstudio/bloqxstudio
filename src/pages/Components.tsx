@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import ComponentCard from '@/components/ComponentCard';
-import { getSampleComponents } from '@/lib/data';
 import { useAuth } from '@/context/AuthContext';
 import { 
   Button,
@@ -11,17 +10,33 @@ import {
   CardContent
 } from '@/components/ui';
 import { PlusCircle, Filter } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { getComponents } from '@/lib/api';
+import { toast } from 'sonner';
 
 const Components = () => {
-  const [components, setComponents] = useState(getSampleComponents());
   const [filter, setFilter] = useState('');
-  const { isAdmin } = useAuth();
+  const { user, isAdmin } = useAuth();
+  
+  // Fetch components from Supabase
+  const { data: components = [], isLoading, error } = useQuery({
+    queryKey: ['components'],
+    queryFn: getComponents
+  });
+
+  // Show error if data fetching fails
+  useEffect(() => {
+    if (error) {
+      console.error('Error fetching components:', error);
+      toast.error('Erro ao carregar componentes. Tente novamente.');
+    }
+  }, [error]);
 
   // Filter components based on search term
   const filteredComponents = components.filter(component => 
     component.title.toLowerCase().includes(filter.toLowerCase()) ||
-    component.description.toLowerCase().includes(filter.toLowerCase()) ||
-    component.tags.some(tag => tag.toLowerCase().includes(filter.toLowerCase()))
+    component.description?.toLowerCase().includes(filter.toLowerCase()) ||
+    (component.tags && component.tags.some(tag => tag.toLowerCase().includes(filter.toLowerCase())))
   );
 
   return (
@@ -63,7 +78,11 @@ const Components = () => {
           />
         </div>
 
-        {filteredComponents.length > 0 ? (
+        {isLoading ? (
+          <div className="flex justify-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          </div>
+        ) : filteredComponents.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredComponents.map((component) => (
               <ComponentCard key={component.id} component={component} />
