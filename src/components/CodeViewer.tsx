@@ -1,14 +1,16 @@
 
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Copy, Check, Download } from 'lucide-react';
+import { Copy, Check, Download, Lock } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAuth } from '@/context/AuthContext';
 
 interface CodeViewerProps {
   code: string;
   language?: string;
   title?: string;
   fileName?: string;
+  restricted?: boolean;
 }
 
 const formatJSON = (jsonString: string): string => {
@@ -48,10 +50,12 @@ const CodeViewer: React.FC<CodeViewerProps> = ({
   code, 
   language = 'json', 
   title = 'Código JSON',
-  fileName = 'elementor-component.json'
+  fileName = 'elementor-component.json',
+  restricted = false
 }) => {
   const [copied, setCopied] = useState(false);
   const [formattedCode, setFormattedCode] = useState('');
+  const { user } = useAuth();
 
   useEffect(() => {
     if (language === 'json') {
@@ -63,6 +67,11 @@ const CodeViewer: React.FC<CodeViewerProps> = ({
   }, [code, language]);
 
   const handleCopy = () => {
+    if (restricted && !user) {
+      toast.error('Faça login para copiar o código');
+      return;
+    }
+    
     navigator.clipboard.writeText(code);
     setCopied(true);
     toast.success('Código copiado para a área de transferência!');
@@ -70,6 +79,11 @@ const CodeViewer: React.FC<CodeViewerProps> = ({
   };
 
   const downloadCode = () => {
+    if (restricted && !user) {
+      toast.error('Faça login para baixar o código');
+      return;
+    }
+    
     const element = document.createElement('a');
     const file = new Blob([code], { type: 'application/json' });
     element.href = URL.createObjectURL(file);
@@ -90,8 +104,13 @@ const CodeViewer: React.FC<CodeViewerProps> = ({
             size="sm" 
             className="h-8 px-2 text-xs"
             onClick={downloadCode}
+            disabled={restricted && !user}
           >
-            <Download className="h-3.5 w-3.5 mr-1" />
+            {restricted && !user ? (
+              <Lock className="h-3.5 w-3.5 mr-1" />
+            ) : (
+              <Download className="h-3.5 w-3.5 mr-1" />
+            )}
             Baixar
           </Button>
           <Button 
@@ -99,6 +118,7 @@ const CodeViewer: React.FC<CodeViewerProps> = ({
             size="sm" 
             className="h-8 px-2 text-xs"
             onClick={handleCopy}
+            disabled={restricted && !user}
           >
             {copied ? (
               <>
@@ -107,7 +127,11 @@ const CodeViewer: React.FC<CodeViewerProps> = ({
               </>
             ) : (
               <>
-                <Copy className="h-3.5 w-3.5 mr-1" />
+                {restricted && !user ? (
+                  <Lock className="h-3.5 w-3.5 mr-1" />
+                ) : (
+                  <Copy className="h-3.5 w-3.5 mr-1" />
+                )}
                 Copiar
               </>
             )}

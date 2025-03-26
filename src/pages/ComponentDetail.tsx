@@ -4,6 +4,7 @@ import { useParams, Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import CodeViewer from '@/components/CodeViewer';
 import { getSampleComponentById } from '@/lib/data';
+import { useAuth } from '@/context/AuthContext';
 import { 
   Button, 
   Badge,
@@ -11,13 +12,14 @@ import {
   Card,
   CardContent
 } from '@/components/ui';
-import { ArrowLeft, Calendar, Copy, Download, Tag } from 'lucide-react';
+import { ArrowLeft, Calendar, Copy, Download, Tag, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 
 const ComponentDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [component, setComponent] = useState(getSampleComponentById(id || ''));
   const [isScrolled, setIsScrolled] = useState(false);
+  const { user } = useAuth();
 
   useEffect(() => {
     if (id) {
@@ -34,6 +36,11 @@ const ComponentDetail = () => {
   }, [id]);
 
   const handleCopyCode = () => {
+    if (!user) {
+      toast.error('Faça login para copiar o código');
+      return;
+    }
+    
     if (component) {
       navigator.clipboard.writeText(component.jsonCode);
       toast.success('Código copiado para a área de transferência!');
@@ -41,6 +48,11 @@ const ComponentDetail = () => {
   };
 
   const handleDownloadCode = () => {
+    if (!user) {
+      toast.error('Faça login para baixar o código');
+      return;
+    }
+    
     if (component) {
       const element = document.createElement('a');
       const file = new Blob([component.jsonCode], { type: 'application/json' });
@@ -86,22 +98,33 @@ const ComponentDetail = () => {
           </Button>
           
           <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="hidden sm:flex"
-              onClick={handleDownloadCode}
-            >
-              <Download className="h-4 w-4 mr-1" />
-              Baixar
-            </Button>
-            <Button 
-              onClick={handleCopyCode}
-              size="sm"
-            >
-              <Copy className="h-4 w-4 mr-1" />
-              Copiar Código
-            </Button>
+            {user && (
+              <>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="hidden sm:flex"
+                  onClick={handleDownloadCode}
+                >
+                  <Download className="h-4 w-4 mr-1" />
+                  Baixar
+                </Button>
+                <Button 
+                  onClick={handleCopyCode}
+                  size="sm"
+                >
+                  <Copy className="h-4 w-4 mr-1" />
+                  Copiar Código
+                </Button>
+              </>
+            )}
+            
+            {!user && (
+              <div className="flex items-center">
+                <span className="text-sm text-muted-foreground mr-2">Faça login para acessar</span>
+                <Lock className="h-4 w-4 text-muted-foreground" />
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -149,11 +172,58 @@ const ComponentDetail = () => {
             
             <div className="space-y-4">
               <h2 className="text-xl font-bold">Código Elementor</h2>
-              <CodeViewer 
-                code={component.jsonCode}
-                title="Código JSON para Elementor"
-                fileName={`${component.id}.json`}
-              />
+              
+              {!user ? (
+                <div className="relative">
+                  <div className="rounded-lg overflow-hidden border border-border bg-card">
+                    <div className="flex items-center justify-between px-4 py-2 bg-muted/50">
+                      <h3 className="text-sm font-medium">Código JSON para Elementor</h3>
+                      <div className="flex items-center gap-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-8 px-2 text-xs opacity-50 cursor-not-allowed"
+                          disabled
+                        >
+                          <Lock className="h-3.5 w-3.5 mr-1" />
+                          Copiar
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="overflow-auto max-h-[200px] bg-card">
+                      <pre className="text-sm p-4 code-json">
+                        {/* Show first few lines of code */}
+                        {component.jsonCode.split('\n').slice(0, 5).join('\n')}
+                        {'\n...'}
+                      </pre>
+                      
+                      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-background/30 to-background/95 flex flex-col items-center justify-end p-6">
+                        <div className="bg-card/90 backdrop-blur-sm p-6 rounded-lg text-center max-w-md">
+                          <Lock className="h-8 w-8 mx-auto mb-4 text-primary" />
+                          <h3 className="text-lg font-bold mb-2">Acesso exclusivo para membros</h3>
+                          <p className="text-muted-foreground mb-4">
+                            Crie sua conta gratuita para acessar este componente e muitos outros.
+                          </p>
+                          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                            <Button asChild variant="outline">
+                              <Link to="/login">Entrar</Link>
+                            </Button>
+                            <Button asChild>
+                              <Link to="/register">Criar conta</Link>
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <CodeViewer 
+                  code={component.jsonCode}
+                  title="Código JSON para Elementor"
+                  fileName={`${component.id}.json`}
+                />
+              )}
             </div>
           </div>
           
@@ -231,24 +301,40 @@ const ComponentDetail = () => {
             <div className="p-4 rounded-lg bg-muted/30">
               <h3 className="text-sm font-medium mb-2">Ações rápidas</h3>
               <div className="flex flex-col gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  className="justify-start"
-                  onClick={handleCopyCode}
-                >
-                  <Copy className="h-4 w-4 mr-2" />
-                  Copiar código JSON
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  className="justify-start"
-                  onClick={handleDownloadCode}
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Baixar arquivo JSON
-                </Button>
+                {user ? (
+                  <>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="justify-start"
+                      onClick={handleCopyCode}
+                    >
+                      <Copy className="h-4 w-4 mr-2" />
+                      Copiar código JSON
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="justify-start"
+                      onClick={handleDownloadCode}
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Baixar arquivo JSON
+                    </Button>
+                  </>
+                ) : (
+                  <div className="text-center p-2">
+                    <p className="text-sm text-muted-foreground mb-2">Faça login para acessar todas as ações</p>
+                    <div className="flex gap-2 justify-center">
+                      <Button asChild size="sm" variant="outline">
+                        <Link to="/login">Entrar</Link>
+                      </Button>
+                      <Button asChild size="sm">
+                        <Link to="/register">Registrar</Link>
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

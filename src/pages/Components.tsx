@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import ComponentCard from '@/components/ComponentCard';
 import { getSampleComponents } from '@/lib/data';
+import { useAuth } from '@/context/AuthContext';
 import { 
   Button,
   Card,
@@ -14,6 +15,7 @@ import { PlusCircle, Filter } from 'lucide-react';
 const Components = () => {
   const [components, setComponents] = useState(getSampleComponents());
   const [filter, setFilter] = useState('');
+  const { isAdmin } = useAuth();
 
   // Filter components based on search term
   const filteredComponents = components.filter(component => 
@@ -36,12 +38,14 @@ const Components = () => {
           </div>
           
           <div className="flex items-center gap-2">
-            <Button asChild className="hover-lift" size="sm">
-              <Link to="/components/new">
-                <PlusCircle className="h-4 w-4 mr-1" />
-                Novo Componente
-              </Link>
-            </Button>
+            {isAdmin && (
+              <Button asChild className="hover-lift" size="sm">
+                <Link to="/components/new">
+                  <PlusCircle className="h-4 w-4 mr-1" />
+                  Novo Componente
+                </Link>
+              </Button>
+            )}
             <Button variant="outline" size="sm" className="gap-1">
               <Filter className="h-4 w-4" />
               Filtrar
@@ -77,12 +81,14 @@ const Components = () => {
               <p className="text-muted-foreground max-w-md mb-4">
                 Não encontramos nenhum componente com os filtros aplicados. Tente ajustar sua busca ou criar um novo componente.
               </p>
-              <Button asChild>
-                <Link to="/components/new">
-                  <PlusCircle className="h-4 w-4 mr-1" />
-                  Criar Componente
-                </Link>
-              </Button>
+              {isAdmin && (
+                <Button asChild>
+                  <Link to="/components/new">
+                    <PlusCircle className="h-4 w-4 mr-1" />
+                    Criar Componente
+                  </Link>
+                </Button>
+              )}
             </CardContent>
           </Card>
         )}
