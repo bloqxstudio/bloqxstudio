@@ -1,6 +1,6 @@
 
-import { supabase } from './supabase';
-import { NewComponent, UpdateComponent, Component, Category, NewCategory } from './database.types';
+import { supabase } from '@/integrations/supabase/client';
+import { Component, UpdateComponent, NewComponent, Category, UpdateCategory, NewCategory } from '@/lib/database.types';
 
 // Component CRUD operations
 export const getComponents = async () => {

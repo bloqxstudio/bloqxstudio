@@ -1,7 +1,13 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
-import { supabase, isUserAdmin } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
+
+// Helper function to check if a user is an admin
+const isUserAdmin = (user: User | null): boolean => {
+  if (!user) return false;
+  return user.user_metadata?.role === 'admin';
+};
 
 type AuthContextType = {
   session: Session | null;
