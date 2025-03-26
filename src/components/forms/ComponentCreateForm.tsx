@@ -12,7 +12,7 @@ import {
   CardContent,
   Form,
 } from '@/components/ui';
-import { cleanElementorJson, validateJson } from '@/utils/jsonUtils';
+import { cleanElementorJson, validateJson, validateElementorJson } from '@/utils/jsonUtils';
 import { formSchema, type FormValues } from './componentFormSchema';
 
 // Import the smaller components
@@ -88,14 +88,38 @@ const ComponentCreateForm = () => {
     }
     
     try {
+      // First validate the JSON structure
+      if (!validateJson(currentJson)) {
+        toast.error('O código não é um JSON válido. Verifique a sintaxe.', {
+          duration: 3000,
+          id: 'invalid-json',
+        });
+        return;
+      }
+      
+      // Parse and check if it's an Elementor component
+      const parsed = JSON.parse(currentJson);
+      if (!validateElementorJson(parsed)) {
+        toast.warning('O JSON não parece ser um componente Elementor válido. A estrutura deve ter "type": "elementor" e um array "elements".', {
+          duration: 5000,
+          id: 'invalid-elementor',
+        });
+      }
+      
+      // Clean and format the JSON
       const cleanedJson = cleanElementorJson(currentJson);
       form.setValue('jsonCode', cleanedJson);
       setPreviewJson(cleanedJson);
       setShowPreview(true);
       
-      toast('Código limpo com sucesso!');
+      toast.success('JSON limpo e formatado com sucesso!', {
+        id: 'clean-success',
+      });
     } catch (e) {
-      toast('Erro ao limpar o código. Verifique se é um JSON válido.');
+      console.error('Error cleaning JSON:', e);
+      toast.error('Erro ao processar o JSON. Verifique se é um código válido.', {
+        duration: 3000,
+      });
     }
   };
 
@@ -103,19 +127,34 @@ const ComponentCreateForm = () => {
     const currentJson = form.getValues('jsonCode');
     
     if (!validateJson(currentJson)) {
-      toast('JSON inválido. O texto fornecido não é um JSON válido.');
+      toast.error('JSON inválido. O texto fornecido não é um JSON válido.', {
+        duration: 3000,
+      });
       return;
     }
     
     setPreviewJson(currentJson);
     setShowPreview(true);
+    
+    // Check if it's an Elementor component
+    try {
+      const parsed = JSON.parse(currentJson);
+      if (!validateElementorJson(parsed)) {
+        toast.warning('O JSON não parece ser um componente Elementor válido.', {
+          duration: 3000,
+        });
+      }
+    } catch (e) {
+      // This shouldn't happen since we already validated the JSON
+      console.error('Error parsing JSON:', e);
+    }
   };
 
   const onSubmit = async (values: FormValues) => {
     console.log('Form submitted with values:', values);
     
     if (!validateJson(values.jsonCode)) {
-      toast('JSON inválido. O texto fornecido não é um JSON válido.');
+      toast.error('JSON inválido. O texto fornecido não é um JSON válido.');
       return;
     }
 

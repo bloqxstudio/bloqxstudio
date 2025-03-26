@@ -1,11 +1,13 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
 import { UseFormReturn } from 'react-hook-form';
 import { FormValues } from './componentFormSchema';
 import ComponentFormActions from './ComponentFormActions';
 import CodeViewer from '@/components/CodeViewer';
+import { validateJson } from '@/utils/jsonUtils';
+import { toast } from 'sonner';
 
 interface JsonCodeSectionProps {
   form: UseFormReturn<FormValues>;
@@ -22,6 +24,17 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
   onCleanJson, 
   onPreviewJson 
 }) => {
+  const [isValidJson, setIsValidJson] = useState(true);
+  
+  // Validate JSON whenever it changes
+  useEffect(() => {
+    const currentJson = form.getValues('jsonCode');
+    if (currentJson) {
+      const isValid = validateJson(currentJson);
+      setIsValidJson(isValid);
+    }
+  }, [form.watch('jsonCode')]);
+
   return (
     <>
       <FormField
@@ -33,12 +46,29 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
             <ComponentFormActions 
               onCleanJson={onCleanJson}
               onPreviewJson={onPreviewJson}
+              hasValidJson={isValidJson}
             />
             <FormControl>
               <Textarea 
                 placeholder='{"type": "elementor", "elements": [...]}'
                 className="min-h-[200px] font-mono text-sm"
                 {...field} 
+                onChange={(e) => {
+                  field.onChange(e);
+                  // Immediate validation feedback for large changes
+                  if (e.target.value.length > 50) {
+                    const isValid = validateJson(e.target.value);
+                    setIsValidJson(isValid);
+                    if (!isValid && e.target.value.length > 0) {
+                      form.setError('jsonCode', { 
+                        type: 'manual', 
+                        message: 'JSON inválido. Verifique a sintaxe.'
+                      });
+                    } else {
+                      form.clearErrors('jsonCode');
+                    }
+                  }
+                }}
               />
             </FormControl>
             <FormDescription>
