@@ -9,19 +9,30 @@ import {
   Badge,
   Separator,
   Card,
-  CardContent
+  CardContent,
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
 } from '@/components/ui';
-import { ArrowLeft, Calendar, Copy, Download, Tag, Lock } from 'lucide-react';
+import { ArrowLeft, Calendar, Copy, Download, Tag, Lock, Pencil, Trash } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { Component } from '@/lib/database.types';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { deleteComponent } from '@/lib/api';
 
 const ComponentDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [isScrolled, setIsScrolled] = useState(false);
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const queryClient = useQueryClient();
 
   // Use React Query to fetch the component data
   const { data: component, isLoading, error } = useQuery({
@@ -43,6 +54,27 @@ const ComponentDetail = () => {
       return data as Component;
     },
   });
+
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: (componentId: string) => deleteComponent(componentId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['components'] });
+      toast.success('Componente excluído com sucesso!');
+      navigate('/components');
+    },
+    onError: (error) => {
+      console.error('Error deleting component:', error);
+      toast.error('Erro ao excluir componente. Tente novamente.');
+    }
+  });
+
+  const handleDelete = () => {
+    if (id) {
+      deleteMutation.mutate(id);
+      setShowDeleteDialog(false);
+    }
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -84,6 +116,12 @@ const ComponentDetail = () => {
       element.click();
       document.body.removeChild(element);
       toast.success(`Arquivo ${component.id}.json baixado com sucesso!`);
+    }
+  };
+
+  const handleEdit = () => {
+    if (id) {
+      navigate(`/component/edit/${id}`);
     }
   };
 
@@ -138,6 +176,28 @@ const ComponentDetail = () => {
           </Button>
           
           <div className="flex items-center gap-2">
+            {isAdmin && (
+              <>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleEdit}
+                  className="hidden sm:flex"
+                >
+                  <Pencil className="h-4 w-4 mr-1" />
+                  Editar
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setShowDeleteDialog(true)}
+                  className="hidden sm:flex text-destructive hover:bg-destructive/10"
+                >
+                  <Trash className="h-4 w-4 mr-1" />
+                  Excluir
+                </Button>
+              </>
+            )}
             {user ? (
               <>
                 <Button 
@@ -222,7 +282,7 @@ const ComponentDetail = () => {
                 code={component.json_code || component.code}
                 title="Código JSON para Elementor"
                 fileName={`${component.id}.json`}
-                restricted={true}
+                restricted={!user}
               />
             </div>
           </div>
@@ -301,6 +361,28 @@ const ComponentDetail = () => {
             <div className="p-4 rounded-lg bg-muted/30 relative overflow-hidden">
               <h3 className="text-sm font-medium mb-2">Ações rápidas</h3>
               <div className="flex flex-col gap-2">
+                {isAdmin && (
+                  <>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="justify-start"
+                      onClick={handleEdit}
+                    >
+                      <Pencil className="h-4 w-4 mr-2" />
+                      Editar componente
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="justify-start text-destructive hover:bg-destructive/10"
+                      onClick={() => setShowDeleteDialog(true)}
+                    >
+                      <Trash className="h-4 w-4 mr-2" />
+                      Excluir componente
+                    </Button>
+                  </>
+                )}
                 {user ? (
                   <>
                     <Button 
@@ -368,6 +450,26 @@ const ComponentDetail = () => {
           </div>
         </div>
       </main>
+      
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Componente</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza de que deseja excluir este componente? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleteMutation.isPending ? 'Excluindo...' : 'Excluir'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       
       <footer className="border-t py-6">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">

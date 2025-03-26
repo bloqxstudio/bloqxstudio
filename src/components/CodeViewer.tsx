@@ -104,15 +104,6 @@ const CodeViewer: React.FC<CodeViewerProps> = ({
     toast.success(`Arquivo ${fileName} baixado com sucesso!`);
   };
 
-  const getPreviewCode = () => {
-    // Show first 5 lines with "..." for unauthenticated users
-    if (restricted && !user) {
-      const lines = code.split('\n');
-      return lines.slice(0, 5).join('\n') + '\n...';
-    }
-    return code;
-  };
-
   return (
     <>
       <div className="w-full rounded-lg overflow-hidden border border-border bg-card">
@@ -162,19 +153,15 @@ const CodeViewer: React.FC<CodeViewerProps> = ({
           </pre>
           
           {restricted && !user && (
-            <div className="absolute inset-0 bg-background/20 backdrop-blur-[1px] flex flex-col items-center justify-center">
-              <div className="bg-background/95 border shadow-md rounded-lg p-6 max-w-md mx-auto text-center">
-                <Lock className="h-10 w-10 mx-auto mb-4 text-primary" />
-                <h3 className="text-lg font-bold mb-2">Acesso exclusivo para membros</h3>
-                <p className="text-muted-foreground mb-6">
-                  Crie sua conta gratuita para acessar este componente e muitos outros.
-                </p>
-                <div className="flex flex-row gap-4 justify-center">
-                  <Button asChild variant="outline">
+            <div className="absolute bottom-0 inset-x-0 h-20 bg-gradient-to-t from-background/95 to-transparent flex items-end justify-center p-4">
+              <div className="text-center">
+                <p className="text-sm mb-2">Crie uma conta para acessar o código completo</p>
+                <div className="flex gap-2 justify-center">
+                  <Button asChild size="sm" variant="outline">
                     <Link to="/login">Entrar</Link>
                   </Button>
-                  <Button asChild>
-                    <Link to="/register">Criar conta</Link>
+                  <Button asChild size="sm">
+                    <Link to="/register">Registrar</Link>
                   </Button>
                 </div>
               </div>
@@ -204,7 +191,7 @@ const CodeViewer: React.FC<CodeViewerProps> = ({
             </Button>
             <Button asChild>
               <Link to="/register" onClick={() => setShowAuthDialog(false)}>
-                Criar conta
+                Registrar
               </Link>
             </Button>
           </DialogFooter>

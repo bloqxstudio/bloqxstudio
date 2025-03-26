@@ -9,14 +9,14 @@ import {
   Card,
   CardContent
 } from '@/components/ui';
-import { PlusCircle, Filter } from 'lucide-react';
+import { PlusCircle, Filter, Settings } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { getComponents } from '@/lib/api';
 import { toast } from 'sonner';
 
 const Components = () => {
   const [filter, setFilter] = useState('');
-  const { user } = useAuth(); // We only need to check if user is logged in, not if they're admin
+  const { user, isAdmin } = useAuth(); // We need to check if user is admin
   const navigate = useNavigate();
   
   // Fetch components from Supabase
@@ -58,10 +58,21 @@ const Components = () => {
           </div>
           
           <div className="flex items-center gap-2">
-            {user && ( // Changed from isAdmin to user - show button for any logged in user
+            {user && (
               <Button onClick={handleCreateClick} className="hover-lift" size="sm">
                 <PlusCircle className="h-4 w-4 mr-1" />
                 Novo Componente
+              </Button>
+            )}
+            {isAdmin && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate('/admin')}
+                className="gap-1"
+              >
+                <Settings className="h-4 w-4" />
+                Painel de Controle
               </Button>
             )}
             <Button variant="outline" size="sm" className="gap-1">
@@ -101,7 +112,7 @@ const Components = () => {
               <p className="text-muted-foreground max-w-md mb-4">
                 Não encontramos nenhum componente com os filtros aplicados. Tente ajustar sua busca ou criar um novo componente.
               </p>
-              {user && ( // Changed from isAdmin to user - show button for any logged in user
+              {user && (
                 <Button onClick={handleCreateClick}>
                   <PlusCircle className="h-4 w-4 mr-1" />
                   Criar Componente
