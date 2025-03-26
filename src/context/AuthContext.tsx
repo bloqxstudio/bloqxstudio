@@ -2,6 +2,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 // Helper function to check if a user is an admin
 const isUserAdmin = (user: User | null): boolean => {
@@ -13,6 +14,7 @@ type AuthContextType = {
   session: Session | null;
   user: User | null;
   isLoading: boolean;
+  isError: boolean;
   isAdmin: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any | null }>;
   signUp: (email: string, password: string) => Promise<{ error: any | null, data: any | null }>;
@@ -25,24 +27,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isError, setIsError] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // Set up auth state listener first
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      console.log("Auth state changed", session?.user?.email);
       setSession(session);
       setUser(session?.user ?? null);
       setIsAdmin(session?.user ? isUserAdmin(session.user) : false);
       setIsLoading(false);
     });
 
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setIsAdmin(session?.user ? isUserAdmin(session.user) : false);
-      setIsLoading(false);
-    });
+    // Then get initial session
+    const initializeAuth = async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error("Error fetching auth session:", error);
+          setIsError(true);
+          toast.error("Failed to connect to authentication service");
+        } else {
+          setSession(data.session);
+          setUser(data.session?.user ?? null);
+          setIsAdmin(data.session?.user ? isUserAdmin(data.session.user) : false);
+        }
+      } catch (err) {
+        console.error("Unexpected auth error:", err);
+        setIsError(true);
+        toast.error("Authentication service unavailable");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initializeAuth();
 
     return () => {
       subscription.unsubscribe();
@@ -50,31 +71,57 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    return { error };
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        toast.error(error.message || "Failed to sign in");
+      }
+      return { error };
+    } catch (err: any) {
+      toast.error("An unexpected error occurred during sign in");
+      return { error: err };
+    }
   };
 
   const signUp = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          role: 'user' // Default role for new users
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            role: 'user' // Default role for new users
+          }
         }
+      });
+      
+      if (error) {
+        toast.error(error.message || "Failed to sign up");
+      } else if (data) {
+        toast.success("Registration successful! Please check your email to confirm your account.");
       }
-    });
-    return { data, error };
+      
+      return { data, error };
+    } catch (err: any) {
+      toast.error("An unexpected error occurred during sign up");
+      return { data: null, error: err };
+    }
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.error("Error during sign out:", err);
+      toast.error("Failed to sign out properly");
+    }
   };
 
   const value = {
     session,
     user,
     isLoading,
+    isError,
     isAdmin,
     signIn,
     signUp,
