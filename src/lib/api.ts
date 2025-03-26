@@ -58,19 +58,26 @@ export const getComponentsByCategory = async (categoryId: string) => {
 };
 
 export const createComponent = async (component: NewComponent) => {
-  console.log('Creating component:', component);
+  console.log('Creating component with data:', component);
   
-  const { data, error } = await supabase
-    .from('components')
-    .insert([component])
-    .select()
-    .single();
-  
-  if (error) {
-    console.error('Error creating component:', error);
+  try {
+    const { data, error } = await supabase
+      .from('components')
+      .insert([component])
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Error creating component (Supabase error):', error);
+      throw error;
+    }
+    
+    console.log('Component created successfully:', data);
+    return data as Component;
+  } catch (error) {
+    console.error('Error in createComponent function:', error);
     throw error;
   }
-  return data as Component;
 };
 
 export const updateComponent = async (id: string, updates: UpdateComponent) => {

@@ -1,9 +1,8 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { Save, Upload } from 'lucide-react';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { createComponent, uploadComponentImage, getCategories } from '@/lib/api';
@@ -28,7 +27,6 @@ import { cleanElementorJson, validateJson } from '@/utils/jsonUtils';
 import ComponentFormActions from './ComponentFormActions';
 
 const ComponentCreateForm = () => {
-  const { toast } = useToast();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [previewJson, setPreviewJson] = useState('');
@@ -60,19 +58,12 @@ const ComponentCreateForm = () => {
     mutationFn: createComponent,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['components'] });
-      toast({
-        title: "Componente criado!",
-        description: "Seu componente foi criado e salvo com sucesso.",
-      });
+      toast('Componente criado com sucesso!');
       navigate('/components');
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Error creating component:', error);
-      toast({
-        title: "Erro ao criar componente",
-        description: "Ocorreu um erro ao salvar o componente. Tente novamente.",
-        variant: "destructive"
-      });
+      toast('Erro ao criar componente: ' + (error?.message || 'Erro desconhecido'));
     }
   });
 
@@ -94,11 +85,7 @@ const ComponentCreateForm = () => {
     const currentJson = form.getValues('jsonCode');
     
     if (!currentJson) {
-      toast({
-        title: "Nenhum código para limpar",
-        description: "Por favor, insira um código JSON antes de limpar.",
-        variant: "destructive"
-      });
+      toast('Nenhum código para limpar');
       return;
     }
     
@@ -108,16 +95,9 @@ const ComponentCreateForm = () => {
       setPreviewJson(cleanedJson);
       setShowPreview(true);
       
-      toast({
-        title: "Código limpo com sucesso!",
-        description: "O JSON foi formatado e limpo para o padrão Elementor.",
-      });
+      toast('Código limpo com sucesso!');
     } catch (e) {
-      toast({
-        title: "Erro ao limpar o código",
-        description: "O texto fornecido não pôde ser limpo corretamente. Verifique se é um JSON válido.",
-        variant: "destructive"
-      });
+      toast('Erro ao limpar o código. Verifique se é um JSON válido.');
     }
   };
 
@@ -125,11 +105,7 @@ const ComponentCreateForm = () => {
     const currentJson = form.getValues('jsonCode');
     
     if (!validateJson(currentJson)) {
-      toast({
-        title: "JSON inválido",
-        description: "O texto fornecido não é um JSON válido. Não é possível visualizar.",
-        variant: "destructive"
-      });
+      toast('JSON inválido. O texto fornecido não é um JSON válido.');
       return;
     }
     
@@ -138,12 +114,10 @@ const ComponentCreateForm = () => {
   };
 
   const onSubmit = async (values: FormValues) => {
+    console.log('Form submitted with values:', values);
+    
     if (!validateJson(values.jsonCode)) {
-      toast({
-        title: "JSON inválido",
-        description: "O texto fornecido não é um JSON válido.",
-        variant: "destructive"
-      });
+      toast('JSON inválido. O texto fornecido não é um JSON válido.');
       return;
     }
 
@@ -153,18 +127,20 @@ const ComponentCreateForm = () => {
       
       // Upload image if selected
       if (selectedFile) {
-        const fileName = `${Date.now()}-${selectedFile.name}`;
-        previewImageUrl = await uploadComponentImage(selectedFile, fileName);
+        try {
+          const fileName = `${Date.now()}-${selectedFile.name}`;
+          previewImageUrl = await uploadComponentImage(selectedFile, fileName);
+        } catch (uploadError) {
+          console.error('Error uploading image:', uploadError);
+          toast('Erro ao fazer upload da imagem, mas o componente será salvo sem imagem.');
+        }
       }
       
       // Get current user
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        toast({
-          title: "Não autenticado",
-          description: "Você precisa estar logado para criar componentes.",
-          variant: "destructive"
-        });
+        toast('Você precisa estar logado para criar componentes.');
+        navigate('/login');
         return;
       }
       
@@ -184,14 +160,11 @@ const ComponentCreateForm = () => {
         created_by: user.id
       };
       
+      console.log('Creating component with:', newComponent);
       createMutation.mutate(newComponent);
     } catch (error) {
-      console.error('Error creating component:', error);
-      toast({
-        title: "Erro ao criar componente",
-        description: "Ocorreu um erro ao salvar o componente. Tente novamente.",
-        variant: "destructive"
-      });
+      console.error('Error in submit handler:', error);
+      toast('Erro ao criar componente. Verifique o console para mais detalhes.');
     } finally {
       setIsUploading(false);
     }
