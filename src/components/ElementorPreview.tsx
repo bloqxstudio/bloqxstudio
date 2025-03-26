@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { PlaceholderImage } from '@/components/ui/placeholder-image';
 import { Button } from '@/components/ui/button';
-import { alertCircle } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { validateJson } from '@/utils/jsonUtils';
 

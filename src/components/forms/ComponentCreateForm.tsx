@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -111,26 +110,15 @@ const ComponentCreateForm = () => {
       }
       
       // Clean and format the JSON with the wireframe modes
-      const cleanedJson = cleanElementorJson(currentJson, removeStyles, wireframeMode);
+      const cleanedJson = cleanElementorJson(currentJson, removeStyles);
       form.setValue('jsonCode', cleanedJson);
       setPreviewJson(cleanedJson);
       setShowPreview(true);
       
-      let successMessage = 'JSON limpo e formatado com sucesso!';
+      toast.success('JSON limpo e formatado com estilo wireframe!');
       
-      if (removeStyles && wireframeMode) {
-        successMessage = 'JSON transformado para wireframe completo com placeholders em português e nomenclatura Client-First!';
-        // Show wireframe example if both modes are active
-        setShowWireframeExample(true);
-      } else if (removeStyles) {
-        successMessage = 'JSON limpo e formatado com estilo wireframe premium e nomenclatura Client-First!';
-      } else if (wireframeMode) {
-        successMessage = 'JSON transformado para wireframe com placeholders em português!';
-      }
-      
-      toast.success(successMessage, {
-        id: 'clean-success',
-      });
+      // Show wireframe example
+      setShowWireframeExample(true);
     } catch (e) {
       console.error('Error cleaning JSON:', e);
       toast.error('Erro ao processar o JSON. Verifique o formato e tente novamente.', {
@@ -242,14 +230,12 @@ const ComponentCreateForm = () => {
             
             <JsonCodeSection 
               form={form} 
-              showPreview={showPreview} 
-              previewJson={previewJson} 
+              showPreview={showPreview}
+              setShowPreview={setShowPreview}
               onCleanJson={handleCleanJson} 
               onPreviewJson={handlePreviewJson}
               removeStyles={removeStyles}
               setRemoveStyles={setRemoveStyles}
-              wireframeMode={wireframeMode}
-              setWireframeMode={setWireframeMode}
             />
             
             {showWireframeExample && (
