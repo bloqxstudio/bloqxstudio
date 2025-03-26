@@ -26,3 +26,16 @@ export {
   TableCell,
   TableCaption
 } from "./table";
+// Add AlertDialog exports
+export {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+  AlertDialogOverlay,
+} from "./alert-dialog";
