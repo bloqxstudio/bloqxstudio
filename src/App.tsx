@@ -16,7 +16,7 @@ import AdminPanel from '@/pages/AdminPanel';
 import UserManagement from '@/pages/UserManagement';
 import NotFound from '@/pages/NotFound';
 
-// Create the QueryClient instance outside of the component
+// Create a QueryClient instance
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -25,7 +25,8 @@ const queryClient = new QueryClient({
   },
 });
 
-function App() {
+// Create a function component for App
+const App: React.FC = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
@@ -63,6 +64,6 @@ function App() {
       </BrowserRouter>
     </QueryClientProvider>
   );
-}
+};
 
 export default App;
