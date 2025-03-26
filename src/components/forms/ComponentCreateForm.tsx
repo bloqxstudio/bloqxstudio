@@ -1,30 +1,28 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
-import { Save, Upload } from 'lucide-react';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { createComponent, uploadComponentImage, getCategories } from '@/lib/api';
 import { supabase } from '@/integrations/supabase/client';
 import { 
-  Button, 
   Card, 
   CardContent,
-  Input,
-  Textarea,
   Form,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormControl,
-  FormDescription,
-  FormMessage,
 } from '@/components/ui';
-import CodeViewer from '@/components/CodeViewer';
-import { formSchema, type FormValues } from './componentFormSchema';
 import { cleanElementorJson, validateJson } from '@/utils/jsonUtils';
-import ComponentFormActions from './ComponentFormActions';
+import { formSchema, type FormValues } from './componentFormSchema';
+
+// Import the smaller components
+import BasicInfoSection from './BasicInfoSection';
+import DescriptionSection from './DescriptionSection';
+import VisibilitySection from './VisibilitySection';
+import TagsSection from './TagsSection';
+import ImageUploadSection from './ImageUploadSection';
+import JsonCodeSection from './JsonCodeSection';
+import FormSubmitButton from './FormSubmitButton';
 
 const ComponentCreateForm = () => {
   const navigate = useNavigate();
@@ -175,221 +173,26 @@ const ComponentCreateForm = () => {
       <CardContent className="pt-6">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <FormField
-                control={form.control}
-                name="title"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Título*</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Hero de lançamento" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      Nome descritivo do componente
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="category"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Categoria</FormLabel>
-                    <FormControl>
-                      <select
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
-                        {...field}
-                      >
-                        <option value="">Selecione uma categoria (opcional)</option>
-                        {categories.map((category) => (
-                          <option key={category.id} value={category.id}>
-                            {category.name}
-                          </option>
-                        ))}
-                      </select>
-                    </FormControl>
-                    <FormDescription>
-                      Selecione a categoria do componente (opcional)
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            <BasicInfoSection form={form} categories={categories} />
+            <DescriptionSection form={form} />
+            <VisibilitySection form={form} />
+            <TagsSection form={form} />
             
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Descrição</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="Descreva o propósito e funcionalidade deste componente" 
-                      className="resize-none" 
-                      {...field} 
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Explique brevemente para que serve este componente (opcional)
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
+            <ImageUploadSection 
+              selectedFile={selectedFile}
+              imagePreview={imagePreview}
+              onFileChange={handleFileChange}
             />
             
-            <FormField
-              control={form.control}
-              name="visibility"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Visibilidade</FormLabel>
-                  <div className="flex gap-4">
-                    <label className="flex items-center space-x-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        value="public"
-                        checked={field.value === 'public'}
-                        onChange={() => field.onChange('public')}
-                        className="h-4 w-4 text-primary border-gray-300 focus:ring-primary"
-                      />
-                      <span>Público</span>
-                    </label>
-                    <label className="flex items-center space-x-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        value="private"
-                        checked={field.value === 'private'}
-                        onChange={() => field.onChange('private')}
-                        className="h-4 w-4 text-primary border-gray-300 focus:ring-primary"
-                      />
-                      <span>Privado</span>
-                    </label>
-                  </div>
-                  <FormDescription>
-                    Componentes públicos ficam visíveis para todos os usuários
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
+            <JsonCodeSection 
+              form={form}
+              showPreview={showPreview}
+              previewJson={previewJson}
+              onCleanJson={handleCleanJson}
+              onPreviewJson={handlePreviewJson}
             />
             
-            <FormField
-              control={form.control}
-              name="tags"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Tags</FormLabel>
-                  <FormControl>
-                    <Input placeholder="hero, lançamento, produto" {...field} />
-                  </FormControl>
-                  <FormDescription>
-                    Adicione tags separadas por vírgula (opcional)
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            {/* Image upload field */}
-            <div className="space-y-2">
-              <FormLabel>Imagem de Pré-visualização</FormLabel>
-              <div className="border border-input rounded-md p-4">
-                <div className="flex items-center gap-4">
-                  <Button 
-                    type="button"
-                    variant="outline"
-                    onClick={() => document.getElementById('image-upload')?.click()}
-                    className="gap-2"
-                  >
-                    <Upload className="h-4 w-4" />
-                    Selecionar Imagem
-                  </Button>
-                  <Input 
-                    id="image-upload"
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleFileChange}
-                  />
-                  <p className="text-sm text-muted-foreground">
-                    {selectedFile ? selectedFile.name : "Nenhum arquivo selecionado (opcional)"}
-                  </p>
-                </div>
-                
-                {imagePreview && (
-                  <div className="mt-4">
-                    <p className="text-sm font-medium mb-2">Pré-visualização:</p>
-                    <div className="relative w-full h-40 bg-muted rounded-md overflow-hidden">
-                      <img 
-                        src={imagePreview} 
-                        alt="Preview" 
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-              <FormDescription>
-                Adicione uma imagem para representar visualmente o componente (opcional)
-              </FormDescription>
-            </div>
-            
-            <FormField
-              control={form.control}
-              name="jsonCode"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Código JSON do Elementor*</FormLabel>
-                  <ComponentFormActions 
-                    onCleanJson={handleCleanJson}
-                    onPreviewJson={handlePreviewJson}
-                  />
-                  <FormControl>
-                    <Textarea 
-                      placeholder='{"type": "elementor", "elements": [...]}'
-                      className="min-h-[200px] font-mono text-sm"
-                      {...field} 
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Cole o código JSON do Elementor aqui
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            {showPreview && (
-              <div className="mt-4 pt-4 border-t">
-                <h3 className="text-lg font-medium mb-3">Pré-visualização:</h3>
-                <CodeViewer code={previewJson} title="JSON Formatado" />
-              </div>
-            )}
-            
-            <div className="flex justify-end">
-              <Button 
-                type="submit" 
-                className="gap-2" 
-                disabled={createMutation.isPending || isUploading}
-              >
-                {createMutation.isPending || isUploading ? (
-                  <>
-                    <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" />
-                    Salvando...
-                  </>
-                ) : (
-                  <>
-                    <Save className="h-4 w-4" />
-                    Salvar Componente
-                  </>
-                )}
-              </Button>
-            </div>
+            <FormSubmitButton isLoading={createMutation.isPending || isUploading} />
           </form>
         </Form>
       </CardContent>
