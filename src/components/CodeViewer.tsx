@@ -4,6 +4,15 @@ import { Button } from '@/components/ui/button';
 import { Copy, Check, Download, Lock } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthContext';
+import { 
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter
+} from '@/components/ui/dialog';
+import { Link } from 'react-router-dom';
 
 interface CodeViewerProps {
   code: string;
@@ -55,6 +64,7 @@ const CodeViewer: React.FC<CodeViewerProps> = ({
 }) => {
   const [copied, setCopied] = useState(false);
   const [formattedCode, setFormattedCode] = useState('');
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -68,7 +78,7 @@ const CodeViewer: React.FC<CodeViewerProps> = ({
 
   const handleCopy = () => {
     if (restricted && !user) {
-      toast.error('Faça login para copiar o código');
+      setShowAuthDialog(true);
       return;
     }
     
@@ -80,7 +90,7 @@ const CodeViewer: React.FC<CodeViewerProps> = ({
 
   const downloadCode = () => {
     if (restricted && !user) {
-      toast.error('Faça login para baixar o código');
+      setShowAuthDialog(true);
       return;
     }
     
@@ -94,56 +104,113 @@ const CodeViewer: React.FC<CodeViewerProps> = ({
     toast.success(`Arquivo ${fileName} baixado com sucesso!`);
   };
 
+  const getPreviewCode = () => {
+    // Show first 5 lines with "..." for unauthenticated users
+    if (restricted && !user) {
+      const lines = code.split('\n');
+      return lines.slice(0, 5).join('\n') + '\n...';
+    }
+    return code;
+  };
+
   return (
-    <div className="w-full rounded-lg overflow-hidden border border-border bg-card">
-      <div className="flex items-center justify-between px-4 py-2 bg-muted/50">
-        <h3 className="text-sm font-medium">{title}</h3>
-        <div className="flex items-center gap-2">
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="h-8 px-2 text-xs"
-            onClick={downloadCode}
-            disabled={restricted && !user}
-          >
-            {restricted && !user ? (
-              <Lock className="h-3.5 w-3.5 mr-1" />
-            ) : (
-              <Download className="h-3.5 w-3.5 mr-1" />
-            )}
-            Baixar
-          </Button>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="h-8 px-2 text-xs"
-            onClick={handleCopy}
-            disabled={restricted && !user}
-          >
-            {copied ? (
-              <>
-                <Check className="h-3.5 w-3.5 mr-1" />
-                Copiado!
-              </>
-            ) : (
-              <>
-                {restricted && !user ? (
-                  <Lock className="h-3.5 w-3.5 mr-1" />
-                ) : (
-                  <Copy className="h-3.5 w-3.5 mr-1" />
-                )}
-                Copiar
-              </>
-            )}
-          </Button>
+    <>
+      <div className="w-full rounded-lg overflow-hidden border border-border bg-card">
+        <div className="flex items-center justify-between px-4 py-2 bg-muted/50">
+          <h3 className="text-sm font-medium">{title}</h3>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-8 px-2 text-xs"
+              onClick={downloadCode}
+            >
+              {restricted && !user ? (
+                <Lock className="h-3.5 w-3.5 mr-1" />
+              ) : (
+                <Download className="h-3.5 w-3.5 mr-1" />
+              )}
+              Baixar
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="h-8 px-2 text-xs"
+              onClick={handleCopy}
+            >
+              {copied ? (
+                <>
+                  <Check className="h-3.5 w-3.5 mr-1" />
+                  Copiado!
+                </>
+              ) : (
+                <>
+                  {restricted && !user ? (
+                    <Lock className="h-3.5 w-3.5 mr-1" />
+                  ) : (
+                    <Copy className="h-3.5 w-3.5 mr-1" />
+                  )}
+                  Copiar
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+        <div className="overflow-auto max-h-[500px] bg-card relative">
+          <pre className="text-sm p-4 code-json">
+            <div dangerouslySetInnerHTML={{ __html: formattedCode }} />
+          </pre>
+          
+          {restricted && !user && (
+            <div className="absolute inset-0 bg-background/20 backdrop-blur-[1px] flex flex-col items-center justify-center">
+              <div className="bg-background/95 border shadow-md rounded-lg p-6 max-w-md mx-auto text-center">
+                <Lock className="h-10 w-10 mx-auto mb-4 text-primary" />
+                <h3 className="text-lg font-bold mb-2">Acesso exclusivo para membros</h3>
+                <p className="text-muted-foreground mb-6">
+                  Crie sua conta gratuita para acessar este componente e muitos outros.
+                </p>
+                <div className="flex flex-row gap-4 justify-center">
+                  <Button asChild variant="outline">
+                    <Link to="/login">Entrar</Link>
+                  </Button>
+                  <Button asChild>
+                    <Link to="/register">Criar conta</Link>
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
-      <div className="overflow-auto max-h-[500px] bg-card">
-        <pre className="text-sm p-4 code-json">
-          <div dangerouslySetInnerHTML={{ __html: formattedCode }} />
-        </pre>
-      </div>
-    </div>
+
+      <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Acesso restrito</DialogTitle>
+            <DialogDescription>
+              Você precisa estar logado para acessar o código completo deste componente.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <p className="text-center text-muted-foreground">
+              Crie sua conta gratuita para acessar este e muitos outros componentes Elementor.
+            </p>
+          </div>
+          <DialogFooter className="sm:justify-center gap-2">
+            <Button asChild variant="outline">
+              <Link to="/login" onClick={() => setShowAuthDialog(false)}>
+                Entrar
+              </Link>
+            </Button>
+            <Button asChild>
+              <Link to="/register" onClick={() => setShowAuthDialog(false)}>
+                Criar conta
+              </Link>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 

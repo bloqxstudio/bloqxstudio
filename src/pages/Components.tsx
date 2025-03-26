@@ -66,9 +66,7 @@ const Components = () => {
         {filteredComponents.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredComponents.map((component) => (
-              <Link key={component.id} to={`/component/${component.id}`}>
-                <ComponentCard component={component} />
-              </Link>
+              <ComponentCard key={component.id} component={component} />
             ))}
           </div>
         ) : (
