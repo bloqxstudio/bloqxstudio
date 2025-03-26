@@ -7,6 +7,11 @@ import { toast } from 'sonner';
 // Helper function to check if a user is an admin
 const isUserAdmin = (user: User | null): boolean => {
   if (!user) return false;
+  
+  // Log user metadata for debugging
+  console.log('User metadata:', user.user_metadata);
+  
+  // Check role in user_metadata
   return user.user_metadata?.role === 'admin';
 };
 
@@ -34,6 +39,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       console.log("Auth state changed", session?.user?.email);
+      console.log("User metadata:", session?.user?.user_metadata);
       setSession(session);
       setUser(session?.user ?? null);
       setIsAdmin(session?.user ? isUserAdmin(session.user) : false);
@@ -52,7 +58,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } else {
           setSession(data.session);
           setUser(data.session?.user ?? null);
-          setIsAdmin(data.session?.user ? isUserAdmin(data.session.user) : false);
+          
+          // Log user info for debugging
+          console.log("Session user:", data.session?.user);
+          console.log("User metadata:", data.session?.user?.user_metadata);
+          
+          const admin = data.session?.user ? isUserAdmin(data.session.user) : false;
+          console.log("Is admin:", admin);
+          setIsAdmin(admin);
         }
       } catch (err) {
         console.error("Unexpected auth error:", err);

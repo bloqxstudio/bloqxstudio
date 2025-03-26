@@ -1,11 +1,14 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Component, UpdateComponent, NewComponent, Category, UpdateCategory, NewCategory } from '@/lib/database.types';
 
 // Component CRUD operations
 export const getComponents = async () => {
   const { data: userData, error: userError } = await supabase.auth.getUser();
+  
+  // Verificar se o usuário é admin através dos metadados
   const isAdmin = userData?.user?.user_metadata?.role === 'admin';
+  console.log('User data:', userData?.user);
+  console.log('Is admin:', isAdmin);
   
   // If the user is an admin, get all components; otherwise, only get public ones
   let query = supabase.from('components').select('*');
@@ -16,7 +19,10 @@ export const getComponents = async () => {
   
   const { data, error } = await query.order('created_at', { ascending: false });
   
-  if (error) throw error;
+  if (error) {
+    console.error('Error fetching components:', error);
+    throw error;
+  }
   return data as Component[];
 };
 
@@ -33,6 +39,8 @@ export const getComponentById = async (id: string) => {
 
 export const getComponentsByCategory = async (categoryId: string) => {
   const { data: userData, error: userError } = await supabase.auth.getUser();
+  
+  // Verificar se o usuário é admin através dos metadados
   const isAdmin = userData?.user?.user_metadata?.role === 'admin';
   
   let query = supabase.from('components')
@@ -50,13 +58,18 @@ export const getComponentsByCategory = async (categoryId: string) => {
 };
 
 export const createComponent = async (component: NewComponent) => {
+  console.log('Creating component:', component);
+  
   const { data, error } = await supabase
     .from('components')
     .insert([component])
     .select()
     .single();
   
-  if (error) throw error;
+  if (error) {
+    console.error('Error creating component:', error);
+    throw error;
+  }
   return data as Component;
 };
 

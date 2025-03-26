@@ -5,9 +5,23 @@ import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui';
 import { X } from 'lucide-react';
 import ComponentCreateForm from '@/components/forms/ComponentCreateForm';
+import { useAuth } from '@/context/AuthContext';
+import { toast } from 'sonner';
 
 const ComponentCreate = () => {
   const navigate = useNavigate();
+  const { isAdmin } = useAuth();
+
+  // Log admin status for debugging
+  console.log("Component Create - Is admin:", isAdmin);
+
+  // Se não for admin, redirecione
+  React.useEffect(() => {
+    if (!isAdmin) {
+      toast.error('Acesso restrito a administradores');
+      navigate('/components');
+    }
+  }, [isAdmin, navigate]);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">

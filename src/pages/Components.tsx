@@ -18,6 +18,10 @@ const Components = () => {
   const [filter, setFilter] = useState('');
   const { user, isAdmin } = useAuth();
   
+  // Log authentication status for debugging
+  console.log("Components page - User:", user?.email);
+  console.log("Components page - Is admin:", isAdmin);
+  
   // Fetch components from Supabase
   const { data: components = [], isLoading, error } = useQuery({
     queryKey: ['components'],
