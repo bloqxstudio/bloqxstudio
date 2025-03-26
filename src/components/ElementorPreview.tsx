@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { PlaceholderImage } from '@/components/ui/placeholder-image';
@@ -56,13 +57,15 @@ export const ElementorPreview: React.FC<ElementorPreviewProps> = ({ jsonContent 
   }
 
   return (
-    <Card className="overflow-hidden shadow-md">
-      <CardContent className="p-0">
-        <div className="bg-gray-50 p-4 space-y-8">
-          {renderElementorContent(parsedContent.elements)}
-        </div>
-      </CardContent>
-    </Card>
+    <div className="preview-container">
+      <Card className="overflow-hidden shadow-md">
+        <CardContent className="p-0">
+          <div className="bg-gray-50 p-4 space-y-6">
+            {renderElementorContent(parsedContent.elements)}
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

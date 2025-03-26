@@ -176,9 +176,9 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
       />
       
       {showPreview && previewJson && (
-        <div className="mt-6">
+        <div className="mt-6 mb-8">
           <h3 className="text-lg font-medium mb-2">Visualização do Componente</h3>
-          <div className="border rounded-lg p-4 bg-gray-50">
+          <div className="border rounded-lg p-4 bg-gray-50 max-h-[500px] overflow-y-auto">
             <ElementorPreview jsonContent={previewJson} />
           </div>
         </div>

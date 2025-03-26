@@ -158,6 +158,17 @@
   }
 }
 
+/* Preview container styles */
+.preview-container {
+  width: 100%;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.preview-container .elementor-element {
+  margin-bottom: 1rem;
+}
+
 /* Code syntax highlighting */
 pre {
   @apply p-4 rounded-md overflow-x-auto;
