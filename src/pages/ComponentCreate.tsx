@@ -10,30 +10,23 @@ import { toast } from 'sonner';
 
 const ComponentCreate = () => {
   const navigate = useNavigate();
-  const { user, isAdmin } = useAuth(); // Make sure we get both user and isAdmin
+  const { user } = useAuth(); // We only need to check if user is logged in, not if they're admin
   
-  // Check if user is logged in and is an admin
+  // Check if user is logged in
   useEffect(() => {
     if (!user) {
       toast.error('Você precisa estar logado para acessar esta página');
       navigate('/login');
-      return;
     }
-    
-    // Redirect non-admin users
-    if (!isAdmin) {
-      toast.error('Apenas administradores podem criar componentes');
-      navigate('/components');
-    }
-  }, [user, isAdmin, navigate]);
+  }, [user, navigate]);
 
   // Handle cancel button click
   const handleCancel = () => {
     navigate('/components');
   };
 
-  // Only render the form if user is logged in and is an admin
-  if (!user || !isAdmin) {
+  // Only render the form if user is logged in
+  if (!user) {
     return null; // Don't render anything while redirecting
   }
 

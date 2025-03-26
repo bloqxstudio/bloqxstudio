@@ -106,7 +106,7 @@ const App = () => {
                   <Route path="/register" element={<Register />} />
                   <Route path="/component/:id" element={<ComponentDetail />} />
                   <Route path="/components/new" element={
-                    <ProtectedRoute adminOnly>
+                    <ProtectedRoute> {/* Removed adminOnly prop */}
                       <ComponentCreate />
                     </ProtectedRoute>
                   } />

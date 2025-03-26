@@ -16,7 +16,7 @@ import { toast } from 'sonner';
 
 const Components = () => {
   const [filter, setFilter] = useState('');
-  const { user, isAdmin } = useAuth(); // Ensure we're checking isAdmin
+  const { user } = useAuth(); // We only need to check if user is logged in, not if they're admin
   const navigate = useNavigate();
   
   // Fetch components from Supabase
@@ -58,7 +58,7 @@ const Components = () => {
           </div>
           
           <div className="flex items-center gap-2">
-            {isAdmin && (
+            {user && ( // Changed from isAdmin to user - show button for any logged in user
               <Button onClick={handleCreateClick} className="hover-lift" size="sm">
                 <PlusCircle className="h-4 w-4 mr-1" />
                 Novo Componente
@@ -101,7 +101,7 @@ const Components = () => {
               <p className="text-muted-foreground max-w-md mb-4">
                 Não encontramos nenhum componente com os filtros aplicados. Tente ajustar sua busca ou criar um novo componente.
               </p>
-              {isAdmin && (
+              {user && ( // Changed from isAdmin to user - show button for any logged in user
                 <Button onClick={handleCreateClick}>
                   <PlusCircle className="h-4 w-4 mr-1" />
                   Criar Componente
