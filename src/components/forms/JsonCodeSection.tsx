@@ -13,7 +13,6 @@ interface JsonCodeSectionProps {
   showPreview: boolean;
   setShowPreview: (value: boolean) => void;
   onCleanJson: () => void;
-  onPreviewJson: () => void;
   removeStyles: boolean;
   setRemoveStyles: (value: boolean) => void;
 }
@@ -23,7 +22,6 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
   showPreview,
   setShowPreview,
   onCleanJson, 
-  onPreviewJson,
   removeStyles,
   setRemoveStyles
 }) => {
@@ -42,7 +40,7 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
     setRemoveStyles(!removeStyles);
     // Provide feedback to the user
     if (!removeStyles) {
-      toast.info('Estilo wireframe ativado. Textos serão genéricos em português, cores em tons de cinza, e elementos terão nomes amigáveis.', {
+      toast.info('Estilo wireframe ativado. Textos serão genéricos, cores em tons de cinza, e elementos terão nomes amigáveis.', {
         duration: 3000,
       });
       
@@ -53,8 +51,16 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
       } else if (!currentDescription) {
         form.setValue('description', '[WIREFRAME] Componente em estilo wireframe');
       }
+      
+      // Clean and apply wireframe style immediately
+      const currentJson = form.getValues('jsonCode');
+      if (validateJson(currentJson)) {
+        const processedJson = cleanElementorJson(currentJson, true);
+        form.setValue('jsonCode', processedJson);
+        toast.success('JSON convertido para estilo wireframe!');
+      }
     } else {
-      toast.info('Estilo wireframe desativado. Os estilos originais serão preservados.', {
+      toast.info('Estilo wireframe desativado.', {
         duration: 3000,
       });
       
@@ -66,15 +72,15 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
     }
   };
 
-  const handlePreview = () => {
+  const handleCleanJson = () => {
     const currentJson = form.getValues('jsonCode');
     if (validateJson(currentJson)) {
-      // Apply wireframe style and clean the code right away instead of showing preview
-      const processedJson = removeStyles ? cleanElementorJson(currentJson, true) : currentJson;
+      // Apply wireframe style and clean the code right away
+      const processedJson = removeStyles ? cleanElementorJson(currentJson, true) : cleanElementorJson(currentJson, false);
       form.setValue('jsonCode', processedJson);
       toast.success('JSON limpo e formatado com sucesso!');
     } else {
-      toast.error('JSON inválido. Verifique a sintaxe antes de visualizar.');
+      toast.error('JSON inválido. Verifique a sintaxe antes de limpar.');
     }
   };
 
@@ -87,8 +93,7 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
           <FormItem>
             <FormLabel>Código JSON do Elementor*</FormLabel>
             <ComponentFormActions 
-              onCleanJson={onCleanJson}
-              onPreviewJson={handlePreview}
+              onCleanJson={handleCleanJson}
               hasValidJson={isValidJson}
               removeStyles={removeStyles}
               onToggleRemoveStyles={handleToggleRemoveStyles}

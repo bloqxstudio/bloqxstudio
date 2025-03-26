@@ -2,11 +2,10 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Toggle } from '@/components/ui/toggle';
-import { Wand2, Eye, FileTerminal } from 'lucide-react';
+import { Wand2, FileTerminal } from 'lucide-react';
 
 interface ComponentFormActionsProps {
   onCleanJson: () => void;
-  onPreviewJson: () => void;
   hasValidJson: boolean;
   removeStyles: boolean;
   onToggleRemoveStyles: () => void;
@@ -14,7 +13,6 @@ interface ComponentFormActionsProps {
 
 const ComponentFormActions: React.FC<ComponentFormActionsProps> = ({
   onCleanJson,
-  onPreviewJson,
   hasValidJson,
   removeStyles,
   onToggleRemoveStyles
@@ -32,24 +30,12 @@ const ComponentFormActions: React.FC<ComponentFormActionsProps> = ({
         <Wand2 size={14} />
         <span>Limpar JSON</span>
       </Button>
-      
-      <Button 
-        type="button" 
-        variant="outline" 
-        size="sm"
-        onClick={onPreviewJson}
-        disabled={!hasValidJson}
-        className="flex items-center gap-1"
-      >
-        <Eye size={14} />
-        <span>Aplicar Wireframe</span>
-      </Button>
 
       <Toggle
         pressed={removeStyles}
         onPressedChange={onToggleRemoveStyles}
         aria-label="Aplicar Estilo Wireframe"
-        className={`flex items-center gap-1 h-9 px-3 ${removeStyles ? 'bg-gray-200' : ''}`}
+        className={`flex items-center gap-1 h-9 px-3 ${removeStyles ? 'bg-gray-200 border-gray-300' : ''}`}
       >
         <FileTerminal size={14} />
         <span>{removeStyles ? 'Wireframe ON' : 'Wireframe OFF'}</span>
