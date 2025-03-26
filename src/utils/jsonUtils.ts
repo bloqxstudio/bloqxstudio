@@ -1,3 +1,4 @@
+
 export const cleanElementorJson = (jsonString: string, removeStyles = false): string => {
   try {
     // First, validate the JSON
@@ -54,7 +55,7 @@ export const formatElementorJson = (jsonObj: any, removeStyles: boolean = false)
   // Ensure basic structure
   const formatted = {
     type: "elementor",
-    siteurl: jsonObj.siteurl || "https://example.com/",
+    siteurl: "https://example.com/",
     elements: Array.isArray(jsonObj.elements) ? jsonObj.elements : []
   };
   
@@ -422,7 +423,11 @@ const wireframeStyles = {
   image: {
     background_color: "#E5E5E5",
     border_radius: { size: 8, unit: 'px' },
-    alt: "Imagem Genérica"
+    alt: "Imagem Genérica",
+    image: {
+      url: "https://bloqxstudio.com/wp-content/uploads/2025/03/placeholder.jpg",
+      id: 0
+    }
   },
   icon: {
     primary_color: "#333333",
@@ -450,7 +455,11 @@ const wireframeStyles = {
     border_radius: { size: 8, unit: 'px' },
     testimonial_content: "Este é um texto de depoimento genérico. Ele serve como placeholder para um conteúdo real.",
     name: "Título do Depoimento",
-    job: "Subtítulo do Depoimento"
+    job: "Subtítulo do Depoimento",
+    image: {
+      url: "https://bloqxstudio.com/wp-content/uploads/2025/03/placeholder.jpg",
+      id: 0
+    }
   },
   // Default for any other element type
   default: {
@@ -760,7 +769,7 @@ const applyWidgetWireframeStyles = (element: any, widgetType: string, componentT
     case 'heading':
       element.settings.title_color = '#333333';
       element.settings._css_classes = `${componentType}_titulo text-gray-800 font-semibold`;
-      if (!element.settings.title || element.settings.title.includes('Lorem ipsum')) {
+      if (!element.settings.title || element.settings.title.includes('Lorem ipsum') || element.settings.title.includes('Curso') || element.settings.title.includes('Doces')) {
         element.settings.title = "Título Aqui";
       }
       break;
@@ -782,8 +791,13 @@ const applyWidgetWireframeStyles = (element: any, widgetType: string, componentT
       break;
       
     case 'image':
-      // Replace with placeholder image
-      delete element.settings.image;
+      // Replace with generic placeholder image
+      if (element.settings.image) {
+        element.settings.image = {
+          url: "https://bloqxstudio.com/wp-content/uploads/2025/03/placeholder.jpg",
+          id: 0
+        };
+      }
       element.settings._css_classes = `${componentType}_imagem bg-gray-200`;
       element.settings.alt = "Imagem Genérica";
       break;
@@ -804,6 +818,33 @@ const applyWidgetWireframeStyles = (element: any, widgetType: string, componentT
       element.settings.testimonial_content = "Este é um texto de depoimento genérico. Ele serve como placeholder para uma citação real.";
       element.settings.name = "Nome da Pessoa";
       element.settings.job = "Cargo, Empresa";
+      // Replace testimonial image with placeholder
+      if (element.settings.image) {
+        element.settings.image = {
+          url: "https://bloqxstudio.com/wp-content/uploads/2025/03/placeholder.jpg",
+          id: 0
+        };
+      }
+      break;
+      
+    case 'price-list':
+    case 'price-table':
+      // Replace any price-specific texts with generic placeholders
+      if (element.settings.heading_title) {
+        element.settings.heading_title = "Título do Plano";
+      }
+      if (element.settings.heading_description) {
+        element.settings.heading_description = "Descrição do plano";
+      }
+      if (element.settings.price_currency_symbol) {
+        element.settings.price_currency_symbol = "R$";
+      }
+      if (element.settings.price) {
+        element.settings.price = "99";
+      }
+      if (element.settings.period) {
+        element.settings.period = "/mês";
+      }
       break;
   }
 };
@@ -885,7 +926,14 @@ const replaceContentWithPortugueseText = (element: any, widgetType: string) => {
   
   switch (widgetType) {
     case 'heading':
-      if (!element.settings.title || element.settings.title.toLowerCase().includes('lorem ipsum')) {
+      if (!element.settings.title || 
+          element.settings.title.toLowerCase().includes('lorem ipsum') ||
+          element.settings.title.includes('Curso') ||
+          element.settings.title.includes('completo') ||
+          element.settings.title.includes('Doce') ||
+          element.settings.title.includes('Finos') ||
+          element.settings.title.includes('superbônus')
+         ) {
         // Check if heading might be multi-line based on length or original content
         if (element.settings.title && element.settings.title.length > 25) {
           element.settings.title = 'Título em Duas Linhas Para Destaque';
@@ -896,14 +944,52 @@ const replaceContentWithPortugueseText = (element: any, widgetType: string) => {
       break;
       
     case 'text-editor':
-      element.settings.editor = 'Texto descritivo genérico. Este é um texto de exemplo que serve como placeholder para o conteúdo real.';
+      // Check for client-specific content
+      if (element.settings.editor && (
+          element.settings.editor.includes('receita') ||
+          element.settings.editor.includes('técnica') ||
+          element.settings.editor.includes('estratégia') ||
+          element.settings.editor.includes('negócio') ||
+          element.settings.editor.includes('curso') ||
+          element.settings.editor.includes('doce')
+      )) {
+        element.settings.editor = 'Texto descritivo genérico. Este é um texto de exemplo que serve como placeholder para o conteúdo real.';
+      }
       break;
       
     case 'button':
-      element.settings.text = 'Botão Principal';
+      // Replace button text that might be client-specific
+      if (element.settings.text && (
+          element.settings.text.includes('TOQUE') ||
+          element.settings.text.includes('APREND') ||
+          element.settings.text.includes('LUCR')
+      )) {
+        element.settings.text = 'Botão Principal';
+      }
+      break;
+      
+    case 'price-table':
+    case 'price-list':
+      // Replace any price with generic value
+      if (element.settings.price) {
+        element.settings.price = '99';
+      }
+      if (element.settings.sale_price) {
+        element.settings.sale_price = '89';
+      }
+      if (element.settings.period && (element.settings.period.includes('12x') || element.settings.period.includes('vista'))) {
+        element.settings.period = '/mês';
+      }
       break;
       
     case 'image':
+      // Always replace image with placeholder
+      if (element.settings.image) {
+        element.settings.image = {
+          url: "https://bloqxstudio.com/wp-content/uploads/2025/03/placeholder.jpg",
+          id: 0
+        };
+      }
       if (element.settings.alt) {
         element.settings.alt = 'Imagem Genérica';
       }
@@ -918,6 +1004,13 @@ const replaceContentWithPortugueseText = (element: any, widgetType: string) => {
       element.settings.testimonial_content = 'Este é um texto de depoimento genérico. Ele serve como placeholder para um conteúdo real.';
       element.settings.name = 'Título do Depoimento';
       element.settings.job = 'Subtítulo do Depoimento';
+      // Always replace image with placeholder
+      if (element.settings.image) {
+        element.settings.image = {
+          url: "https://bloqxstudio.com/wp-content/uploads/2025/03/placeholder.jpg",
+          id: 0
+        };
+      }
       break;
       
     case 'tabs':
@@ -941,3 +1034,4 @@ const replaceContentWithPortugueseText = (element: any, widgetType: string) => {
       break;
   }
 };
+
