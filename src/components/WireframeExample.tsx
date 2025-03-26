@@ -9,9 +9,9 @@ const WireframeExample = () => {
   return (
     <Card className="overflow-hidden shadow-md">
       <CardContent className="p-0">
-        <div className="bg-gray-100 p-8 space-y-8">
+        <div className="bg-gray-50 p-8 space-y-8">
           {/* Hero Section */}
-          <section className="hero_wrapper bg-gray-50 rounded-lg p-8 md:p-12 shadow-sm">
+          <section className="hero_wrapper bg-white rounded-lg p-8 md:p-12">
             <div className="container mx-auto">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
                 <div className="hero_conteudo space-y-6">
@@ -26,14 +26,14 @@ const WireframeExample = () => {
                   </Button>
                 </div>
                 <div className="hero_imagem-wrapper">
-                  <PlaceholderImage aspectRatio="video" text="Imagem Destaque" />
+                  <PlaceholderImage aspectRatio="video" text="Imagem Destaque" className="bg-gray-200" />
                 </div>
               </div>
             </div>
           </section>
           
           {/* Features Section */}
-          <section className="recursos_wrapper bg-gray-50 rounded-lg p-8 md:p-12 shadow-sm">
+          <section className="recursos_wrapper bg-white rounded-lg p-8 md:p-12">
             <div className="container mx-auto">
               <div className="text-center mb-12">
                 <h2 className="recursos_titulo text-3xl font-semibold text-gray-800 mb-4">
@@ -46,7 +46,7 @@ const WireframeExample = () => {
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className={`recurso${i}_container bg-white p-6 rounded-lg shadow-sm`}>
+                  <div key={i} className={`recurso${i}_container bg-white p-6 rounded-lg`}>
                     <div className={`recurso${i}_icone-wrapper mb-4 bg-gray-200 w-12 h-12 rounded-full flex items-center justify-center`}>
                       <span className="text-gray-600">{i}</span>
                     </div>
@@ -63,11 +63,11 @@ const WireframeExample = () => {
           </section>
           
           {/* Testimonial Section */}
-          <section className="depoimento_wrapper bg-gray-50 rounded-lg p-8 md:p-12 shadow-sm">
+          <section className="depoimento_wrapper bg-white rounded-lg p-8 md:p-12">
             <div className="container mx-auto">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
                 <div className="depoimento_imagem-wrapper">
-                  <PlaceholderImage aspectRatio="square" text="Imagem Genérica" />
+                  <PlaceholderImage aspectRatio="square" text="Imagem Genérica" className="bg-gray-200" />
                 </div>
                 <div className="depoimento_conteudo space-y-6">
                   <div className="depoimento_citacao text-gray-800 text-lg italic">

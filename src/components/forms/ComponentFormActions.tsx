@@ -42,7 +42,7 @@ const ComponentFormActions: React.FC<ComponentFormActionsProps> = ({
         className="flex items-center gap-1"
       >
         <Eye size={14} />
-        <span>Visualizar Componente</span>
+        <span>Aplicar Wireframe</span>
       </Button>
 
       <Toggle
@@ -52,7 +52,7 @@ const ComponentFormActions: React.FC<ComponentFormActionsProps> = ({
         className={`flex items-center gap-1 h-9 px-3 ${removeStyles ? 'bg-gray-200' : ''}`}
       >
         <FileTerminal size={14} />
-        <span>Estilo Wireframe</span>
+        <span>{removeStyles ? 'Wireframe ON' : 'Wireframe OFF'}</span>
       </Toggle>
     </div>
   );

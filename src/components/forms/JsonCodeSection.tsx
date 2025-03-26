@@ -7,7 +7,6 @@ import { FormValues } from './componentFormSchema';
 import ComponentFormActions from './ComponentFormActions';
 import { validateJson, cleanElementorJson } from '@/utils/jsonUtils';
 import { toast } from 'sonner';
-import ElementorPreview from '@/components/ElementorPreview';
 
 interface JsonCodeSectionProps {
   form: UseFormReturn<FormValues>;
@@ -29,7 +28,6 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
   setRemoveStyles
 }) => {
   const [isValidJson, setIsValidJson] = useState(true);
-  const [previewJsonContent, setPreviewJsonContent] = useState<string>('');
   
   // Validate JSON whenever it changes
   useEffect(() => {
@@ -71,11 +69,10 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
   const handlePreview = () => {
     const currentJson = form.getValues('jsonCode');
     if (validateJson(currentJson)) {
-      // Apply wireframe style to preview if enabled
+      // Apply wireframe style and clean the code right away instead of showing preview
       const processedJson = removeStyles ? cleanElementorJson(currentJson, true) : currentJson;
-      setPreviewJsonContent(processedJson);
-      setShowPreview(true);
-      onPreviewJson();
+      form.setValue('jsonCode', processedJson);
+      toast.success('JSON limpo e formatado com sucesso!');
     } else {
       toast.error('JSON inválido. Verifique a sintaxe antes de visualizar.');
     }
@@ -128,13 +125,6 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
           </FormItem>
         )}
       />
-      
-      {showPreview && previewJsonContent && (
-        <div className="mt-6 pt-4 border-t">
-          <h3 className="text-lg font-medium mb-3">Visualização do componente:</h3>
-          <ElementorPreview jsonContent={previewJsonContent} />
-        </div>
-      )}
     </>
   );
 };
