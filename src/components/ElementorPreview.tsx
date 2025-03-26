@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { PlaceholderImage } from '@/components/ui/placeholder-image';
@@ -85,7 +86,7 @@ const renderElement = (element: any) => {
   switch (elType) {
     case 'section':
       return (
-        <section className="bg-white rounded-lg p-6 shadow-sm">
+        <section className="bg-gray-50 rounded-lg p-6 shadow-sm">
           <div className="text-xs text-gray-400 mb-2">{title}</div>
           <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
             {elements && renderElementorContent(elements)}
@@ -151,7 +152,7 @@ const renderWidget = (widgetType: string, settings: any, title: string) => {
       return (
         <div className="mb-4">
           <div className="text-xs text-gray-400 mb-1">{title}</div>
-          <Button variant="outline" className="bg-black text-white hover:bg-gray-800">
+          <Button variant="outline" className="bg-gray-800 text-white hover:bg-gray-700">
             {buttonText}
           </Button>
         </div>
@@ -187,7 +188,7 @@ const renderWidget = (widgetType: string, settings: any, title: string) => {
       const iconBoxDescription = settings?.description_text || 'Descrição do item. Este é um texto genérico usado como placeholder.';
       
       return (
-        <div className="mb-4 p-4 bg-white rounded-lg shadow-sm">
+        <div className="mb-4 p-4 bg-gray-50 rounded-lg shadow-sm">
           <div className="text-xs text-gray-400 mb-1">{title}</div>
           <div className="flex gap-4">
             <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center flex-shrink-0">

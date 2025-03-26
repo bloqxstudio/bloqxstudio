@@ -1,4 +1,3 @@
-
 export const cleanElementorJson = (jsonString: string, removeStyles = false): string => {
   try {
     // First, validate the JSON
@@ -370,7 +369,7 @@ const styleProperties = [
 const wireframeStyles = {
   // Top-level sections
   section: {
-    background_color: "#F7F6F3",
+    background_color: "#F7F7F7",
     border_radius: { size: 8, unit: 'px' },
     box_shadow_box_shadow_type: "yes",
     box_shadow_box_shadow: {
@@ -402,17 +401,17 @@ const wireframeStyles = {
     typography_typography: "custom",
     typography_font_size: { size: 16, unit: 'px' },
     typography_line_height: { size: 1.6, unit: 'em' },
-    editor: "Texto de descrição aqui. Este é um texto genérico que serve como placeholder para o conteúdo real que será exibido neste componente."
+    editor: "Texto descritivo genérico. Este é um texto de exemplo que serve como placeholder para o conteúdo real."
   },
   // Interactive elements
   button: {
-    background_color: "#000000",
+    background_color: "#333333",
     button_text_color: "#FFFFFF",
     border_border: "solid",
     border_width: { top: "1", right: "1", bottom: "1", left: "1", unit: 'px' },
-    border_color: "#000000",
+    border_color: "#333333",
     border_radius: { size: 6, unit: 'px' },
-    hover_background_color: "#333333",
+    hover_background_color: "#555555",
     hover_color: "#FFFFFF",
     typography_typography: "custom",
     typography_font_size: { size: 14, unit: 'px' },
@@ -421,7 +420,7 @@ const wireframeStyles = {
   },
   // Media elements
   image: {
-    background_color: "#E3E1DC",
+    background_color: "#E5E5E5",
     border_radius: { size: 8, unit: 'px' },
     alt: "Imagem Genérica"
   },
@@ -430,7 +429,7 @@ const wireframeStyles = {
     size: { size: 24, unit: 'px' }
   },
   video: {
-    background_color: "#E3E1DC",
+    background_color: "#E5E5E5",
     border_radius: { size: 8, unit: 'px' },
     aspect_ratio: "169"
   },
@@ -447,11 +446,11 @@ const wireframeStyles = {
     description_text: "Descrição do item. Este é um texto genérico usado como placeholder."
   },
   testimonial: {
-    background_color: "#F7F6F3",
+    background_color: "#F7F7F7",
     border_radius: { size: 8, unit: 'px' },
-    testimonial_content: "Este é um texto de depoimento genérico. Ele serve como placeholder para uma citação real que seria exibida neste componente.",
-    name: "Nome da Pessoa",
-    job: "Cargo, Empresa"
+    testimonial_content: "Este é um texto de depoimento genérico. Ele serve como placeholder para um conteúdo real.",
+    name: "Título do Depoimento",
+    job: "Subtítulo do Depoimento"
   },
   // Default for any other element type
   default: {
@@ -463,7 +462,7 @@ const wireframeStyles = {
 // Context-specific wireframe styles
 const contextWireframeStyles = {
   hero: {
-    background_color: "#F7F6F3",
+    background_color: "#F7F7F7",
     padding: { top: "80", right: "20", bottom: "80", left: "20", unit: 'px' }
   },
   recurso: {
@@ -471,7 +470,7 @@ const contextWireframeStyles = {
     padding: { top: "64", right: "20", bottom: "64", left: "20", unit: 'px' }
   },
   cta: {
-    background_color: "#000000",
+    background_color: "#333333",
     heading: { 
       title_color: "#FFFFFF",
       title: "Título de Chamada para Ação"
@@ -482,7 +481,7 @@ const contextWireframeStyles = {
     },
     button: { 
       background_color: "#FFFFFF", 
-      button_text_color: "#000000",
+      button_text_color: "#333333",
       hover_background_color: "transparent",
       hover_color: "#FFFFFF",
       border_color: "#FFFFFF",
@@ -491,7 +490,7 @@ const contextWireframeStyles = {
     padding: { top: "64", right: "20", bottom: "64", left: "20", unit: 'px' }
   },
   depoimento: {
-    background_color: "#F7F6F3",
+    background_color: "#F7F7F7",
     padding: { top: "64", right: "20", bottom: "64", left: "20", unit: 'px' }
   },
   preco: {
@@ -738,7 +737,7 @@ const applyWireframeStyling = (element: any, elementType: string, widgetType: st
   // Apply wireframe styling based on element type
   switch (elementType) {
     case 'section':
-      element.settings._background_color = '#F7F6F3';
+      element.settings._background_color = '#F7F7F7';
       element.settings._css_classes = `${componentType}_wrapper bg-gray-100 rounded-lg p-8 md:p-12 shadow-sm`;
       break;
       
@@ -889,7 +888,7 @@ const replaceContentWithPortugueseText = (element: any, widgetType: string) => {
       if (!element.settings.title || element.settings.title.toLowerCase().includes('lorem ipsum')) {
         // Check if heading might be multi-line based on length or original content
         if (element.settings.title && element.settings.title.length > 25) {
-          element.settings.title = 'Título em Duas Linhas Com Destaque';
+          element.settings.title = 'Título em Duas Linhas Para Destaque';
         } else {
           element.settings.title = 'Título Aqui';
         }
@@ -897,7 +896,7 @@ const replaceContentWithPortugueseText = (element: any, widgetType: string) => {
       break;
       
     case 'text-editor':
-      element.settings.editor = 'Texto de descrição aqui. Este é um texto genérico que serve como placeholder para o conteúdo real que será exibido neste componente.';
+      element.settings.editor = 'Texto descritivo genérico. Este é um texto de exemplo que serve como placeholder para o conteúdo real.';
       break;
       
     case 'button':
@@ -916,9 +915,9 @@ const replaceContentWithPortugueseText = (element: any, widgetType: string) => {
       break;
       
     case 'testimonial':
-      element.settings.testimonial_content = 'Este é um texto de depoimento genérico. Ele serve como placeholder para uma citação real.';
-      element.settings.name = 'Nome da Pessoa';
-      element.settings.job = 'Cargo, Empresa';
+      element.settings.testimonial_content = 'Este é um texto de depoimento genérico. Ele serve como placeholder para um conteúdo real.';
+      element.settings.name = 'Título do Depoimento';
+      element.settings.job = 'Subtítulo do Depoimento';
       break;
       
     case 'tabs':

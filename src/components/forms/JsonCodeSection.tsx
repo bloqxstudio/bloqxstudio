@@ -44,13 +44,27 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
     setRemoveStyles(!removeStyles);
     // Provide feedback to the user
     if (!removeStyles) {
-      toast.info('Estilo wireframe ativado. Textos serão genéricos em português, imagens representadas em tons de cinza e elementos terão nomes amigáveis.', {
+      toast.info('Estilo wireframe ativado. Textos serão genéricos em português, cores em tons de cinza, e elementos terão nomes amigáveis.', {
         duration: 3000,
       });
+      
+      // If style is now enabled, set a note in the description field
+      const currentDescription = form.getValues('description');
+      if (currentDescription && !currentDescription.includes('[WIREFRAME]')) {
+        form.setValue('description', `[WIREFRAME] ${currentDescription}`);
+      } else if (!currentDescription) {
+        form.setValue('description', '[WIREFRAME] Componente em estilo wireframe');
+      }
     } else {
       toast.info('Estilo wireframe desativado. Os estilos originais serão preservados.', {
         duration: 3000,
       });
+      
+      // Remove the wireframe tag if present
+      const currentDescription = form.getValues('description');
+      if (currentDescription && currentDescription.includes('[WIREFRAME]')) {
+        form.setValue('description', currentDescription.replace('[WIREFRAME] ', ''));
+      }
     }
   };
 
@@ -106,7 +120,9 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
               />
             </FormControl>
             <FormDescription>
-              Cole o código JSON do Elementor aqui
+              {removeStyles 
+                ? 'Cole o código JSON do Elementor aqui - Estilo wireframe ativado'
+                : 'Cole o código JSON do Elementor aqui'}
             </FormDescription>
             <FormMessage />
           </FormItem>

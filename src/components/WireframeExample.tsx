@@ -11,7 +11,7 @@ const WireframeExample = () => {
       <CardContent className="p-0">
         <div className="bg-gray-100 p-8 space-y-8">
           {/* Hero Section */}
-          <section className="hero_wrapper bg-white rounded-lg p-8 md:p-12 shadow-sm">
+          <section className="hero_wrapper bg-gray-50 rounded-lg p-8 md:p-12 shadow-sm">
             <div className="container mx-auto">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
                 <div className="hero_conteudo space-y-6">
@@ -19,9 +19,9 @@ const WireframeExample = () => {
                     Título Principal
                   </h1>
                   <p className="hero_texto text-gray-600">
-                    Texto de descrição aqui. Este é um texto genérico que serve como placeholder para o conteúdo real que será exibido neste componente.
+                    Texto descritivo genérico. Este é um texto de exemplo que serve como placeholder para o conteúdo real.
                   </p>
-                  <Button className="hero_botao flex items-center gap-2 bg-black text-white hover:bg-gray-800">
+                  <Button className="hero_botao flex items-center gap-2 bg-gray-800 text-white hover:bg-gray-700">
                     Botão Principal <ArrowRight className="w-4 h-4" />
                   </Button>
                 </div>
@@ -37,10 +37,10 @@ const WireframeExample = () => {
             <div className="container mx-auto">
               <div className="text-center mb-12">
                 <h2 className="recursos_titulo text-3xl font-semibold text-gray-800 mb-4">
-                  Seção de Recursos
+                  Título da Seção
                 </h2>
                 <p className="recursos_subtitulo text-gray-600 max-w-2xl mx-auto">
-                  Texto de apoio para explicar os recursos. Descrição geral sobre os itens abaixo.
+                  Texto de apoio genérico. Descrição geral sobre os itens abaixo.
                 </p>
               </div>
               
@@ -63,18 +63,18 @@ const WireframeExample = () => {
           </section>
           
           {/* Testimonial Section */}
-          <section className="depoimento_wrapper bg-white rounded-lg p-8 md:p-12 shadow-sm">
+          <section className="depoimento_wrapper bg-gray-50 rounded-lg p-8 md:p-12 shadow-sm">
             <div className="container mx-auto">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
                 <div className="depoimento_imagem-wrapper">
-                  <PlaceholderImage aspectRatio="square" text="Imagem Depoimento" />
+                  <PlaceholderImage aspectRatio="square" text="Imagem Genérica" />
                 </div>
                 <div className="depoimento_conteudo space-y-6">
                   <div className="depoimento_citacao text-gray-800 text-lg italic">
-                    "Este é um texto de depoimento genérico. Ele serve como placeholder para uma citação real que seria exibida neste componente."
+                    "Este é um texto genérico. Ele serve como placeholder para um conteúdo real que seria exibido neste componente."
                   </div>
                   <div className="depoimento_autor text-gray-700 font-medium">
-                    Nome da Pessoa, Cargo, Empresa
+                    Título do Item, Subtítulo do Item
                   </div>
                 </div>
               </div>

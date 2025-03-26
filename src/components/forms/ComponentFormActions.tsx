@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Toggle } from '@/components/ui/toggle';
-import { Wand2, Eye, ArrowUpFromDot } from 'lucide-react';
+import { Wand2, Eye, FileTerminal } from 'lucide-react';
 
 interface ComponentFormActionsProps {
   onCleanJson: () => void;
@@ -49,9 +49,9 @@ const ComponentFormActions: React.FC<ComponentFormActionsProps> = ({
         pressed={removeStyles}
         onPressedChange={onToggleRemoveStyles}
         aria-label="Aplicar Estilo Wireframe"
-        className="flex items-center gap-1 h-9 px-3"
+        className={`flex items-center gap-1 h-9 px-3 ${removeStyles ? 'bg-gray-200' : ''}`}
       >
-        <ArrowUpFromDot size={14} />
+        <FileTerminal size={14} />
         <span>Estilo Wireframe</span>
       </Toggle>
     </div>
