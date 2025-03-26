@@ -9,7 +9,7 @@ import {
   Card,
   CardContent
 } from '@/components/ui';
-import { PlusCircle, Filter, Settings } from 'lucide-react';
+import { PlusCircle, Filter, Settings, Loader2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { getComponents } from '@/lib/api';
 import { toast } from 'sonner';
@@ -19,23 +19,39 @@ const Components = () => {
   const { user, isAdmin } = useAuth(); // We need to check if user is admin
   const navigate = useNavigate();
   
-  // Fetch components from Supabase
-  const { data: components = [], isLoading, error } = useQuery({
+  // Fetch components from Supabase with increased reliability
+  const { data: components = [], isLoading, error, refetch } = useQuery({
     queryKey: ['components'],
-    queryFn: getComponents
+    queryFn: getComponents,
+    staleTime: 30 * 1000,  // 30 seconds
+    retry: 3,
+    retryDelay: attempt => Math.min(attempt > 1 ? 2000 : 1000, 30000),
   });
 
   // Show error if data fetching fails
   useEffect(() => {
     if (error) {
-      console.error('Error fetching components:', error);
-      toast.error('Erro ao carregar componentes. Tente novamente.');
+      console.error('Erro ao carregar componentes:', error);
+      toast.error('Erro ao carregar componentes. Tentando novamente...');
+      
+      // Auto retry after delay
+      const timer = setTimeout(() => {
+        refetch();
+      }, 5000);
+      
+      return () => clearTimeout(timer);
     }
-  }, [error]);
+  }, [error, refetch]);
   
   // Handle create button click
   const handleCreateClick = () => {
     navigate('/components/new');
+  };
+
+  // Retry button handler
+  const handleRetry = () => {
+    toast.info('Recarregando componentes...');
+    refetch();
   };
 
   // Filter components based on search term
@@ -75,7 +91,7 @@ const Components = () => {
                 Painel de Controle
               </Button>
             )}
-            <Button variant="outline" size="sm" className="gap-1">
+            <Button variant="outline" size="sm" className="gap-1" onClick={handleRetry}>
               <Filter className="h-4 w-4" />
               Filtrar
             </Button>
@@ -94,8 +110,26 @@ const Components = () => {
 
         {isLoading ? (
           <div className="flex justify-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            <div className="flex flex-col items-center">
+              <Loader2 className="h-12 w-12 animate-spin text-primary" />
+              <p className="mt-4 text-muted-foreground">Carregando componentes...</p>
+            </div>
           </div>
+        ) : error ? (
+          <Card className="border-dashed border-red-200 bg-red-50">
+            <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="rounded-full bg-red-100 p-3 mb-4">
+                <Filter className="h-6 w-6 text-red-500" />
+              </div>
+              <h3 className="text-lg font-semibold mb-2">Erro ao carregar componentes</h3>
+              <p className="text-muted-foreground max-w-md mb-4">
+                Ocorreu um problema ao buscar os componentes. Verifique sua conexão e tente novamente.
+              </p>
+              <Button onClick={handleRetry} variant="outline">
+                Tentar novamente
+              </Button>
+            </CardContent>
+          </Card>
         ) : filteredComponents.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredComponents.map((component) => (

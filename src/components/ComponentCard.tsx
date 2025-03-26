@@ -60,6 +60,10 @@ const ComponentCard: React.FC<ComponentCardProps> = ({ component, className }) =
               src={imageSrc} 
               alt={component.title}
               className={`w-full h-full object-cover transition-transform duration-700 ${isHovered ? 'scale-105' : 'scale-100'}`}
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.src = '/placeholder.svg';
+              }}
             />
             <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
               <Button variant="secondary" size="sm" className="gap-1">

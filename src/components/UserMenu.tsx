@@ -11,9 +11,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
   Avatar,
-  AvatarFallback
+  AvatarFallback,
+  AvatarImage
 } from '@/components/ui';
-import { User, Settings, LogOut, Database, Shield, ChevronDown } from 'lucide-react';
+import { User, Settings, LogOut, Database, Shield, ChevronDown, UserCircle } from 'lucide-react';
 
 const UserMenu = () => {
   const { user, isAdmin, signOut } = useAuth();
@@ -34,6 +35,7 @@ const UserMenu = () => {
     <DropdownMenu>
       <DropdownMenuTrigger className="flex items-center gap-2 outline-none">
         <Avatar className="h-8 w-8">
+          <AvatarImage src={user.user_metadata?.avatar_url} alt={user.email || "Avatar do usuário"} />
           <AvatarFallback className="bg-primary/10 text-primary">
             {emailInitial}
           </AvatarFallback>
@@ -46,8 +48,8 @@ const UserMenu = () => {
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
           <Link to="/profile" className="cursor-pointer flex w-full items-center">
-            <User className="mr-2 h-4 w-4" />
-            <span>Perfil</span>
+            <UserCircle className="mr-2 h-4 w-4" />
+            <span>Meu Perfil</span>
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>

@@ -14,6 +14,7 @@ import ComponentDetail from '@/pages/ComponentDetail';
 import ComponentEdit from '@/pages/ComponentEdit';
 import AdminPanel from '@/pages/AdminPanel';
 import UserManagement from '@/pages/UserManagement';
+import UserProfile from '@/pages/UserProfile';
 import NotFound from '@/pages/NotFound';
 
 // Create a QueryClient instance
@@ -21,6 +22,8 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 60 * 1000, // 1 minute
+      retry: 2,
+      refetchOnWindowFocus: false,
     },
   },
 });
@@ -46,6 +49,11 @@ const App: React.FC = () => {
             <Route path="/component/edit/:id" element={
               <ProtectedRoute adminOnly>
                 <ComponentEdit />
+              </ProtectedRoute>
+            } />
+            <Route path="/profile" element={
+              <ProtectedRoute>
+                <UserProfile />
               </ProtectedRoute>
             } />
             <Route path="/admin" element={
