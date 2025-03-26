@@ -4,7 +4,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/Navbar';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Table,
@@ -35,7 +35,7 @@ const fetchUsers = async (): Promise<UserData[]> => {
   // For simplicity, we're using a mock approach here, but in production
   // this should be done through a Supabase edge function
   
-  const { data, error } = await supabase.from('users_view').select('*');
+  const { data, error } = await supabase.from('profiles').select('*');
   
   if (error) {
     console.error('Error fetching users:', error);
@@ -47,7 +47,10 @@ const fetchUsers = async (): Promise<UserData[]> => {
 
 // Function to update user role
 const updateUserRole = async ({ userId, role }: { userId: string; role: string }): Promise<void> => {
-  const { error } = await supabase.rpc('set_user_role', { user_id: userId, role });
+  const { error } = await supabase
+    .from('profiles')
+    .update({ role, updated_at: new Date().toISOString() })
+    .eq('id', userId);
   
   if (error) {
     console.error('Error updating user role:', error);
