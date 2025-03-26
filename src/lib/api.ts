@@ -4,8 +4,8 @@ import { Component, UpdateComponent, NewComponent, Category, UpdateCategory, New
 
 // Component CRUD operations
 export const getComponents = async () => {
-  const { user } = await supabase.auth.getUser();
-  const isAdmin = user?.user_metadata?.role === 'admin';
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  const isAdmin = userData?.user?.user_metadata?.role === 'admin';
   
   // If the user is an admin, get all components; otherwise, only get public ones
   let query = supabase.from('components').select('*');
@@ -32,8 +32,8 @@ export const getComponentById = async (id: string) => {
 };
 
 export const getComponentsByCategory = async (categoryId: string) => {
-  const { user } = await supabase.auth.getUser();
-  const isAdmin = user?.user_metadata?.role === 'admin';
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  const isAdmin = userData?.user?.user_metadata?.role === 'admin';
   
   let query = supabase.from('components')
     .select('*')

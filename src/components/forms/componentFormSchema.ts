@@ -9,7 +9,8 @@ export const formSchema = z.object({
   jsonCode: z.string().min(10, { message: "O código JSON é obrigatório" }),
   visibility: z.enum(['public', 'private'], { 
     message: "A visibilidade deve ser 'público' ou 'privado'" 
-  }).default('public')
+  }).default('public'),
+  previewImage: z.string().optional()
 });
 
 export type FormValues = z.infer<typeof formSchema>;

@@ -17,6 +17,10 @@ export interface Database {
           description: string
           category: string
           code: string
+          json_code?: string
+          preview_image?: string
+          tags?: string[]
+          type?: string
           visibility: 'public' | 'private'
           created_at: string
           updated_at: string
@@ -28,6 +32,10 @@ export interface Database {
           description: string
           category: string
           code: string
+          json_code?: string
+          preview_image?: string
+          tags?: string[]
+          type?: string
           visibility?: 'public' | 'private'
           created_at?: string
           updated_at?: string
@@ -39,6 +47,10 @@ export interface Database {
           description?: string
           category?: string
           code?: string
+          json_code?: string
+          preview_image?: string
+          tags?: string[]
+          type?: string
           visibility?: 'public' | 'private'
           updated_at?: string
         }

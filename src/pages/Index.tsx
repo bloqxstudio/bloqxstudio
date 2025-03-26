@@ -6,11 +6,29 @@ import { Card, CardContent } from '@/components/ui/card';
 import Navbar from '@/components/Navbar';
 import ComponentCard from '@/components/ComponentCard';
 import { getSampleComponents, getSampleCategories } from '@/lib/data';
+import { Component } from '@/lib/database.types';
 import { ArrowRight, Layers, Code, Copy, Zap } from 'lucide-react';
 
 const Index = () => {
   const featuredComponents = getSampleComponents().slice(0, 3);
   const categories = getSampleCategories();
+
+  // Create a mapping function to convert ElementorComponent to Component
+  const mapToComponent = (component: any): Component => ({
+    id: component.id,
+    title: component.title,
+    description: component.description,
+    preview_image: component.previewImage,
+    category: component.category,
+    code: component.jsonCode,
+    json_code: component.jsonCode,
+    tags: component.tags,
+    type: component.type || 'elementor',
+    visibility: 'public',
+    created_at: component.dateCreated || new Date().toISOString(),
+    updated_at: component.dateUpdated || new Date().toISOString(),
+    created_by: 'system'
+  });
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -112,7 +130,7 @@ const Index = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {featuredComponents.map((component) => (
-                <ComponentCard key={component.id} component={component} />
+                <ComponentCard key={component.id} component={mapToComponent(component)} />
               ))}
             </div>
           </div>

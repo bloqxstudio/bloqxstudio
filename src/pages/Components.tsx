@@ -36,7 +36,9 @@ const Components = () => {
   const filteredComponents = components.filter(component => 
     component.title.toLowerCase().includes(filter.toLowerCase()) ||
     component.description?.toLowerCase().includes(filter.toLowerCase()) ||
-    (component.tags && component.tags.some(tag => tag.toLowerCase().includes(filter.toLowerCase())))
+    (component.tags && Array.isArray(component.tags) && component.tags.some(tag => 
+      tag.toLowerCase().includes(filter.toLowerCase())
+    ))
   );
 
   return (

@@ -68,10 +68,12 @@ export const checkAndMigrateComponents = async () => {
   }
   
   // If no components exist, run migration
-  if (data?.count === 0) {
+  const componentCount = data ? (data as any).count || 0 : 0;
+  
+  if (componentCount === 0) {
     console.log('No components found in database. Running migration...');
     await migrateComponentsToSupabase();
   } else {
-    console.log(`Found ${data?.count} components in database. No migration needed.`);
+    console.log(`Found ${componentCount} components in database. No migration needed.`);
   }
 };
