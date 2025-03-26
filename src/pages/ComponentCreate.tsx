@@ -10,18 +10,15 @@ import { toast } from 'sonner';
 
 const ComponentCreate = () => {
   const navigate = useNavigate();
-  const { isAdmin } = useAuth();
+  const { user } = useAuth(); // Remove isAdmin check
 
-  // Log admin status for debugging
-  console.log("Component Create - Is admin:", isAdmin);
-
-  // Se não for admin, redirecione
+  // Optional: Add a check to ensure the user is logged in
   React.useEffect(() => {
-    if (!isAdmin) {
-      toast.error('Acesso restrito a administradores');
-      navigate('/components');
+    if (!user) {
+      toast.error('Você precisa estar logado para criar um componente');
+      navigate('/login');
     }
-  }, [isAdmin, navigate]);
+  }, [user, navigate]);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">

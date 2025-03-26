@@ -16,11 +16,7 @@ import { toast } from 'sonner';
 
 const Components = () => {
   const [filter, setFilter] = useState('');
-  const { user, isAdmin } = useAuth();
-  
-  // Log authentication status for debugging
-  console.log("Components page - User:", user?.email);
-  console.log("Components page - Is admin:", isAdmin);
+  const { user } = useAuth(); // Remove isAdmin check
   
   // Fetch components from Supabase
   const { data: components = [], isLoading, error } = useQuery({
@@ -39,10 +35,7 @@ const Components = () => {
   // Filter components based on search term
   const filteredComponents = components.filter(component => 
     component.title.toLowerCase().includes(filter.toLowerCase()) ||
-    component.description?.toLowerCase().includes(filter.toLowerCase()) ||
-    (component.tags && Array.isArray(component.tags) && component.tags.some(tag => 
-      tag.toLowerCase().includes(filter.toLowerCase())
-    ))
+    component.description?.toLowerCase().includes(filter.toLowerCase())
   );
 
   return (
@@ -59,14 +52,12 @@ const Components = () => {
           </div>
           
           <div className="flex items-center gap-2">
-            {isAdmin && (
-              <Button asChild className="hover-lift" size="sm">
-                <Link to="/components/new">
-                  <PlusCircle className="h-4 w-4 mr-1" />
-                  Novo Componente
-                </Link>
-              </Button>
-            )}
+            <Button asChild className="hover-lift" size="sm">
+              <Link to="/components/new">
+                <PlusCircle className="h-4 w-4 mr-1" />
+                Novo Componente
+              </Link>
+            </Button>
             <Button variant="outline" size="sm" className="gap-1">
               <Filter className="h-4 w-4" />
               Filtrar
@@ -104,14 +95,12 @@ const Components = () => {
               <p className="text-muted-foreground max-w-md mb-4">
                 Não encontramos nenhum componente com os filtros aplicados. Tente ajustar sua busca ou criar um novo componente.
               </p>
-              {isAdmin && (
-                <Button asChild>
-                  <Link to="/components/new">
-                    <PlusCircle className="h-4 w-4 mr-1" />
-                    Criar Componente
-                  </Link>
-                </Button>
-              )}
+              <Button asChild>
+                <Link to="/components/new">
+                  <PlusCircle className="h-4 w-4 mr-1" />
+                  Criar Componente
+                </Link>
+              </Button>
             </CardContent>
           </Card>
         )}
