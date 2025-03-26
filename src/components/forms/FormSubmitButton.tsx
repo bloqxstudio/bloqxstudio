@@ -4,19 +4,19 @@ import { Button } from '@/components/ui';
 import { Save } from 'lucide-react';
 
 interface FormSubmitButtonProps {
-  isSubmitting: boolean;
+  isLoading: boolean;
 }
 
-const FormSubmitButton: React.FC<FormSubmitButtonProps> = ({ isSubmitting }) => {
+const FormSubmitButton: React.FC<FormSubmitButtonProps> = ({ isLoading }) => {
   return (
     <div className="flex justify-end">
       <Button 
         type="submit" 
         className="gap-2" 
-        disabled={isSubmitting}
-        aria-disabled={isSubmitting}
+        disabled={isLoading}
+        aria-disabled={isLoading}
       >
-        {isSubmitting ? (
+        {isLoading ? (
           <>
             <div className="animate-spin h-4 w-4 border-2 border-current border-t-transparent rounded-full" 
                  aria-hidden="true" />

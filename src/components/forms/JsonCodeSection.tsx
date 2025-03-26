@@ -5,31 +5,34 @@ import { Textarea } from '@/components/ui/textarea';
 import { UseFormReturn } from 'react-hook-form';
 import { FormValues } from './componentFormSchema';
 import ComponentFormActions from './ComponentFormActions';
-import { validateJson, cleanElementorJson } from '@/utils/jsonUtils';
+import CodeViewer from '@/components/CodeViewer';
+import { validateJson } from '@/utils/jsonUtils';
 import { toast } from 'sonner';
-import ElementorPreview from '@/components/ElementorPreview';
 
 interface JsonCodeSectionProps {
   form: UseFormReturn<FormValues>;
   showPreview: boolean;
-  setShowPreview: (value: boolean) => void;
+  previewJson: string;
   onCleanJson: () => void;
   onPreviewJson: () => void;
   removeStyles: boolean;
   setRemoveStyles: (value: boolean) => void;
+  wireframeMode: boolean;
+  setWireframeMode: (value: boolean) => void;
 }
 
 const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({ 
   form, 
-  showPreview,
-  setShowPreview,
+  showPreview, 
+  previewJson, 
   onCleanJson, 
   onPreviewJson,
   removeStyles,
-  setRemoveStyles
+  setRemoveStyles,
+  wireframeMode,
+  setWireframeMode
 }) => {
   const [isValidJson, setIsValidJson] = useState(true);
-  const [previewJsonContent, setPreviewJsonContent] = useState<string>('');
   
   // Validate JSON whenever it changes
   useEffect(() => {
@@ -44,40 +47,27 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
     setRemoveStyles(!removeStyles);
     // Provide feedback to the user
     if (!removeStyles) {
-      toast.info('Estilo wireframe ativado. Textos serão genéricos em português, cores em tons de cinza, e elementos terão nomes amigáveis.', {
+      toast.info('Modo wireframe ativado. Ao limpar o JSON, será aplicado estilo wireframe premium com nomenclatura Client-First.', {
         duration: 3000,
       });
-      
-      // If style is now enabled, set a note in the description field
-      const currentDescription = form.getValues('description');
-      if (currentDescription && !currentDescription.includes('[WIREFRAME]')) {
-        form.setValue('description', `[WIREFRAME] ${currentDescription}`);
-      } else if (!currentDescription) {
-        form.setValue('description', '[WIREFRAME] Componente em estilo wireframe');
-      }
     } else {
-      toast.info('Estilo wireframe desativado. Os estilos originais serão preservados.', {
+      toast.info('Modo wireframe desativado. Os estilos originais serão preservados.', {
         duration: 3000,
       });
-      
-      // Remove the wireframe tag if present
-      const currentDescription = form.getValues('description');
-      if (currentDescription && currentDescription.includes('[WIREFRAME]')) {
-        form.setValue('description', currentDescription.replace('[WIREFRAME] ', ''));
-      }
     }
   };
 
-  const handlePreview = () => {
-    const currentJson = form.getValues('jsonCode');
-    if (validateJson(currentJson)) {
-      // Apply wireframe style to preview if enabled
-      const processedJson = removeStyles ? cleanElementorJson(currentJson, true) : currentJson;
-      setPreviewJsonContent(processedJson);
-      setShowPreview(true);
-      onPreviewJson();
+  const handleToggleWireframeMode = () => {
+    setWireframeMode(!wireframeMode);
+    // Provide feedback to the user
+    if (!wireframeMode) {
+      toast.info('Modo wireframe completo ativado. Textos serão substituídos por placeholders em português, imagens por placeholders, e nomenclatura Client-First será aplicada.', {
+        duration: 3000,
+      });
     } else {
-      toast.error('JSON inválido. Verifique a sintaxe antes de visualizar.');
+      toast.info('Modo wireframe completo desativado.', {
+        duration: 3000,
+      });
     }
   };
 
@@ -91,10 +81,12 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
             <FormLabel>Código JSON do Elementor*</FormLabel>
             <ComponentFormActions 
               onCleanJson={onCleanJson}
-              onPreviewJson={handlePreview}
+              onPreviewJson={onPreviewJson}
               hasValidJson={isValidJson}
               removeStyles={removeStyles}
               onToggleRemoveStyles={handleToggleRemoveStyles}
+              wireframeMode={wireframeMode}
+              onToggleWireframeMode={handleToggleWireframeMode}
             />
             <FormControl>
               <Textarea 
@@ -120,19 +112,17 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
               />
             </FormControl>
             <FormDescription>
-              {removeStyles 
-                ? 'Cole o código JSON do Elementor aqui - Estilo wireframe ativado'
-                : 'Cole o código JSON do Elementor aqui'}
+              Cole o código JSON do Elementor aqui
             </FormDescription>
             <FormMessage />
           </FormItem>
         )}
       />
       
-      {showPreview && previewJsonContent && (
-        <div className="mt-6 pt-4 border-t">
-          <h3 className="text-lg font-medium mb-3">Visualização do componente:</h3>
-          <ElementorPreview jsonContent={previewJsonContent} />
+      {showPreview && (
+        <div className="mt-4 pt-4 border-t">
+          <h3 className="text-lg font-medium mb-3">Pré-visualização:</h3>
+          <CodeViewer code={previewJson} title="JSON Formatado" />
         </div>
       )}
     </>

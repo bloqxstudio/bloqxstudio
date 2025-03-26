@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Toggle } from '@/components/ui/toggle';
-import { Wand2, Eye, FileTerminal } from 'lucide-react';
+import { Wand2, Eye, ArrowUpToDot, ChevronsUpDown } from 'lucide-react';
 
 interface ComponentFormActionsProps {
   onCleanJson: () => void;
@@ -10,6 +10,8 @@ interface ComponentFormActionsProps {
   hasValidJson: boolean;
   removeStyles: boolean;
   onToggleRemoveStyles: () => void;
+  wireframeMode: boolean;
+  onToggleWireframeMode: () => void;
 }
 
 const ComponentFormActions: React.FC<ComponentFormActionsProps> = ({
@@ -17,7 +19,9 @@ const ComponentFormActions: React.FC<ComponentFormActionsProps> = ({
   onPreviewJson,
   hasValidJson,
   removeStyles,
-  onToggleRemoveStyles
+  onToggleRemoveStyles,
+  wireframeMode,
+  onToggleWireframeMode
 }) => {
   return (
     <div className="flex flex-wrap gap-2 mb-2">
@@ -42,17 +46,27 @@ const ComponentFormActions: React.FC<ComponentFormActionsProps> = ({
         className="flex items-center gap-1"
       >
         <Eye size={14} />
-        <span>Visualizar Componente</span>
+        <span>Pré-visualizar</span>
       </Button>
 
       <Toggle
         pressed={removeStyles}
         onPressedChange={onToggleRemoveStyles}
-        aria-label="Aplicar Estilo Wireframe"
-        className={`flex items-center gap-1 h-9 px-3 ${removeStyles ? 'bg-gray-200' : ''}`}
+        aria-label="Remover estilos"
+        className="flex items-center gap-1 h-9 px-3"
       >
-        <FileTerminal size={14} />
+        <ArrowUpToDot size={14} />
         <span>Estilo Wireframe</span>
+      </Toggle>
+
+      <Toggle
+        pressed={wireframeMode}
+        onPressedChange={onToggleWireframeMode}
+        aria-label="Modo Wireframe"
+        className="flex items-center gap-1 h-9 px-3"
+      >
+        <ChevronsUpDown size={14} />
+        <span>Wireframe Completo</span>
       </Toggle>
     </div>
   );

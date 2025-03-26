@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -5,7 +6,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { createComponent, uploadComponentImage, getCategories } from '@/lib/api';
-import { supabase } from '@/integrations/supabase/client';
 import { 
   Card, 
   CardContent,
@@ -110,15 +110,26 @@ const ComponentCreateForm = () => {
       }
       
       // Clean and format the JSON with the wireframe modes
-      const cleanedJson = cleanElementorJson(currentJson, removeStyles);
+      const cleanedJson = cleanElementorJson(currentJson, removeStyles, wireframeMode);
       form.setValue('jsonCode', cleanedJson);
       setPreviewJson(cleanedJson);
       setShowPreview(true);
       
-      toast.success('JSON limpo e formatado com estilo wireframe!');
+      let successMessage = 'JSON limpo e formatado com sucesso!';
       
-      // Show wireframe example
-      setShowWireframeExample(true);
+      if (removeStyles && wireframeMode) {
+        successMessage = 'JSON transformado para wireframe completo com placeholders em português e nomenclatura Client-First!';
+        // Show wireframe example if both modes are active
+        setShowWireframeExample(true);
+      } else if (removeStyles) {
+        successMessage = 'JSON limpo e formatado com estilo wireframe premium e nomenclatura Client-First!';
+      } else if (wireframeMode) {
+        successMessage = 'JSON transformado para wireframe com placeholders em português!';
+      }
+      
+      toast.success(successMessage, {
+        id: 'clean-success',
+      });
     } catch (e) {
       console.error('Error cleaning JSON:', e);
       toast.error('Erro ao processar o JSON. Verifique o formato e tente novamente.', {
@@ -170,9 +181,7 @@ const ComponentCreateForm = () => {
       if (selectedFile) {
         setIsUploading(true);
         try {
-          // Generate a unique filename
-          const filename = `${Date.now()}-${selectedFile.name}`;
-          imageUrl = await uploadComponentImage(selectedFile, filename);
+          imageUrl = await uploadComponentImage(selectedFile);
         } catch (error) {
           console.error('Error uploading image:', error);
           toast.error('Erro ao fazer upload da imagem. O componente será criado sem imagem.');
@@ -181,24 +190,10 @@ const ComponentCreateForm = () => {
         }
       }
       
-      // Get current user data
-      const { data: userData } = await supabase.auth.getUser();
-      if (!userData?.user?.id) {
-        toast.error('Usuário não autenticado. Faça login novamente.');
-        return;
-      }
-      
-      // Create the component with required fields
+      // Create the component
       const componentData = {
-        title: values.title,
-        description: values.description || '',
-        category: values.category || 'uncategorized',
-        code: 'elementor', // Required field
-        json_code: values.jsonCode,
-        preview_image: imageUrl,
-        tags: values.tags ? values.tags.split(',').map(tag => tag.trim()) : [],
-        visibility: values.visibility,
-        created_by: userData.user.id
+        ...values,
+        image: imageUrl
       };
       
       createMutation.mutate(componentData);
@@ -223,19 +218,20 @@ const ComponentCreateForm = () => {
             </div>
             
             <ImageUploadSection 
-              onFileChange={handleFileChange} 
+              handleFileChange={handleFileChange} 
               imagePreview={imagePreview} 
-              selectedFile={selectedFile}
             />
             
             <JsonCodeSection 
               form={form} 
-              showPreview={showPreview}
-              setShowPreview={setShowPreview}
+              showPreview={showPreview} 
+              previewJson={previewJson} 
               onCleanJson={handleCleanJson} 
               onPreviewJson={handlePreviewJson}
               removeStyles={removeStyles}
               setRemoveStyles={setRemoveStyles}
+              wireframeMode={wireframeMode}
+              setWireframeMode={setWireframeMode}
             />
             
             {showWireframeExample && (
