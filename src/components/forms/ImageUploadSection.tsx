@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { FormLabel, FormDescription } from '@/components/ui/form';
-import { Button } from '@/components/ui';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Upload } from 'lucide-react';
 

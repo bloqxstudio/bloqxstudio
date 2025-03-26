@@ -6,6 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { createComponent, uploadComponentImage, getCategories } from '@/lib/api';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   Card, 
   CardContent,
@@ -23,6 +24,7 @@ import ImageUploadSection from './ImageUploadSection';
 import JsonCodeSection from './JsonCodeSection';
 import FormSubmitButton from './FormSubmitButton';
 import WireframeExample from '@/components/WireframeExample';
+import ComponentFormActions from './ComponentFormActions';
 
 const ComponentCreateForm = () => {
   const navigate = useNavigate();
@@ -181,7 +183,10 @@ const ComponentCreateForm = () => {
       if (selectedFile) {
         setIsUploading(true);
         try {
-          imageUrl = await uploadComponentImage(selectedFile);
+          // Generate a unique path for the image
+          const timestamp = new Date().getTime();
+          const path = `${timestamp}-${selectedFile.name}`;
+          imageUrl = await uploadComponentImage(selectedFile, path);
         } catch (error) {
           console.error('Error uploading image:', error);
           toast.error('Erro ao fazer upload da imagem. O componente será criado sem imagem.');
@@ -190,10 +195,18 @@ const ComponentCreateForm = () => {
         }
       }
       
-      // Create the component
+      // Create the component with the correct field names
       const componentData = {
-        ...values,
-        image: imageUrl
+        title: values.title,
+        description: values.description || '',
+        category: values.category || '',
+        code: values.jsonCode, // This is actually 'code' in the database
+        json_code: values.jsonCode, // Also store in 'json_code'
+        tags: values.tags ? values.tags.split(',').map(tag => tag.trim()) : [],
+        visibility: values.visibility,
+        preview_image: imageUrl, // Use preview_image instead of image
+        type: 'elementor',
+        created_by: (await supabase.auth.getUser()).data.user?.id || ''
       };
       
       createMutation.mutate(componentData);
@@ -201,6 +214,14 @@ const ComponentCreateForm = () => {
       console.error('Error in form submission:', error);
       toast.error('Erro ao processar o formulário: ' + (error as Error).message);
     }
+  };
+
+  const toggleRemoveStyles = () => {
+    setRemoveStyles(!removeStyles);
+  };
+
+  const toggleWireframeMode = () => {
+    setWireframeMode(!wireframeMode);
   };
 
   return (
@@ -218,8 +239,9 @@ const ComponentCreateForm = () => {
             </div>
             
             <ImageUploadSection 
-              handleFileChange={handleFileChange} 
-              imagePreview={imagePreview} 
+              selectedFile={selectedFile}
+              imagePreview={imagePreview}
+              onFileChange={handleFileChange} 
             />
             
             <JsonCodeSection 
@@ -244,7 +266,7 @@ const ComponentCreateForm = () => {
               </div>
             )}
             
-            <FormSubmitButton isSubmitting={createMutation.isPending || isUploading} />
+            <FormSubmitButton isLoading={createMutation.isPending || isUploading} />
           </form>
         </Form>
       </CardContent>

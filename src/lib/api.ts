@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Component, UpdateComponent, NewComponent, Category, UpdateCategory, NewCategory } from '@/lib/database.types';
 
@@ -126,6 +127,8 @@ export const createCategory = async (category: NewCategory) => {
 
 // Upload preview image
 export const uploadComponentImage = async (file: File, path: string) => {
+  console.log('Uploading image:', file.name, 'to path:', path);
+  
   const { data, error } = await supabase.storage
     .from('component-images')
     .upload(path, file, {
@@ -133,12 +136,18 @@ export const uploadComponentImage = async (file: File, path: string) => {
       upsert: true
     });
 
-  if (error) throw error;
+  if (error) {
+    console.error('Error uploading image:', error);
+    throw error;
+  }
+  
+  console.log('Upload successful:', data);
   
   const { data: { publicUrl } } = supabase.storage
     .from('component-images')
     .getPublicUrl(path);
-    
+  
+  console.log('Public URL:', publicUrl);  
   return publicUrl;
 };
 
