@@ -22,7 +22,7 @@ export const getComponents = async () => {
     // Para usuários não logados, buscar apenas componentes públicos
     let query = supabase.from('components').select('*');
     
-    // Se o usuário for admin, obter todos os componentes; caso contrário, apenas obter os públicos
+    // Se o usuário for admin, obter todos os componentes; caso contrário, apenas obter os públicos e os criados pelo usuário
     if (!isAdmin && userData?.user) {
       query = query.or(`visibility.eq.public,created_by.eq.${userData.user.id}`);
     } else if (!userData?.user) {
@@ -48,6 +48,31 @@ export const getComponents = async () => {
   }
 };
 
+export const getUserComponents = async (userId: string) => {
+  console.log('Buscando componentes do usuário:', userId);
+  
+  try {
+    const { data, error } = await supabase
+      .from('components')
+      .select('*')
+      .eq('created_by', userId)
+      .order('created_at', { ascending: false });
+    
+    if (error) {
+      console.error('Erro ao buscar componentes do usuário:', error);
+      toast.error('Erro ao carregar seus componentes. Tente novamente mais tarde.');
+      return [];
+    }
+    
+    console.log('Componentes do usuário carregados:', data?.length || 0, 'componentes');
+    return data as Component[] || [];
+  } catch (error) {
+    console.error('Erro inesperado em getUserComponents:', error);
+    toast.error('Falha ao conectar com o banco de dados. Tente novamente mais tarde.');
+    return [] as Component[];
+  }
+};
+
 export const getComponentById = async (id: string) => {
   const { data, error } = await supabase
     .from('components')
@@ -69,7 +94,10 @@ export const getComponentsByCategory = async (categoryId: string) => {
     .select('*')
     .eq('category', categoryId);
   
-  if (!isAdmin) {
+  // Para usuários não logados ou não admin, mostrar apenas componentes públicos ou criados pelo usuário
+  if (!isAdmin && userData?.user) {
+    query = query.or(`visibility.eq.public,created_by.eq.${userData.user.id}`);
+  } else if (!userData?.user) {
     query = query.eq('visibility', 'public');
   }
   
@@ -103,9 +131,52 @@ export const createComponent = async (component: NewComponent) => {
 };
 
 export const updateComponent = async (id: string, updates: UpdateComponent) => {
+  // Primeiro, verificar se o usuário tem permissão para editar este componente
+  const { data: userData } = await supabase.auth.getUser();
+  
+  if (!userData.user) {
+    throw new Error('Usuário não autenticado');
+  }
+  
+  // Verificar se o usuário é admin
+  const isAdmin = userData?.user?.user_metadata?.role === 'admin';
+  
+  // Obter o componente atual
+  const { data: currentComponent, error: getError } = await supabase
+    .from('components')
+    .select('*')
+    .eq('id', id)
+    .single();
+  
+  if (getError) {
+    throw getError;
+  }
+  
+  // Verificar se o usuário é o criador do componente ou um admin
+  if (!isAdmin && currentComponent.created_by !== userData.user.id) {
+    throw new Error('Você não tem permissão para editar este componente');
+  }
+  
+  // Se for um usuário normal (não admin), limitar quais campos podem ser atualizados
+  let updatesToApply = updates;
+  if (!isAdmin) {
+    // Usuários normais só podem atualizar título, descrição, categoria e visibilidade
+    updatesToApply = {
+      title: updates.title,
+      description: updates.description,
+      category: updates.category,
+      visibility: updates.visibility,
+      updated_at: new Date().toISOString()
+    };
+  } else {
+    // Administradores podem atualizar todos os campos
+    updatesToApply = { ...updates, updated_at: new Date().toISOString() };
+  }
+  
+  // Aplicar as atualizações
   const { data, error } = await supabase
     .from('components')
-    .update({ ...updates, updated_at: new Date().toISOString() })
+    .update(updatesToApply)
     .eq('id', id)
     .select()
     .single();
@@ -115,6 +186,34 @@ export const updateComponent = async (id: string, updates: UpdateComponent) => {
 };
 
 export const deleteComponent = async (id: string) => {
+  // Primeiro, verificar se o usuário tem permissão para excluir este componente
+  const { data: userData } = await supabase.auth.getUser();
+  
+  if (!userData.user) {
+    throw new Error('Usuário não autenticado');
+  }
+  
+  // Verificar se o usuário é admin
+  const isAdmin = userData?.user?.user_metadata?.role === 'admin';
+  
+  if (!isAdmin) {
+    // Se não for admin, verificar se o usuário é o criador do componente
+    const { data: currentComponent, error: getError } = await supabase
+      .from('components')
+      .select('created_by')
+      .eq('id', id)
+      .single();
+    
+    if (getError) {
+      throw getError;
+    }
+    
+    if (currentComponent.created_by !== userData.user.id) {
+      throw new Error('Você não tem permissão para excluir este componente');
+    }
+  }
+  
+  // Excluir o componente
   const { error } = await supabase
     .from('components')
     .delete()

@@ -7,15 +7,23 @@ import { Skeleton } from '@/components/ui/skeleton';
 interface ProtectedRouteProps {
   children: ReactNode;
   adminOnly?: boolean;
+  ownerOnly?: boolean;
+  ownerId?: string;
 }
 
-const ProtectedRoute = ({ children, adminOnly = false }: ProtectedRouteProps) => {
+const ProtectedRoute = ({ 
+  children, 
+  adminOnly = false, 
+  ownerOnly = false, 
+  ownerId 
+}: ProtectedRouteProps) => {
   const { user, isLoading, isError, isAdmin } = useAuth();
 
   // Log authentication state for debugging
-  console.log("Protected route - User:", user?.email);
-  console.log("Protected route - Is admin:", isAdmin);
-  console.log("Protected route - Admin only:", adminOnly);
+  console.log("Rota protegida - Usuário:", user?.email);
+  console.log("Rota protegida - É admin:", isAdmin);
+  console.log("Rota protegida - Admin apenas:", adminOnly);
+  console.log("Rota protegida - Dono apenas:", ownerOnly, "ID do dono:", ownerId);
 
   if (isLoading) {
     return (
@@ -63,7 +71,12 @@ const ProtectedRoute = ({ children, adminOnly = false }: ProtectedRouteProps) =>
   }
 
   if (adminOnly && !isAdmin) {
-    console.log("User is not admin, redirecting to components page");
+    console.log("Usuário não é admin, redirecionando para a página de componentes");
+    return <Navigate to="/components" />;
+  }
+
+  if (ownerOnly && ownerId && user.id !== ownerId && !isAdmin) {
+    console.log("Usuário não é o dono do componente nem admin, redirecionando");
     return <Navigate to="/components" />;
   }
 

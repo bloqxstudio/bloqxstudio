@@ -12,6 +12,7 @@ import Components from '@/pages/Components';
 import ComponentCreate from '@/pages/ComponentCreate';
 import ComponentDetail from '@/pages/ComponentDetail';
 import ComponentEdit from '@/pages/ComponentEdit';
+import UserComponentEdit from '@/pages/UserComponentEdit';
 import AdminPanel from '@/pages/AdminPanel';
 import UserManagement from '@/pages/UserManagement';
 import UserProfile from '@/pages/UserProfile';
@@ -51,6 +52,11 @@ const App: React.FC = () => {
             <Route path="/component/edit/:id" element={
               <ProtectedRoute adminOnly>
                 <ComponentEdit />
+              </ProtectedRoute>
+            } />
+            <Route path="/my-component/edit/:id" element={
+              <ProtectedRoute ownerOnly>
+                <UserComponentEdit />
               </ProtectedRoute>
             } />
             <Route path="/profile" element={

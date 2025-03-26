@@ -68,13 +68,18 @@ const CodeViewer: React.FC<CodeViewerProps> = ({
   const { user } = useAuth();
 
   useEffect(() => {
-    if (language === 'json') {
-      const formatted = formatJSON(code);
-      setFormattedCode(syntaxHighlight(formatted));
+    if (language === 'json' && code && (user || !restricted)) {
+      try {
+        const formatted = formatJSON(code);
+        setFormattedCode(syntaxHighlight(formatted));
+      } catch (error) {
+        console.error("Error formatting JSON:", error);
+        setFormattedCode("Erro ao formatar o código JSON");
+      }
     } else {
-      setFormattedCode(code);
+      setFormattedCode(user || !restricted ? code : '');
     }
-  }, [code, language]);
+  }, [code, language, user, restricted]);
 
   const handleCopy = () => {
     if (restricted && !user) {
@@ -148,22 +153,24 @@ const CodeViewer: React.FC<CodeViewerProps> = ({
           </div>
         </div>
         <div className="overflow-auto max-h-[500px] bg-card relative">
-          <pre className="text-sm p-4 code-json">
-            <div dangerouslySetInnerHTML={{ __html: formattedCode }} />
-          </pre>
-          
-          {restricted && !user && (
-            <div className="absolute bottom-0 inset-x-0 h-20 bg-gradient-to-t from-background/95 to-transparent flex items-end justify-center p-4">
-              <div className="text-center">
-                <p className="text-sm mb-2">Crie uma conta para acessar o código completo</p>
-                <div className="flex gap-2 justify-center">
-                  <Button asChild size="sm" variant="outline">
-                    <Link to="/login">Entrar</Link>
-                  </Button>
-                  <Button asChild size="sm">
-                    <Link to="/register">Registrar</Link>
-                  </Button>
-                </div>
+          {user || !restricted ? (
+            <pre className="text-sm p-4 code-json">
+              <div dangerouslySetInnerHTML={{ __html: formattedCode }} />
+            </pre>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-16 px-4 bg-background/50">
+              <Lock className="h-10 w-10 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-medium mb-2">Conteúdo Exclusivo</h3>
+              <p className="text-center text-muted-foreground mb-4 max-w-md">
+                Faça login para visualizar, copiar e baixar o código completo deste componente.
+              </p>
+              <div className="flex gap-2">
+                <Button asChild size="sm" variant="outline">
+                  <Link to="/login">Entrar</Link>
+                </Button>
+                <Button asChild size="sm">
+                  <Link to="/register">Registrar</Link>
+                </Button>
               </div>
             </div>
           )}

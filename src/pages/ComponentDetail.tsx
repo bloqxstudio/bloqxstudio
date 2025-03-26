@@ -19,7 +19,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui';
-import { ArrowLeft, Calendar, Copy, Download, Tag, Lock, Pencil, Trash } from 'lucide-react';
+import { ArrowLeft, Calendar, Copy, Download, Tag, Lock, Pencil, Trash, User, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { Component } from '@/lib/database.types';
@@ -54,6 +54,9 @@ const ComponentDetail = () => {
       return data as Component;
     },
   });
+
+  // Check if user is the owner of the component
+  const isOwner = user && component ? user.id === component.created_by : false;
 
   // Delete mutation
   const deleteMutation = useMutation({
@@ -121,7 +124,11 @@ const ComponentDetail = () => {
 
   const handleEdit = () => {
     if (id) {
-      navigate(`/component/edit/${id}`);
+      if (isAdmin) {
+        navigate(`/component/edit/${id}`);
+      } else if (isOwner) {
+        navigate(`/my-component/edit/${id}`);
+      }
     }
   };
 
@@ -176,7 +183,7 @@ const ComponentDetail = () => {
           </Button>
           
           <div className="flex items-center gap-2">
-            {isAdmin && (
+            {(isAdmin || isOwner) && (
               <>
                 <Button 
                   variant="outline" 
@@ -251,6 +258,19 @@ const ComponentDetail = () => {
                   <Calendar className="h-4 w-4 mr-1" />
                   Atualizado em: {new Date(component.updated_at).toLocaleDateString('pt-BR')}
                 </div>
+                {component.created_by && (
+                  <div className="flex items-center text-sm text-muted-foreground">
+                    <User className="h-4 w-4 mr-1" />
+                    {isOwner && "Você é o autor"}
+                    {isAdmin && !isOwner && "Criado por um usuário"}
+                    {!isAdmin && !isOwner && ""}
+                  </div>
+                )}
+                {component.visibility && (
+                  <Badge variant={component.visibility === 'public' ? 'default' : 'secondary'}>
+                    {component.visibility === 'public' ? 'Público' : 'Privado'}
+                  </Badge>
+                )}
               </div>
               
               <div className="flex items-center gap-2 mt-4">
@@ -282,7 +302,7 @@ const ComponentDetail = () => {
                 code={component.json_code || component.code}
                 title="Código JSON para Elementor"
                 fileName={`${component.id}.json`}
-                restricted={!user}
+                restricted={true}
               />
             </div>
           </div>
@@ -354,6 +374,24 @@ const ComponentDetail = () => {
                     <p className="font-medium">ID:</p>
                     <p className="text-muted-foreground">{component.id}</p>
                   </div>
+                  {(isAdmin || isOwner) && (
+                    <div>
+                      <p className="font-medium">Status:</p>
+                      <div className="flex items-center gap-1 mt-1">
+                        {isOwner ? (
+                          <span className="flex items-center text-primary">
+                            <User className="h-4 w-4 mr-1" />
+                            Você é o proprietário
+                          </span>
+                        ) : isAdmin ? (
+                          <span className="flex items-center text-amber-500">
+                            <Shield className="h-4 w-4 mr-1" />
+                            Acesso administrativo
+                          </span>
+                        ) : null}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -361,7 +399,7 @@ const ComponentDetail = () => {
             <div className="p-4 rounded-lg bg-muted/30 relative overflow-hidden">
               <h3 className="text-sm font-medium mb-2">Ações rápidas</h3>
               <div className="flex flex-col gap-2">
-                {isAdmin && (
+                {(isAdmin || isOwner) && (
                   <>
                     <Button 
                       variant="outline" 
