@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { PlaceholderImage } from '@/components/ui/placeholder-image';
 import { Button } from '@/components/ui/button';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle as LucideAlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { validateJson } from '@/utils/jsonUtils';
 
@@ -41,7 +40,7 @@ const ElementorPreview: React.FC<ElementorPreviewProps> = ({ jsonContent }) => {
   if (error) {
     return (
       <Alert variant="destructive" className="mb-4">
-        <AlertCircle className="h-4 w-4" />
+        <LucideAlertCircle className="h-4 w-4" />
         <AlertTitle>Erro na visualização</AlertTitle>
         <AlertDescription>{error}</AlertDescription>
       </Alert>
@@ -67,7 +66,6 @@ const ElementorPreview: React.FC<ElementorPreviewProps> = ({ jsonContent }) => {
   );
 };
 
-// Function to render Elementor elements recursively
 const renderElementorContent = (elements: any[]) => {
   if (!elements || !Array.isArray(elements)) {
     return <p className="text-gray-500 p-4">Sem elementos para visualizar</p>;
@@ -80,12 +78,10 @@ const renderElementorContent = (elements: any[]) => {
   ));
 };
 
-// Function to render a single Elementor element based on its type
 const renderElement = (element: any) => {
   const { elType, widgetType, settings, elements } = element;
   const title = element._title || 'Elemento';
   
-  // Render based on element type
   switch (elType) {
     case 'section':
       return (
@@ -121,7 +117,6 @@ const renderElement = (element: any) => {
   }
 };
 
-// Function to render Elementor widgets
 const renderWidget = (widgetType: string, settings: any, title: string) => {
   switch (widgetType) {
     case 'heading':
@@ -206,8 +201,6 @@ const renderWidget = (widgetType: string, settings: any, title: string) => {
         </div>
       );
     
-    // Add more widget types as needed
-    
     default:
       return (
         <div className="p-4 bg-gray-100 rounded mb-4">
@@ -218,7 +211,6 @@ const renderWidget = (widgetType: string, settings: any, title: string) => {
   }
 };
 
-// Helper function to determine heading size classes
 const determineHeadingSize = (headingTag: string): string => {
   switch (headingTag) {
     case 'h1': return 'text-4xl';
@@ -231,11 +223,9 @@ const determineHeadingSize = (headingTag: string): string => {
   }
 };
 
-// Helper function to determine image aspect ratio
 const determineImageAspectRatio = (settings: any): 'square' | 'video' | 'portrait' | 'wide' | 'auto' => {
   if (!settings) return 'video';
   
-  // Try to determine aspect ratio from settings
   if (settings.ratio) {
     const ratio = settings.ratio.toLowerCase();
     if (ratio.includes('1:1')) return 'square';
@@ -243,25 +233,7 @@ const determineImageAspectRatio = (settings: any): 'square' | 'video' | 'portrai
     if (ratio.includes('3:4') || ratio.includes('9:16')) return 'portrait';
   }
   
-  return 'video'; // Default to 16:9 aspect ratio
+  return 'video';
 };
-
-// Import the AlertCircle icon component
-const AlertCircle = ({ className }: { className?: string }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    className={className}
-  >
-    <circle cx="12" cy="12" r="10" />
-    <line x1="12" y1="8" x2="12" y2="12" />
-    <line x1="12" y1="16" x2="12.01" y2="16" />
-  </svg>
-);
 
 export default ElementorPreview;
