@@ -1,4 +1,5 @@
-export const cleanElementorJson = (jsonString: string, removeStyles = false, createWireframe = false): string => {
+
+export const cleanElementorJson = (jsonString: string, removeStyles = false): string => {
   try {
     // First, validate the JSON
     if (!validateJson(jsonString)) {
@@ -13,14 +14,14 @@ export const cleanElementorJson = (jsonString: string, removeStyles = false, cre
       throw new Error('Not a valid Elementor JSON');
     }
 
-    // If wireframe mode is enabled, apply wireframe transformation
-    if (createWireframe) {
+    // Apply wireframe transformation if requested
+    if (removeStyles) {
       return transformToWireframe(jsonString);
     }
 
     // Otherwise, apply regular cleaning with or without styles
     const parsed = JSON.parse(jsonString);
-    const cleaned = formatElementorJson(parsed, removeStyles);
+    const cleaned = formatElementorJson(parsed, false);
     return JSON.stringify(cleaned, null, 2);
   } catch (e) {
     console.error("Error cleaning JSON:", e);
@@ -87,7 +88,7 @@ const cleanElement = (element: any, index: string, removeStyles: boolean = false
   
   const result = { ...element };
   
-  // Determine element context for client-first naming
+  // Determine element context for user-friendly naming
   const elementType = element.elType || "unknown";
   const widgetType = element.widgetType || "";
   
@@ -96,63 +97,63 @@ const cleanElement = (element: any, index: string, removeStyles: boolean = false
   let componentName = "";
   
   if (elementType === "section") {
-    componentName = sectionContext || "section";
+    componentName = sectionContext || "secao";
   } else if (elementType === "column") {
-    componentName = "column";
+    componentName = "coluna";
   } else if (widgetType) {
-    // Convert widget type to semantic naming
-    componentName = convertToSemantic(widgetType);
+    // Convert widget type to semantic naming in Portuguese
+    componentName = convertToSemanticPortuguese(widgetType);
   }
   
-  // Create client-first style class name
-  const sectionPrefix = elementType === "section" ? `${componentName}${index}` : "";
-  const clientFirstPrefix = sectionPrefix || `${sectionContext || componentName}${index}`;
+  // Create user-friendly class name
+  const sectionPrefix = elementType === "section" ? `${componentName}` : "";
+  const friendlyPrefix = sectionPrefix || `${sectionContext || componentName}`;
   
-  // Set component title with semantic naming
+  // Set component title with semantic naming in Portuguese
   if (elementType === "section") {
-    result._title = `${clientFirstPrefix}_wrapper`;
+    result._title = `${friendlyPrefix}_wrapper`;
   } else if (elementType === "column") {
-    result._title = `${clientFirstPrefix}_container`;
+    result._title = `${friendlyPrefix}_container`;
   } else if (widgetType) {
     switch (widgetType) {
       case "heading":
-        result._title = `${clientFirstPrefix}_heading`;
+        result._title = `${friendlyPrefix}_titulo`;
         break;
       case "text-editor":
-        result._title = `${clientFirstPrefix}_text`;
+        result._title = `${friendlyPrefix}_texto`;
         break;
       case "button":
-        result._title = `${clientFirstPrefix}_btn`;
+        result._title = `${friendlyPrefix}_botao`;
         break;
       case "image":
-        result._title = `${clientFirstPrefix}_image`;
+        result._title = `${friendlyPrefix}_imagem`;
         break;
       case "icon":
-        result._title = `${clientFirstPrefix}_icon`;
+        result._title = `${friendlyPrefix}_icone`;
         break;
       case "icon-box":
-        result._title = `${clientFirstPrefix}_feature`;
+        result._title = `${friendlyPrefix}_recurso`;
         break;
       case "video":
-        result._title = `${clientFirstPrefix}_video`;
+        result._title = `${friendlyPrefix}_video`;
         break;
       case "testimonial":
-        result._title = `${clientFirstPrefix}_testimonial`;
+        result._title = `${friendlyPrefix}_depoimento`;
         break;
       case "tabs":
-        result._title = `${clientFirstPrefix}_tabs`;
+        result._title = `${friendlyPrefix}_abas`;
         break;
       case "accordion":
-        result._title = `${clientFirstPrefix}_accordion`;
+        result._title = `${friendlyPrefix}_accordion`;
         break;
       case "form":
-        result._title = `${clientFirstPrefix}_form`;
+        result._title = `${friendlyPrefix}_formulario`;
         break;
       default:
-        result._title = `${clientFirstPrefix}_${widgetType.replace(/[-_]/g, '-')}`;
+        result._title = `${friendlyPrefix}_${widgetType.replace(/[-_]/g, '-')}`;
     }
   } else {
-    result._title = `${clientFirstPrefix}_${elementType}`;
+    result._title = `${friendlyPrefix}_${elementType}`;
   }
   
   // Clean settings
@@ -161,7 +162,7 @@ const cleanElement = (element: any, index: string, removeStyles: boolean = false
     
     // Add tailwind classes when applying wireframe style (removing original styles)
     if (removeStyles && result.settings) {
-      // Apply Client-First naming convention with Tailwind CSS classes
+      // Apply friendly class naming convention with Tailwind CSS classes
       if (!result.settings.css_classes) {
         result.settings.css_classes = '';
       }
@@ -169,48 +170,48 @@ const cleanElement = (element: any, index: string, removeStyles: boolean = false
       // Add appropriate Tailwind classes based on element type
       if (elementType === "section") {
         // Apply section styling with Tailwind
-        result.settings.css_classes += ` ${clientFirstPrefix}_wrapper bg-gray-50 py-16 md:py-24 px-4 overflow-hidden relative`;
+        result.settings.css_classes += ` ${friendlyPrefix}_wrapper bg-gray-50 py-16 md:py-24 px-4 overflow-hidden relative`;
       } else if (elementType === "column") {
         // Apply column styling with Tailwind
-        result.settings.css_classes += ` ${clientFirstPrefix}_container bg-white rounded-lg p-6 shadow-sm`;
+        result.settings.css_classes += ` ${friendlyPrefix}_container bg-white rounded-lg p-6 shadow-sm`;
       } else if (widgetType) {
         // Apply widget-specific Tailwind classes
         switch (widgetType) {
           case "heading":
-            result.settings.css_classes += ` ${clientFirstPrefix}_heading text-gray-800 text-2xl md:text-4xl font-semibold`;
+            result.settings.css_classes += ` ${friendlyPrefix}_titulo text-gray-800 text-2xl md:text-4xl font-semibold`;
             break;
           case "text-editor":
-            result.settings.css_classes += ` ${clientFirstPrefix}_text text-gray-500 text-base leading-relaxed`;
+            result.settings.css_classes += ` ${friendlyPrefix}_texto text-gray-500 text-base leading-relaxed`;
             break;
           case "button":
-            result.settings.css_classes += ` ${clientFirstPrefix}_btn inline-flex items-center justify-center px-5 py-2.5 text-sm font-medium text-center rounded-md border border-gray-800 bg-white text-gray-800 hover:bg-gray-800 hover:text-white transition-colors`;
+            result.settings.css_classes += ` ${friendlyPrefix}_botao inline-flex items-center justify-center px-5 py-2.5 text-sm font-medium text-center rounded-md border border-gray-800 bg-black text-white hover:bg-gray-800 hover:text-white transition-colors`;
             break;
           case "image":
-            result.settings.css_classes += ` ${clientFirstPrefix}_image bg-gray-200 rounded-lg aspect-video object-cover`;
+            result.settings.css_classes += ` ${friendlyPrefix}_imagem bg-gray-200 rounded-lg aspect-video object-cover`;
             break;
           case "icon":
-            result.settings.css_classes += ` ${clientFirstPrefix}_icon text-gray-800 flex items-center justify-center`;
+            result.settings.css_classes += ` ${friendlyPrefix}_icone text-gray-800 flex items-center justify-center`;
             break;
           case "icon-box":
-            result.settings.css_classes += ` ${clientFirstPrefix}_feature bg-white p-6 rounded-lg shadow-sm`;
+            result.settings.css_classes += ` ${friendlyPrefix}_recurso bg-white p-6 rounded-lg shadow-sm`;
             break;
           case "video":
-            result.settings.css_classes += ` ${clientFirstPrefix}_video bg-gray-200 rounded-lg aspect-video`;
+            result.settings.css_classes += ` ${friendlyPrefix}_video bg-gray-200 rounded-lg aspect-video`;
             break;
           case "testimonial":
-            result.settings.css_classes += ` ${clientFirstPrefix}_testimonial bg-gray-50 p-6 rounded-lg`;
+            result.settings.css_classes += ` ${friendlyPrefix}_depoimento bg-gray-50 p-6 rounded-lg`;
             break;
           case "tabs":
-            result.settings.css_classes += ` ${clientFirstPrefix}_tabs border-b border-gray-200`;
+            result.settings.css_classes += ` ${friendlyPrefix}_abas border-b border-gray-200`;
             break;
           case "accordion":
-            result.settings.css_classes += ` ${clientFirstPrefix}_accordion border border-gray-200 rounded-lg`;
+            result.settings.css_classes += ` ${friendlyPrefix}_accordion border border-gray-200 rounded-lg`;
             break;
           case "form":
-            result.settings.css_classes += ` ${clientFirstPrefix}_form space-y-4 bg-white p-6 rounded-lg shadow-sm`;
+            result.settings.css_classes += ` ${friendlyPrefix}_formulario space-y-4 bg-white p-6 rounded-lg shadow-sm`;
             break;
           default:
-            result.settings.css_classes += ` ${clientFirstPrefix}_${widgetType.replace(/[-_]/g, '-')} bg-white rounded-lg`;
+            result.settings.css_classes += ` ${friendlyPrefix}_${widgetType.replace(/[-_]/g, '-')} bg-white rounded-lg`;
         }
       }
       
@@ -262,37 +263,37 @@ const determineSectionContext = (element: any): string => {
     }
   }
   
-  // Detect common section types by content
-  if (title.includes("hero") || title.includes("banner") || (element.elType === "section" && isFirstSection(element))) {
+  // Detect common section types by content (in Portuguese)
+  if (title.includes("hero") || title.includes("banner") || title.includes("principal") || (element.elType === "section" && isFirstSection(element))) {
     return "hero";
-  } else if (title.includes("feature") || title.includes("benefit") || title.includes("why")) {
-    return "feature";
-  } else if (title.includes("testimonial") || title.includes("review") || title.includes("client")) {
-    return "testimonial";
-  } else if (title.includes("about") || title.includes("us") || title.includes("story")) {
-    return "about";
-  } else if (title.includes("contact") || title.includes("touch") || title.includes("form")) {
-    return "contact";
-  } else if (title.includes("blog") || title.includes("news") || title.includes("article")) {
+  } else if (title.includes("feature") || title.includes("recurso") || title.includes("beneficio") || title.includes("vantagem")) {
+    return "recurso";
+  } else if (title.includes("testimonial") || title.includes("depoimento") || title.includes("cliente") || title.includes("feedback")) {
+    return "depoimento";
+  } else if (title.includes("about") || title.includes("sobre") || title.includes("empresa") || title.includes("historia")) {
+    return "sobre";
+  } else if (title.includes("contact") || title.includes("contato") || title.includes("contate") || title.includes("formulario")) {
+    return "contato";
+  } else if (title.includes("blog") || title.includes("noticias") || title.includes("artigos")) {
     return "blog";
-  } else if (title.includes("team") || title.includes("member") || title.includes("staff")) {
-    return "team";
-  } else if (title.includes("service") || title.includes("offering")) {
-    return "service";
-  } else if (title.includes("work") || title.includes("portfolio") || title.includes("project")) {
+  } else if (title.includes("team") || title.includes("equipe") || title.includes("pessoas") || title.includes("time")) {
+    return "equipe";
+  } else if (title.includes("service") || title.includes("servico") || title.includes("solucao")) {
+    return "servico";
+  } else if (title.includes("work") || title.includes("portfolio") || title.includes("projeto") || title.includes("trabalho")) {
     return "portfolio";
-  } else if (title.includes("faq") || title.includes("question")) {
+  } else if (title.includes("faq") || title.includes("pergunta") || title.includes("duvida")) {
     return "faq";
-  } else if (title.includes("cta") || title.includes("action") || title.includes("start")) {
+  } else if (title.includes("cta") || title.includes("acao") || title.includes("comece")) {
     return "cta";
-  } else if (title.includes("price") || title.includes("plan") || title.includes("package")) {
-    return "pricing";
-  } else if (title.includes("gallery") || title.includes("image")) {
-    return "gallery";
+  } else if (title.includes("price") || title.includes("preco") || title.includes("plano") || title.includes("pacote")) {
+    return "preco";
+  } else if (title.includes("gallery") || title.includes("galeria") || title.includes("imagem")) {
+    return "galeria";
   }
   
   // Default to section if no specific context found
-  return "section";
+  return "secao";
 };
 
 // Helper to find heading element in children
@@ -314,24 +315,29 @@ const findHeadingInElements = (elements: any[]): any => {
 // Helper to check if a section is likely the first/hero section
 const isFirstSection = (element: any): boolean => {
   // This is a simple check assuming the element might be a hero section
-  // More complex logic could be added based on position, size, etc.
   return true; // Simplified for now, would need more context to determine accurately
 };
 
-// Helper to convert widget type to semantic name
-const convertToSemantic = (widgetType: string): string => {
+// Helper to convert widget type to semantic name in Portuguese
+const convertToSemanticPortuguese = (widgetType: string): string => {
   switch (widgetType) {
-    case "heading": return "heading";
-    case "text-editor": return "text";
-    case "button": return "btn";
-    case "image": return "image";
-    case "icon": return "icon";
-    case "icon-box": return "feature";
+    case "heading": return "titulo";
+    case "text-editor": return "texto";
+    case "button": return "botao";
+    case "image": return "imagem";
+    case "icon": return "icone";
+    case "icon-box": return "recurso";
     case "video": return "video";
-    case "testimonial": return "testimonial";
-    case "tabs": return "tabs";
+    case "testimonial": return "depoimento";
+    case "tabs": return "abas";
     case "accordion": return "accordion";
-    case "form": return "form";
+    case "form": return "formulario";
+    case "progress": return "progresso";
+    case "counter": return "contador";
+    case "spacer": return "espaco";
+    case "divider": return "divisor";
+    case "google_maps": return "mapa";
+    case "carousel": return "carrossel";
     // Add more mappings as needed
     default: return widgetType.replace(/[-_]/g, '').toLowerCase();
   }
@@ -361,7 +367,7 @@ const styleProperties = [
 ];
 
 // Premium wireframe style properties to apply when removing custom styles
-const premiumWireframeStyles = {
+const wireframeStyles = {
   // Top-level sections
   section: {
     background_color: "#F7F6F3",
@@ -389,31 +395,35 @@ const premiumWireframeStyles = {
     typography_font_size: { size: 32, unit: 'px' },
     typography_font_weight: "600",
     typography_line_height: { size: 1.2, unit: 'em' },
+    title: "Título Aqui"
   },
   'text-editor': {
     text_color: "#666666",
     typography_typography: "custom",
     typography_font_size: { size: 16, unit: 'px' },
     typography_line_height: { size: 1.6, unit: 'em' },
+    editor: "Texto de descrição aqui. Este é um texto genérico que serve como placeholder para o conteúdo real que será exibido neste componente."
   },
   // Interactive elements
   button: {
-    background_color: "#FFFFFF",
-    button_text_color: "#333333",
+    background_color: "#000000",
+    button_text_color: "#FFFFFF",
     border_border: "solid",
     border_width: { top: "1", right: "1", bottom: "1", left: "1", unit: 'px' },
-    border_color: "#333333",
+    border_color: "#000000",
     border_radius: { size: 6, unit: 'px' },
     hover_background_color: "#333333",
     hover_color: "#FFFFFF",
     typography_typography: "custom",
     typography_font_size: { size: 14, unit: 'px' },
     typography_font_weight: "500",
+    text: "Botão Principal"
   },
   // Media elements
   image: {
     background_color: "#E3E1DC",
-    border_radius: { size: 8, unit: 'px' }
+    border_radius: { size: 8, unit: 'px' },
+    alt: "Imagem Genérica"
   },
   icon: {
     primary_color: "#333333",
@@ -432,11 +442,16 @@ const premiumWireframeStyles = {
     box_shadow_box_shadow: {
       horizontal: 0, vertical: 4, blur: 12, spread: 0, 
       color: "rgba(0, 0, 0, 0.03)", position: "outside"
-    }
+    },
+    title_text: "Item da Lista",
+    description_text: "Descrição do item. Este é um texto genérico usado como placeholder."
   },
   testimonial: {
     background_color: "#F7F6F3",
-    border_radius: { size: 8, unit: 'px' }
+    border_radius: { size: 8, unit: 'px' },
+    testimonial_content: "Este é um texto de depoimento genérico. Ele serve como placeholder para uma citação real que seria exibida neste componente.",
+    name: "Nome da Pessoa",
+    job: "Cargo, Empresa"
   },
   // Default for any other element type
   default: {
@@ -451,28 +466,35 @@ const contextWireframeStyles = {
     background_color: "#F7F6F3",
     padding: { top: "80", right: "20", bottom: "80", left: "20", unit: 'px' }
   },
-  feature: {
+  recurso: {
     background_color: "#FFFFFF",
     padding: { top: "64", right: "20", bottom: "64", left: "20", unit: 'px' }
   },
   cta: {
-    background_color: "#333333",
-    heading: { title_color: "#FFFFFF" },
-    'text-editor': { text_color: "#EEEEEE" },
+    background_color: "#000000",
+    heading: { 
+      title_color: "#FFFFFF",
+      title: "Título de Chamada para Ação"
+    },
+    'text-editor': { 
+      text_color: "#EEEEEE",
+      editor: "Este é um texto de chamada para ação. Incentive o usuário a realizar uma ação específica."
+    },
     button: { 
       background_color: "#FFFFFF", 
-      button_text_color: "#333333",
+      button_text_color: "#000000",
       hover_background_color: "transparent",
       hover_color: "#FFFFFF",
-      border_color: "#FFFFFF"
+      border_color: "#FFFFFF",
+      text: "Botão de Ação"
     },
     padding: { top: "64", right: "20", bottom: "64", left: "20", unit: 'px' }
   },
-  testimonial: {
+  depoimento: {
     background_color: "#F7F6F3",
     padding: { top: "64", right: "20", bottom: "64", left: "20", unit: 'px' }
   },
-  pricing: {
+  preco: {
     background_color: "#FFFFFF",
     padding: { top: "80", right: "20", bottom: "80", left: "20", unit: 'px' }
   }
@@ -523,12 +545,12 @@ const applyWireframeStyles = (settings: any, elType: string, widgetType: string,
   // Determine which default styles to apply
   let defaultStyles;
   
-  if (widgetType && premiumWireframeStyles[widgetType]) {
-    defaultStyles = premiumWireframeStyles[widgetType];
-  } else if (elType && premiumWireframeStyles[elType]) {
-    defaultStyles = premiumWireframeStyles[elType];
+  if (widgetType && wireframeStyles[widgetType]) {
+    defaultStyles = wireframeStyles[widgetType];
+  } else if (elType && wireframeStyles[elType]) {
+    defaultStyles = wireframeStyles[elType];
   } else {
-    defaultStyles = premiumWireframeStyles.default;
+    defaultStyles = wireframeStyles.default;
   }
   
   // Apply the default styles
@@ -640,7 +662,7 @@ const normalizeValue = (value: any, removeStyles: boolean = false, key: string =
  * - Preserves layout structure and hierarchy
  * - Replaces content with Brazilian Portuguese placeholders
  * - Applies grayscale aesthetic using Tailwind classes
- * - Renames elements using Client-First methodology
+ * - Renames elements using friendly, user-readable names
  */
 export const transformToWireframe = (jsonContent: string): string => {
   try {
@@ -661,14 +683,12 @@ export const transformToWireframe = (jsonContent: string): string => {
 };
 
 const transformElementsToWireframe = (elements: any[], parentType = '', depth = 0, sectionIndex = 0) => {
-  const sectionTypes = ['section', 'container', 'column', 'widget'];
-  const componentTypes = ['hero', 'features', 'testimonial', 'cta', 'pricing', 'faq', 'stats', 'team', 'services', 'contact', 'footer', 'header'];
-  
   elements.forEach((element, index) => {
     // Determine component type based on element attributes or position
     let componentType = '';
     if (depth === 0) {
-      componentType = componentTypes[sectionIndex % componentTypes.length];
+      // Set component type based on position or content
+      componentType = determineSectionContext(element) || `secao${sectionIndex + 1}`;
       sectionIndex++;
     } else {
       componentType = parentType;
@@ -681,11 +701,11 @@ const transformElementsToWireframe = (elements: any[], parentType = '', depth = 
     // Apply wireframe styling based on element type
     applyWireframeStyling(element, elementType, widgetType, componentType);
     
-    // Rename the element using Client-First methodology
+    // Rename the element using friendly naming
     renameElement(element, elementType, widgetType, componentType, index);
     
     // Replace content with Brazilian Portuguese placeholders
-    replaceContentWithPlaceholders(element, widgetType);
+    replaceContentWithPortugueseText(element, widgetType);
     
     // Process child elements recursively if they exist
     if (element.elements && Array.isArray(element.elements)) {
@@ -723,45 +743,68 @@ const applyWireframeStyling = (element: any, elementType: string, widgetType: st
       break;
       
     case 'column':
-      element.settings._css_classes = `${componentType}_column`;
+      element.settings._css_classes = `${componentType}_container`;
       break;
       
     case 'widget':
-      applyWidgetWireframeStyling(element, widgetType, componentType);
+      applyWidgetWireframeStyles(element, widgetType, componentType);
       break;
   }
 };
 
-const applyWidgetWireframeStyling = (element: any, widgetType: string, componentType: string) => {
+const applyWidgetWireframeStyles = (element: any, widgetType: string, componentType: string) => {
+  if (!element.settings) {
+    element.settings = {};
+  }
+
   switch (widgetType) {
     case 'heading':
       element.settings.title_color = '#333333';
-      element.settings._css_classes = `${componentType}_heading text-gray-800 font-semibold`;
+      element.settings._css_classes = `${componentType}_titulo text-gray-800 font-semibold`;
+      if (!element.settings.title || element.settings.title.includes('Lorem ipsum')) {
+        element.settings.title = "Título Aqui";
+      }
       break;
       
     case 'text-editor':
       element.settings.text_color = '#666666';
-      element.settings._css_classes = `${componentType}_text text-gray-600`;
+      element.settings._css_classes = `${componentType}_texto text-gray-600`;
+      element.settings.editor = "Texto de descrição aqui. Este é um texto genérico que serve como placeholder para o conteúdo real que será exibido neste componente.";
       break;
       
     case 'button':
       element.settings.button_text_color = '#FFFFFF';
-      element.settings.background_color = '#333333';
+      element.settings.background_color = '#000000';
       element.settings.hover_color = '#FFFFFF';
-      element.settings.hover_background_color = '#555555';
+      element.settings.hover_background_color = '#333333';
       element.settings.border_radius = { size: 4, unit: 'px' };
-      element.settings._css_classes = `${componentType}_btn bg-gray-800 hover:bg-gray-700 text-white rounded`;
+      element.settings._css_classes = `${componentType}_botao bg-black text-white rounded`;
+      element.settings.text = "Botão Principal";
       break;
       
     case 'image':
       // Replace with placeholder image
       delete element.settings.image;
-      element.settings._css_classes = `${componentType}_image-wrapper`;
+      element.settings._css_classes = `${componentType}_imagem bg-gray-200`;
+      element.settings.alt = "Imagem Genérica";
       break;
       
     case 'icon':
-      element.settings.primary_color = '#666666';
-      element.settings._css_classes = `${componentType}_icon-wrapper`;
+      element.settings.primary_color = '#333333';
+      element.settings._css_classes = `${componentType}_icone text-gray-800`;
+      break;
+      
+    case 'icon-box':
+      element.settings._css_classes = `${componentType}_recurso bg-white p-6 rounded-lg shadow-sm`;
+      element.settings.title_text = "Item da Lista";
+      element.settings.description_text = "Descrição do item. Este é um texto genérico usado como placeholder.";
+      break;
+      
+    case 'testimonial':
+      element.settings._css_classes = `${componentType}_depoimento bg-gray-50 p-6 rounded-lg`;
+      element.settings.testimonial_content = "Este é um texto de depoimento genérico. Ele serve como placeholder para uma citação real.";
+      element.settings.name = "Nome da Pessoa";
+      element.settings.job = "Cargo, Empresa";
       break;
   }
 };
@@ -771,74 +814,131 @@ const renameElement = (element: any, elementType: string, widgetType: string, co
     element.settings = {};
   }
   
-  // Generate semantic ID based on component type and element type
-  const semanticId = generateSemanticId(elementType, widgetType, componentType, index);
+  // Generate user-friendly ID based on component type and element type
+  const friendlyId = generateFriendlyId(elementType, widgetType, componentType, index);
   
-  // Apply new ID to element
-  element.settings._element_id = semanticId;
+  // Apply new title to element
+  element._title = friendlyId;
   
   // If element already has CSS classes, add them to our new classes
   let existingClasses = element.settings._css_classes || '';
   if (existingClasses && !element.settings._css_classes.includes(componentType)) {
-    element.settings._css_classes = `${semanticId} ${existingClasses}`;
+    element.settings._css_classes = `${friendlyId} ${existingClasses}`;
   } else if (!element.settings._css_classes) {
-    element.settings._css_classes = semanticId;
+    element.settings._css_classes = friendlyId;
   }
 };
 
-const generateSemanticId = (elementType: string, widgetType: string, componentType: string, index: number): string => {
+const generateFriendlyId = (elementType: string, widgetType: string, componentType: string, index: number): string => {
   switch (elementType) {
     case 'section':
-      return `${componentType}_section`;
+      return `${componentType}_wrapper`;
       
     case 'column':
-      return `${componentType}_column-${index + 1}`;
+      return `${componentType}_container`;
       
     case 'widget':
       switch (widgetType) {
         case 'heading':
-          return `${componentType}_heading`;
+          return `${componentType}_titulo`;
           
         case 'text-editor':
-          return `${componentType}_text`;
+          return `${componentType}_texto`;
           
         case 'button':
-          return `${componentType}_btn`;
+          return `${componentType}_botao`;
           
         case 'image':
-          return `${componentType}_image`;
+          return `${componentType}_imagem`;
           
         case 'icon':
-          return `${componentType}_icon`;
+          return `${componentType}_icone`;
+          
+        case 'icon-box':
+          return `${componentType}_recurso`;
+          
+        case 'video':
+          return `${componentType}_video`;
+          
+        case 'testimonial':
+          return `${componentType}_depoimento`;
+          
+        case 'tabs':
+          return `${componentType}_abas`;
+          
+        case 'accordion':
+          return `${componentType}_accordion`;
+          
+        case 'form':
+          return `${componentType}_formulario`;
           
         default:
-          return `${componentType}_${widgetType}-${index + 1}`;
+          return `${componentType}_${convertToSemanticPortuguese(widgetType)}`;
       }
       
     default:
-      return `${componentType}_element-${index + 1}`;
+      return `${componentType}_elemento`;
   }
 };
 
-const replaceContentWithPlaceholders = (element: any, widgetType: string) => {
+const replaceContentWithPortugueseText = (element: any, widgetType: string) => {
   if (!element.settings) return;
   
   switch (widgetType) {
     case 'heading':
-      // Check if heading is likely to be multi-line based on length
-      if (element.settings.title && element.settings.title.length > 25) {
-        element.settings.title = 'Título em Duas Linhas Com Destaque';
-      } else {
-        element.settings.title = 'Título Aqui';
+      if (!element.settings.title || element.settings.title.toLowerCase().includes('lorem ipsum')) {
+        // Check if heading might be multi-line based on length or original content
+        if (element.settings.title && element.settings.title.length > 25) {
+          element.settings.title = 'Título em Duas Linhas Com Destaque';
+        } else {
+          element.settings.title = 'Título Aqui';
+        }
       }
       break;
       
     case 'text-editor':
-      element.settings.editor = 'Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum.';
+      element.settings.editor = 'Texto de descrição aqui. Este é um texto genérico que serve como placeholder para o conteúdo real que será exibido neste componente.';
       break;
       
     case 'button':
       element.settings.text = 'Botão Principal';
+      break;
+      
+    case 'image':
+      if (element.settings.alt) {
+        element.settings.alt = 'Imagem Genérica';
+      }
+      break;
+      
+    case 'icon-box':
+      element.settings.title_text = 'Item da Lista';
+      element.settings.description_text = 'Descrição do item. Este é um texto genérico usado como placeholder.';
+      break;
+      
+    case 'testimonial':
+      element.settings.testimonial_content = 'Este é um texto de depoimento genérico. Ele serve como placeholder para uma citação real.';
+      element.settings.name = 'Nome da Pessoa';
+      element.settings.job = 'Cargo, Empresa';
+      break;
+      
+    case 'tabs':
+      if (element.settings.tabs) {
+        element.settings.tabs = element.settings.tabs.map((tab: any, index: number) => ({
+          ...tab,
+          tab_title: `Aba ${index + 1}`,
+          tab_content: 'Conteúdo da aba. Este é um texto genérico usado como placeholder.'
+        }));
+      }
+      break;
+      
+    case 'accordion':
+      if (element.settings.tabs) {
+        element.settings.tabs = element.settings.tabs.map((tab: any, index: number) => ({
+          ...tab,
+          tab_title: `Item ${index + 1}`,
+          tab_content: 'Conteúdo do item. Este é um texto genérico usado como placeholder.'
+        }));
+      }
       break;
   }
 };

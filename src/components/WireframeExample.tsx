@@ -14,47 +14,47 @@ const WireframeExample = () => {
           <section className="hero_wrapper bg-white rounded-lg p-8 md:p-12 shadow-sm">
             <div className="container mx-auto">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-                <div className="hero_content space-y-6">
-                  <h1 className="hero_heading text-4xl font-semibold text-gray-800">
-                    Heading Here
+                <div className="hero_conteudo space-y-6">
+                  <h1 className="hero_titulo text-4xl font-semibold text-gray-800">
+                    Título Principal
                   </h1>
-                  <p className="hero_text text-gray-600">
-                    Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat
+                  <p className="hero_texto text-gray-600">
+                    Texto de descrição aqui. Este é um texto genérico que serve como placeholder para o conteúdo real que será exibido neste componente.
                   </p>
-                  <Button className="hero_btn flex items-center gap-2">
-                    Button <ArrowRight className="w-4 h-4" />
+                  <Button className="hero_botao flex items-center gap-2 bg-black text-white hover:bg-gray-800">
+                    Botão Principal <ArrowRight className="w-4 h-4" />
                   </Button>
                 </div>
-                <div className="hero_image-wrapper">
-                  <PlaceholderImage aspectRatio="video" />
+                <div className="hero_imagem-wrapper">
+                  <PlaceholderImage aspectRatio="video" text="Imagem Destaque" />
                 </div>
               </div>
             </div>
           </section>
           
           {/* Features Section */}
-          <section className="features_wrapper bg-gray-50 rounded-lg p-8 md:p-12 shadow-sm">
+          <section className="recursos_wrapper bg-gray-50 rounded-lg p-8 md:p-12 shadow-sm">
             <div className="container mx-auto">
               <div className="text-center mb-12">
-                <h2 className="features_heading text-3xl font-semibold text-gray-800 mb-4">
-                  Features Section
+                <h2 className="recursos_titulo text-3xl font-semibold text-gray-800 mb-4">
+                  Seção de Recursos
                 </h2>
-                <p className="features_subheading text-gray-600 max-w-2xl mx-auto">
-                  Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy
+                <p className="recursos_subtitulo text-gray-600 max-w-2xl mx-auto">
+                  Texto de apoio para explicar os recursos. Descrição geral sobre os itens abaixo.
                 </p>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className={`feature${i}_container bg-white p-6 rounded-lg shadow-sm`}>
-                    <div className={`feature${i}_icon-wrapper mb-4 bg-gray-100 w-12 h-12 rounded-full flex items-center justify-center`}>
+                  <div key={i} className={`recurso${i}_container bg-white p-6 rounded-lg shadow-sm`}>
+                    <div className={`recurso${i}_icone-wrapper mb-4 bg-gray-200 w-12 h-12 rounded-full flex items-center justify-center`}>
                       <span className="text-gray-600">{i}</span>
                     </div>
-                    <h3 className={`feature${i}_heading text-xl font-medium text-gray-800 mb-2`}>
-                      Lorem Ipsum
+                    <h3 className={`recurso${i}_titulo text-xl font-medium text-gray-800 mb-2`}>
+                      Item da Lista
                     </h3>
-                    <p className={`feature${i}_text text-gray-600`}>
-                      Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy
+                    <p className={`recurso${i}_texto text-gray-600`}>
+                      Descrição do item. Este é um texto genérico usado como placeholder.
                     </p>
                   </div>
                 ))}
@@ -63,18 +63,18 @@ const WireframeExample = () => {
           </section>
           
           {/* Testimonial Section */}
-          <section className="testimonial_wrapper bg-white rounded-lg p-8 md:p-12 shadow-sm">
+          <section className="depoimento_wrapper bg-white rounded-lg p-8 md:p-12 shadow-sm">
             <div className="container mx-auto">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
-                <div className="testimonial_image-wrapper">
-                  <PlaceholderImage aspectRatio="square" />
+                <div className="depoimento_imagem-wrapper">
+                  <PlaceholderImage aspectRatio="square" text="Imagem Depoimento" />
                 </div>
-                <div className="testimonial_content space-y-6">
-                  <div className="testimonial_quote text-gray-800 text-lg italic">
-                    "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat."
+                <div className="depoimento_conteudo space-y-6">
+                  <div className="depoimento_citacao text-gray-800 text-lg italic">
+                    "Este é um texto de depoimento genérico. Ele serve como placeholder para uma citação real que seria exibida neste componente."
                   </div>
-                  <div className="testimonial_author text-gray-700 font-medium">
-                    John Doe, Position, Company
+                  <div className="depoimento_autor text-gray-700 font-medium">
+                    Nome da Pessoa, Cargo, Empresa
                   </div>
                 </div>
               </div>
