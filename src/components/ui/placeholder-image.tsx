@@ -25,7 +25,7 @@ const PlaceholderImage = ({
   return (
     <div 
       className={cn(
-        'bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden border border-gray-300',
+        'bg-blue-50 rounded-lg flex items-center justify-center overflow-hidden border border-blue-100',
         aspectRatioClass,
         className
       )}
@@ -40,13 +40,13 @@ const PlaceholderImage = ({
           strokeWidth="1.5" 
           strokeLinecap="round" 
           strokeLinejoin="round" 
-          className="w-8 h-8 text-gray-400 mb-2"
+          className="w-8 h-8 text-blue-300 mb-2"
         >
           <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
           <circle cx="9" cy="9" r="2" />
           <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
         </svg>
-        <span className="text-xs text-gray-500">{text}</span>
+        <span className="text-xs text-blue-400">{text}</span>
       </div>
     </div>
   );

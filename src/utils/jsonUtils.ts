@@ -101,14 +101,15 @@ const removeStyleProperties = (elements: any[], shouldRemoveStyles: boolean): an
         // Aplicar classes CSS e estilos em preto e branco de acordo com o tipo de elemento
         if (element.elType === 'section' || element.elType === 'container') {
           cleanSettings.css_classes = (cleanSettings.css_classes || '') + ' wf_container';
-          cleanSettings.background_color = '#F3F4F6';
-          cleanSettings.border_color = '#D1D5DB';
-          cleanSettings.border_width = { top: 1, right: 1, bottom: 1, left: 1, unit: 'px', isLinked: true };
+          cleanSettings.background_color = '#FFFFFF';
+          cleanSettings.border_color = '#E5E7EB';
+          cleanSettings.border_width = { top: 0, right: 0, bottom: 0, left: 0, unit: 'px', isLinked: true };
+          cleanSettings.border_radius = { top: 0, right: 0, bottom: 0, left: 0, unit: 'px', isLinked: true };
         } else if (element.elType === 'column') {
           cleanSettings.css_classes = (cleanSettings.css_classes || '') + ' wf_column';
           cleanSettings.background_color = '#FFFFFF';
           cleanSettings.border_color = '#E5E7EB';
-          cleanSettings.border_width = { top: 1, right: 1, bottom: 1, left: 1, unit: 'px', isLinked: true };
+          cleanSettings.border_width = { top: 0, right: 0, bottom: 0, left: 0, unit: 'px', isLinked: true };
         } else if (element.widgetType) {
           // Aplicar estilos comuns a todos os widgets
           cleanSettings._margin = cleanSettings._margin || { top: '0', right: '0', bottom: '8', left: '0', unit: 'px', isLinked: false };
@@ -148,14 +149,15 @@ const removeStyleProperties = (elements: any[], shouldRemoveStyles: boolean): an
               
             case 'button':
               cleanSettings.css_classes = (cleanSettings.css_classes || '') + ' wf_button';
-              cleanSettings.background_color = '#333333';
+              cleanSettings.background_color = '#0047FF'; // Azul para botões primários
               cleanSettings.button_text_color = '#FFFFFF';
-              cleanSettings.border_radius = { top: 8, right: 8, bottom: 8, left: 8, unit: 'px', isLinked: true };
+              cleanSettings.border_radius = { top: 4, right: 4, bottom: 4, left: 4, unit: 'px', isLinked: true };
               cleanSettings.typography_font_family = 'Inter';
               cleanSettings.typography_font_weight = '500';
               cleanSettings.typography_font_size = { size: 16, unit: 'px', sizes: [] };
-              cleanSettings.button_hover_border_color = '#1F2937';
-              cleanSettings.button_background_hover_color = '#1F2937';
+              cleanSettings.button_hover_border_color = '#0033B3';
+              cleanSettings.button_background_hover_color = '#0033B3';
+              cleanSettings.border_width = { top: 0, right: 0, bottom: 0, left: 0, unit: 'px', isLinked: true };
               
               // Se for um botão secundário (com borda ou outline ou sem fundo colorido)
               if (
@@ -174,33 +176,35 @@ const removeStyleProperties = (elements: any[], shouldRemoveStyles: boolean): an
             case 'image':
               cleanSettings.css_classes = (cleanSettings.css_classes || '') + ' wf_image';
               
-              // Manter a estrutura, mas aplicar um placeholder em tons de cinza
+              // Usar um placeholder em tons azul claro
               if (cleanSettings.image && cleanSettings.image.url) {
-                cleanSettings.image.url = 'https://placehold.co/600x400/e2e8f0/64748b';
+                cleanSettings.image.url = 'https://placehold.co/600x400/E8F0FE/95B8FF?text=Image';
               }
               break;
               
             case 'icon':
               cleanSettings.css_classes = (cleanSettings.css_classes || '') + ' wf_icon';
-              cleanSettings.primary_color = '#333333';
+              cleanSettings.primary_color = '#0047FF';
               cleanSettings.secondary_color = '#FFFFFF';
               break;
               
             case 'form':
               cleanSettings.css_classes = (cleanSettings.css_classes || '') + ' wf_form';
-              cleanSettings.button_background_color = '#333333';
+              cleanSettings.button_background_color = '#0047FF';
               cleanSettings.button_text_color = '#FFFFFF';
               cleanSettings.field_background_color = '#FFFFFF';
               cleanSettings.field_border_color = '#D1D5DB';
               cleanSettings.field_text_color = '#4B5563';
               cleanSettings.success_message_color = '#10B981';
               cleanSettings.error_message_color = '#EF4444';
+              cleanSettings.field_border_radius = { top: 4, right: 4, bottom: 4, left: 4, unit: 'px', isLinked: true };
+              cleanSettings.button_border_radius = { top: 4, right: 4, bottom: 4, left: 4, unit: 'px', isLinked: true };
               break;
               
             default:
               cleanSettings.css_classes = (cleanSettings.css_classes || '') + ' wf_widget';
               cleanSettings.color = '#4B5563';
-              cleanSettings.background_color = '#F9FAFB';
+              cleanSettings.background_color = '#FFFFFF';
               cleanSettings.border_color = '#E5E7EB';
               cleanSettings.border_width = { top: 1, right: 1, bottom: 1, left: 1, unit: 'px', isLinked: true };
               cleanSettings.border_radius = { top: 4, right: 4, bottom: 4, left: 4, unit: 'px', isLinked: true };

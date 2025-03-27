@@ -45,7 +45,7 @@ const JsonCodeEditor: React.FC<JsonCodeEditorProps> = ({
       form.setValue('code', cleanedJson);
       
       const successMessage = removeStyles 
-        ? 'JSON limpo e formatado com estilo wireframe premium e nomenclatura Client-First!'
+        ? 'JSON limpo e formatado com estilo wireframe aplicado!'
         : 'JSON limpo e formatado com sucesso!';
       
       toast.success(successMessage);
@@ -58,7 +58,7 @@ const JsonCodeEditor: React.FC<JsonCodeEditorProps> = ({
   const handleToggleRemoveStyles = () => {
     setRemoveStyles(!removeStyles);
     if (!removeStyles) {
-      toast.info('Modo wireframe ativado. Ao limpar o JSON, será aplicado estilo wireframe premium com nomenclatura Client-First.');
+      toast.info('Modo wireframe ativado. Ao limpar o JSON, será aplicado estilo wireframe limpo.');
     } else {
       toast.info('Modo wireframe desativado. Os estilos originais serão preservados.');
     }
@@ -122,14 +122,14 @@ const JsonCodeEditor: React.FC<JsonCodeEditorProps> = ({
                 pressed={removeStyles}
                 onPressedChange={handleToggleRemoveStyles}
                 className="gap-1 text-xs"
-                title="Aplicar estilo de wireframe premium e nomenclatura Client-First"
+                title="Aplicar estilo wireframe clean"
               >
                 <Paintbrush className="h-4 w-4" />
                 Estilo Wireframe
               </Toggle>
               <span className="text-xs text-muted-foreground">
                 {removeStyles 
-                  ? "Wireframe com nomenclatura Client-First" 
+                  ? "Wireframe clean em preto, branco e azul" 
                   : "Manter estilos originais"}
               </span>
             </div>
