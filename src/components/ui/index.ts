@@ -1,3 +1,4 @@
+
 // Export UI components
 export { Button } from "./button";
 export { Badge } from "./badge";
@@ -6,7 +7,7 @@ export { Card, CardContent, CardHeader, CardTitle, CardDescription } from "./car
 export { Input } from "./input";
 export { Textarea } from "./textarea";
 export { Toggle, toggleVariants } from "./toggle";
-export { Checkbox } from "./checkbox"; // Add Checkbox export
+export { Checkbox } from "./checkbox"; 
 export {
   Form,
   FormControl,
@@ -59,3 +60,9 @@ export {
   AvatarFallback,
   AvatarImage
 } from "./avatar";
+// Add Collapsible components
+export {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger
+} from "./collapsible";

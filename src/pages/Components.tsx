@@ -6,8 +6,10 @@ import { useAuth } from '@/context/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { getComponents } from '@/lib/api';
 import { toast } from 'sonner';
+import { Filter } from 'lucide-react';
+import { Button } from '@/components/ui';
 
-// Import our newly created components
+// Import our components and hook
 import ComponentsHeader from '@/components/components/ComponentsHeader';
 import ComponentFilterBar from '@/components/filters/ComponentFilterBar';
 import ComponentSearch from '@/components/filters/ComponentSearch';
@@ -75,6 +77,18 @@ const Components = () => {
       
       <main className="container mx-auto px-4 py-8">
         <ComponentsHeader handleCreateClick={handleCreateClick} />
+        
+        {/* Mobile filter toggle button */}
+        <div className="flex md:hidden mb-4">
+          <Button 
+            variant="outline" 
+            onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)}
+            className="w-full flex items-center justify-center"
+          >
+            <Filter className="h-4 w-4 mr-2" />
+            Filtros {mobileFiltersOpen ? '▲' : '▼'}
+          </Button>
+        </div>
         
         <ComponentFilterBar
           selectedAlignments={selectedAlignments}

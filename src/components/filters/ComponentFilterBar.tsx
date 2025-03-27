@@ -1,14 +1,13 @@
 
 import React from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { Filter } from 'lucide-react';
 import { 
   Button,
   Collapsible,
   CollapsibleContent,
-  CollapsibleTrigger
+  CollapsibleTrigger,
+  Card,
+  CardContent
 } from '@/components/ui';
-import { Card, CardContent } from '@/components/ui/card';
 import ComponentFilters from '@/components/ComponentFilters';
 import { AlignmentType, ColumnsType, ElementType } from '@/components/ComponentFilters';
 

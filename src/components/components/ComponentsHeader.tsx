@@ -23,6 +23,9 @@ const ComponentsHeader: React.FC<ComponentsHeaderProps> = ({ handleCreateClick }
         <h1 className="text-3xl font-bold tracking-tighter">
           Components
         </h1>
+        <p className="text-muted-foreground mt-1">
+          Explore nosso catálogo de blocos e componentes para seus projetos
+        </p>
       </div>
       
       <div className="flex items-center gap-2">
