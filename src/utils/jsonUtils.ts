@@ -1,4 +1,3 @@
-
 export const validateJson = (jsonString: string): boolean => {
   try {
     JSON.parse(jsonString);
@@ -96,118 +95,80 @@ const removeStyleProperties = (elements: any[], shouldRemoveStyles: boolean): an
         }
       });
       
-      // Aplicar estilo wireframe se necessário
       if (shouldRemoveStyles) {
-        // Aplicar classes CSS e estilos em preto e branco de acordo com o tipo de elemento
-        if (element.elType === 'section' || element.elType === 'container') {
-          cleanSettings.css_classes = (cleanSettings.css_classes || '') + ' wf_container';
-          cleanSettings.background_color = '#FFFFFF';
-          cleanSettings.border_color = '#E5E7EB';
-          cleanSettings.border_width = { top: 0, right: 0, bottom: 0, left: 0, unit: 'px', isLinked: true };
-          cleanSettings.border_radius = { top: 0, right: 0, bottom: 0, left: 0, unit: 'px', isLinked: true };
-        } else if (element.elType === 'column') {
-          cleanSettings.css_classes = (cleanSettings.css_classes || '') + ' wf_column';
-          cleanSettings.background_color = '#FFFFFF';
-          cleanSettings.border_color = '#E5E7EB';
-          cleanSettings.border_width = { top: 0, right: 0, bottom: 0, left: 0, unit: 'px', isLinked: true };
-        } else if (element.widgetType) {
-          // Aplicar estilos comuns a todos os widgets
-          cleanSettings._margin = cleanSettings._margin || { top: '0', right: '0', bottom: '8', left: '0', unit: 'px', isLinked: false };
+        // Typography and styling adjustments
+        if (element.widgetType === 'heading') {
+          // Maintain strong typography for headings
+          cleanSettings.typography_font_family = 'Inter';
+          cleanSettings.typography_font_weight = '600';
+          cleanSettings.title_color = '#1F2937';
+
+          // Specific sizes based on header type
+          if (cleanSettings.header_size === 'h1') {
+            cleanSettings.typography_font_size = { size: 56, unit: 'px', sizes: [] };
+            cleanSettings.typography_line_height = { size: '120%', unit: 'custom', sizes: [] };
+          } else if (cleanSettings.header_size === 'h2') {
+            cleanSettings.typography_font_size = { size: 48, unit: 'px', sizes: [] };
+            cleanSettings.typography_line_height = { size: '120%', unit: 'custom', sizes: [] };
+          }
+        }
+
+        if (element.widgetType === 'text-editor') {
+          cleanSettings.typography_font_family = 'Inter';
+          cleanSettings.typography_font_weight = '400';
+          cleanSettings.typography_font_size = { size: 18, unit: 'px', sizes: [] };
+          cleanSettings.text_color = '#4B5563';
+          cleanSettings.typography_line_height = { size: '150%', unit: 'custom', sizes: [] };
+        }
+
+        if (element.widgetType === 'button') {
+          // Good padding for buttons
+          cleanSettings.text_padding = {
+            top: '14', 
+            left: '24', 
+            right: '24', 
+            bottom: '14', 
+            unit: 'px', 
+            isLinked: false
+          };
           
-          // Aplicar classes e estilos de acordo com o tipo de widget
-          switch (element.widgetType) {
-            case 'heading':
-              cleanSettings.css_classes = (cleanSettings.css_classes || '') + ' wf_heading';
-              cleanSettings.title_color = '#1F2937';
-              cleanSettings.typography_font_family = 'Inter';
-              cleanSettings.typography_font_weight = '600';
-              
-              // Determinar o tamanho baseado em header_size ou primeiro caractere do título
-              const headerSize = cleanSettings.header_size || 'h2';
-              const titleText = cleanSettings.title || '';
-              
-              if (headerSize === 'h1' || (titleText.length > 0 && titleText.length < 30)) {
-                cleanSettings.typography_font_size = { size: 32, unit: 'px', sizes: [] };
-                cleanSettings.typography_line_height = { size: '1.2', unit: 'em', sizes: [] };
-              } else if (headerSize === 'h2' || headerSize === 'div') {
-                cleanSettings.typography_font_size = { size: 24, unit: 'px', sizes: [] };
-                cleanSettings.typography_line_height = { size: '1.3', unit: 'em', sizes: [] };
-              } else {
-                cleanSettings.typography_font_size = { size: 18, unit: 'px', sizes: [] };
-                cleanSettings.typography_line_height = { size: '1.4', unit: 'em', sizes: [] };
-              }
-              break;
-              
-            case 'text-editor':
-              cleanSettings.css_classes = (cleanSettings.css_classes || '') + ' wf_text';
-              cleanSettings.text_color = '#4B5563';
-              cleanSettings.typography_font_family = 'Inter';
-              cleanSettings.typography_font_weight = '400';
-              cleanSettings.typography_font_size = { size: 16, unit: 'px', sizes: [] };
-              cleanSettings.typography_line_height = { size: '1.5', unit: 'em', sizes: [] };
-              break;
-              
-            case 'button':
-              cleanSettings.css_classes = (cleanSettings.css_classes || '') + ' wf_button';
-              cleanSettings.background_color = '#0047FF'; // Azul para botões primários
-              cleanSettings.button_text_color = '#FFFFFF';
-              cleanSettings.border_radius = { top: 4, right: 4, bottom: 4, left: 4, unit: 'px', isLinked: true };
-              cleanSettings.typography_font_family = 'Inter';
-              cleanSettings.typography_font_weight = '500';
-              cleanSettings.typography_font_size = { size: 16, unit: 'px', sizes: [] };
-              cleanSettings.button_hover_border_color = '#0033B3';
-              cleanSettings.button_background_hover_color = '#0033B3';
-              cleanSettings.border_width = { top: 0, right: 0, bottom: 0, left: 0, unit: 'px', isLinked: true };
-              
-              // Se for um botão secundário (com borda ou outline ou sem fundo colorido)
-              if (
-                cleanSettings.text && 
-                (cleanSettings.text.includes("Learn") || 
-                 cleanSettings.text.includes("More") || 
-                 cleanSettings.text.includes("Saiba"))
-              ) {
-                cleanSettings.background_color = '#FFFFFF';
-                cleanSettings.button_text_color = '#333333';
-                cleanSettings.border_color = '#D1D5DB';
-                cleanSettings.border_width = { top: 1, right: 1, bottom: 1, left: 1, unit: 'px', isLinked: true };
-              }
-              break;
-              
-            case 'image':
-              cleanSettings.css_classes = (cleanSettings.css_classes || '') + ' wf_image';
-              
-              // Usar um placeholder em tons azul claro
-              if (cleanSettings.image && cleanSettings.image.url) {
-                cleanSettings.image.url = 'https://placehold.co/600x400/E8F0FE/95B8FF?text=Image';
-              }
-              break;
-              
-            case 'icon':
-              cleanSettings.css_classes = (cleanSettings.css_classes || '') + ' wf_icon';
-              cleanSettings.primary_color = '#0047FF';
-              cleanSettings.secondary_color = '#FFFFFF';
-              break;
-              
-            case 'form':
-              cleanSettings.css_classes = (cleanSettings.css_classes || '') + ' wf_form';
-              cleanSettings.button_background_color = '#0047FF';
-              cleanSettings.button_text_color = '#FFFFFF';
-              cleanSettings.field_background_color = '#FFFFFF';
-              cleanSettings.field_border_color = '#D1D5DB';
-              cleanSettings.field_text_color = '#4B5563';
-              cleanSettings.success_message_color = '#10B981';
-              cleanSettings.error_message_color = '#EF4444';
-              cleanSettings.field_border_radius = { top: 4, right: 4, bottom: 4, left: 4, unit: 'px', isLinked: true };
-              cleanSettings.button_border_radius = { top: 4, right: 4, bottom: 4, left: 4, unit: 'px', isLinked: true };
-              break;
-              
-            default:
-              cleanSettings.css_classes = (cleanSettings.css_classes || '') + ' wf_widget';
-              cleanSettings.color = '#4B5563';
-              cleanSettings.background_color = '#FFFFFF';
-              cleanSettings.border_color = '#E5E7EB';
-              cleanSettings.border_width = { top: 1, right: 1, bottom: 1, left: 1, unit: 'px', isLinked: true };
-              cleanSettings.border_radius = { top: 4, right: 4, bottom: 4, left: 4, unit: 'px', isLinked: true };
+          cleanSettings.typography_font_family = 'Inter';
+          cleanSettings.typography_font_weight = '500';
+          cleanSettings.typography_font_size = { size: 16, unit: 'px', sizes: [] };
+          
+          // Primary button style
+          if (!cleanSettings.text || 
+              (!cleanSettings.text.includes("Learn more") && 
+               !cleanSettings.text.includes("Saiba"))) {
+            cleanSettings.background_color = '#0047FF';
+            cleanSettings.button_text_color = '#FFFFFF';
+            cleanSettings.border_radius = { 
+              top: 8, right: 8, bottom: 8, left: 8, 
+              unit: 'px', 
+              isLinked: true 
+            };
+          } else {
+            // Secondary button style
+            cleanSettings.background_color = '#FFFFFF';
+            cleanSettings.button_text_color = '#344054';
+            cleanSettings.border_color = '#D0D5DD';
+            cleanSettings.border_width = { 
+              top: 1, right: 1, bottom: 1, left: 1, 
+              unit: 'px', 
+              isLinked: true 
+            };
+            cleanSettings.border_radius = { 
+              top: 8, right: 8, bottom: 8, left: 8, 
+              unit: 'px', 
+              isLinked: true 
+            };
+          }
+        }
+
+        // Image placeholder
+        if (element.widgetType === 'image') {
+          if (cleanSettings.image && cleanSettings.image.url) {
+            cleanSettings.image.url = 'https://placehold.co/800x640/F2F4F7/4A5568?text=Image';
           }
         }
       }
@@ -215,7 +176,7 @@ const removeStyleProperties = (elements: any[], shouldRemoveStyles: boolean): an
       newElement.settings = cleanSettings;
     }
     
-    // Processar elementos filhos recursivamente
+    // Process child elements recursively
     if (newElement.elements && Array.isArray(newElement.elements)) {
       newElement.elements = removeStyleProperties(newElement.elements, shouldRemoveStyles);
     }
