@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { UseFormReturn } from 'react-hook-form';
-import { FormValues } from './componentFormSchema';
+import { FormValues, ElementType } from './componentFormSchema';
 import {
   FormField,
   FormItem,
@@ -35,11 +35,11 @@ const FilterOptionsSection: React.FC<FilterOptionsSectionProps> = ({ form }) => 
   const elements = form.watch('elements') || [];
 
   // Toggle element in the array
-  const toggleElement = (value: string) => {
+  const toggleElement = (value: ElementType) => {
     const currentElements = form.watch('elements') || [];
     const newElements = currentElements.includes(value)
       ? currentElements.filter(v => v !== value)
-      : [...currentElements, value] as any;
+      : [...currentElements, value];
     
     form.setValue('elements', newElements, {
       shouldValidate: true,
@@ -48,7 +48,7 @@ const FilterOptionsSection: React.FC<FilterOptionsSectionProps> = ({ form }) => 
   };
 
   // Helper to check if element is selected
-  const isElementSelected = (value: string) => {
+  const isElementSelected = (value: ElementType) => {
     return elements.includes(value);
   };
 
@@ -140,8 +140,8 @@ const FilterOptionsSection: React.FC<FilterOptionsSectionProps> = ({ form }) => 
               <div className="flex items-center space-x-2">
                 <Checkbox 
                   id="elements-image" 
-                  checked={isElementSelected('image')}
-                  onCheckedChange={() => toggleElement('image')}
+                  checked={isElementSelected('image' as ElementType)}
+                  onCheckedChange={() => toggleElement('image' as ElementType)}
                 />
                 <label
                   htmlFor="elements-image"
@@ -153,8 +153,8 @@ const FilterOptionsSection: React.FC<FilterOptionsSectionProps> = ({ form }) => 
               <div className="flex items-center space-x-2">
                 <Checkbox 
                   id="elements-heading" 
-                  checked={isElementSelected('heading')}
-                  onCheckedChange={() => toggleElement('heading')}
+                  checked={isElementSelected('heading' as ElementType)}
+                  onCheckedChange={() => toggleElement('heading' as ElementType)}
                 />
                 <label
                   htmlFor="elements-heading"
@@ -166,8 +166,8 @@ const FilterOptionsSection: React.FC<FilterOptionsSectionProps> = ({ form }) => 
               <div className="flex items-center space-x-2">
                 <Checkbox 
                   id="elements-button" 
-                  checked={isElementSelected('button')}
-                  onCheckedChange={() => toggleElement('button')}
+                  checked={isElementSelected('button' as ElementType)}
+                  onCheckedChange={() => toggleElement('button' as ElementType)}
                 />
                 <label
                   htmlFor="elements-button"
@@ -179,8 +179,8 @@ const FilterOptionsSection: React.FC<FilterOptionsSectionProps> = ({ form }) => 
               <div className="flex items-center space-x-2">
                 <Checkbox 
                   id="elements-list" 
-                  checked={isElementSelected('list')}
-                  onCheckedChange={() => toggleElement('list')}
+                  checked={isElementSelected('list' as ElementType)}
+                  onCheckedChange={() => toggleElement('list' as ElementType)}
                 />
                 <label
                   htmlFor="elements-list"
@@ -192,8 +192,8 @@ const FilterOptionsSection: React.FC<FilterOptionsSectionProps> = ({ form }) => 
               <div className="flex items-center space-x-2">
                 <Checkbox 
                   id="elements-video" 
-                  checked={isElementSelected('video')}
-                  onCheckedChange={() => toggleElement('video')}
+                  checked={isElementSelected('video' as ElementType)}
+                  onCheckedChange={() => toggleElement('video' as ElementType)}
                 />
                 <label
                   htmlFor="elements-video"
