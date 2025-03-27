@@ -23,7 +23,6 @@ import TagsSection from './TagsSection';
 import ImageUploadSection from './ImageUploadSection';
 import JsonCodeSection from './JsonCodeSection';
 import FormSubmitButton from './FormSubmitButton';
-import WireframeExample from '@/components/WireframeExample';
 import FilterSection from './filters/FilterSection';
 
 const ComponentCreateForm = () => {
@@ -35,8 +34,6 @@ const ComponentCreateForm = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [removeStyles, setRemoveStyles] = useState(false);
-  const [wireframeMode, setWireframeMode] = useState(false);
-  const [showWireframeExample, setShowWireframeExample] = useState(false);
 
   // Fetch categories
   const { data: categories = [] } = useQuery({
@@ -87,11 +84,11 @@ const ComponentCreateForm = () => {
     }
   };
 
-  const handleCleanJson = () => {
+  const handleProcessJson = () => {
     const currentJson = form.getValues('jsonCode');
     
     if (!currentJson) {
-      toast.warning('Nenhum código para limpar');
+      toast.warning('Nenhum código para processar');
       return;
     }
     
@@ -114,60 +111,23 @@ const ComponentCreateForm = () => {
         });
       }
       
-      // Clean and format the JSON with the wireframe modes
-      const cleanedJson = cleanElementorJson(currentJson, removeStyles, wireframeMode);
+      // Clean and format the JSON with the wireframe mode
+      const cleanedJson = cleanElementorJson(currentJson, removeStyles, false);
       form.setValue('jsonCode', cleanedJson);
       setPreviewJson(cleanedJson);
       setShowPreview(true);
       
-      let successMessage = 'JSON limpo e formatado com sucesso!';
-      
-      if (removeStyles && wireframeMode) {
-        successMessage = 'JSON transformado para wireframe completo com placeholders em português e nomenclatura Client-First!';
-        // Show wireframe example if both modes are active
-        setShowWireframeExample(true);
-      } else if (removeStyles) {
-        successMessage = 'JSON limpo e formatado com estilo wireframe premium e nomenclatura Client-First!';
-      } else if (wireframeMode) {
-        successMessage = 'JSON transformado para wireframe com placeholders em português!';
-      }
+      let successMessage = removeStyles 
+        ? 'JSON processado com estilo wireframe premium aplicado!'
+        : 'JSON processado e formatado com sucesso!';
       
       toast.success(successMessage, {
-        id: 'clean-success',
+        id: 'process-success',
       });
     } catch (e) {
-      console.error('Error cleaning JSON:', e);
+      console.error('Error processing JSON:', e);
       toast.error('Erro ao processar o JSON. Verifique o formato e tente novamente.', {
-        id: 'clean-error',
-      });
-    }
-  };
-
-  const handlePreviewJson = () => {
-    const currentJson = form.getValues('jsonCode');
-    
-    if (!currentJson) {
-      toast.warning('Nenhum código para visualizar');
-      return;
-    }
-    
-    try {
-      // Check if it's valid JSON
-      if (!validateJson(currentJson)) {
-        toast.error('O código não é um JSON válido. Verifique a sintaxe.', {
-          duration: 3000,
-        });
-        return;
-      }
-      
-      // Format and display
-      const formattedJson = JSON.stringify(JSON.parse(currentJson), null, 2);
-      setPreviewJson(formattedJson);
-      setShowPreview(true);
-    } catch (e) {
-      console.error('Error previewing JSON:', e);
-      toast.error('Erro ao formatar o JSON. Verifique a sintaxe.', {
-        duration: 3000,
+        id: 'process-error',
       });
     }
   };
@@ -244,30 +204,17 @@ const ComponentCreateForm = () => {
               onFileChange={handleFileChange} 
             />
             
-            {/* Add the new filter section */}
+            {/* Add the filter section */}
             <FilterSection form={form} />
             
             <JsonCodeSection 
               form={form} 
               showPreview={showPreview} 
               previewJson={previewJson} 
-              onCleanJson={handleCleanJson} 
-              onPreviewJson={handlePreviewJson}
+              onProcessJson={handleProcessJson} 
               removeStyles={removeStyles}
               setRemoveStyles={setRemoveStyles}
-              wireframeMode={wireframeMode}
-              setWireframeMode={setWireframeMode}
             />
-            
-            {showWireframeExample && (
-              <div className="mt-4 pt-4 border-t">
-                <h3 className="text-lg font-medium mb-3">Exemplo de Wireframe:</h3>
-                <p className="text-sm text-gray-600 mb-4">
-                  Veja abaixo um exemplo do estilo wireframe que será aplicado ao seu componente:
-                </p>
-                <WireframeExample />
-              </div>
-            )}
             
             <FormSubmitButton isLoading={createMutation.isPending || isUploading} />
           </form>
