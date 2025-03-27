@@ -1,26 +1,26 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthContext';
 import Navbar from '@/components/Navbar';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
   Card,
   CardContent,
   CardHeader,
   CardTitle,
   Button,
-  Input
 } from '@/components/ui';
-import { ArrowLeft, Search, Shield, User, UserCog, RefreshCw } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
+
+// Import refactored components
+import UserManagementHeader from '@/components/admin/UserManagementHeader';
+import UserSearch from '@/components/admin/UserSearch';
+import UserManagementTable from '@/components/admin/UserManagementTable';
+import EmptyUsersState from '@/components/admin/EmptyUsersState';
+import AdminFooter from '@/components/admin/AdminFooter';
 
 interface UserData {
   id: string;
@@ -112,30 +112,10 @@ const UserManagement = () => {
       <Navbar />
       
       <main className="flex-grow container mx-auto px-4 py-8">
-        <div className="mb-6">
-          <Button asChild variant="ghost" size="sm" className="mb-4">
-            <Link to="/admin">
-              <ArrowLeft className="h-4 w-4 mr-1" />
-              Voltar para o Painel
-            </Link>
-          </Button>
-          
-          <h1 className="text-3xl font-bold tracking-tighter">Gerenciamento de Usuários</h1>
-          <p className="text-muted-foreground mt-1">
-            Administre usuários e funções
-          </p>
-        </div>
+        <UserManagementHeader onRefresh={refetch} />
         
         <div className="flex items-center justify-between mb-6">
-          <div className="relative w-full max-w-sm">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Buscar por email..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10"
-            />
-          </div>
+          <UserSearch searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
           
           <Button variant="outline" size="sm" onClick={() => refetch()} className="ml-2">
             <RefreshCw className="h-4 w-4 mr-1" />
@@ -153,70 +133,19 @@ const UserManagement = () => {
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
               </div>
             ) : filteredUsers.length > 0 ? (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Função</TableHead>
-                      <TableHead>Data de Criação</TableHead>
-                      <TableHead className="text-right">Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredUsers.map((user) => (
-                      <TableRow key={user.id}>
-                        <TableCell className="font-medium">{user.email}</TableCell>
-                        <TableCell>
-                          {user.role === 'admin' ? (
-                            <div className="flex items-center">
-                              <Shield className="h-4 w-4 text-primary mr-2" />
-                              <span className="font-medium">Administrador</span>
-                            </div>
-                          ) : (
-                            <div className="flex items-center">
-                              <User className="h-4 w-4 text-muted-foreground mr-2" />
-                              <span>Usuário</span>
-                            </div>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          {new Date(user.created_at).toLocaleDateString('pt-BR')}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleRoleChange(user.id, user.role)}
-                            disabled={updateRoleMutation.isPending}
-                          >
-                            <UserCog className="h-4 w-4 mr-1" />
-                            {user.role === 'admin' ? 'Remover Admin' : 'Tornar Admin'}
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+              <UserManagementTable 
+                users={filteredUsers} 
+                onRoleChange={handleRoleChange} 
+                isUpdating={updateRoleMutation.isPending}
+              />
             ) : (
-              <div className="text-center py-8">
-                <Search className="h-10 w-10 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium mb-2">Nenhum usuário encontrado</h3>
-                <p className="text-muted-foreground mb-4 max-w-sm mx-auto">
-                  Não encontramos usuários com o termo de busca aplicado. Tente outro termo.
-                </p>
-              </div>
+              <EmptyUsersState />
             )}
           </CardContent>
         </Card>
       </main>
       
-      <footer className="border-t py-6">
-        <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          &copy; {new Date().getFullYear()} Bloqx Studio. Todos os direitos reservados.
-        </div>
-      </footer>
+      <AdminFooter />
     </div>
   );
 };
