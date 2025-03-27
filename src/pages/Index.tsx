@@ -55,7 +55,7 @@ const Index = () => {
             <div className="inline-block rounded-lg bg-primary/10 px-3 py-1 text-sm text-primary">
               Documentação simplificada para Elementor
             </div>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tighter max-w-3xl mx-auto lg:text-7xl">Crie sites no Elementor até 5x mais rápido.
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tighter max-w-3xl mx-auto lg:text-7xl">Crie sites no Elementor até 5x mais tasttsadtasd rápido.
 
           </h1>
             <p className="text-muted-foreground text-base sm:text-lg md:text-xl max-w-[800px] mx-auto">Tenha acesso a uma biblioteca premium com componentes, sessões e páginas prontas para infoprodutores, empresas e freelancers.</p>
