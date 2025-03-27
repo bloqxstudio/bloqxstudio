@@ -1,3 +1,4 @@
+
 export const validateJson = (jsonString: string): boolean => {
   try {
     JSON.parse(jsonString);
@@ -110,6 +111,15 @@ const removeStyleProperties = (elements: any[], shouldRemoveStyles: boolean): an
           } else if (cleanSettings.header_size === 'h2') {
             cleanSettings.typography_font_size = { size: 48, unit: 'px', sizes: [] };
             cleanSettings.typography_line_height = { size: '120%', unit: 'custom', sizes: [] };
+          } else if (cleanSettings.header_size === 'h3') {
+            cleanSettings.typography_font_size = { size: 36, unit: 'px', sizes: [] };
+            cleanSettings.typography_line_height = { size: '130%', unit: 'custom', sizes: [] };
+          } else if (cleanSettings.header_size === 'h4') {
+            cleanSettings.typography_font_size = { size: 24, unit: 'px', sizes: [] };
+            cleanSettings.typography_line_height = { size: '140%', unit: 'custom', sizes: [] };
+          } else if (cleanSettings.header_size === 'h5' || cleanSettings.header_size === 'h6') {
+            cleanSettings.typography_font_size = { size: 20, unit: 'px', sizes: [] };
+            cleanSettings.typography_line_height = { size: '140%', unit: 'custom', sizes: [] };
           }
         }
 
@@ -124,10 +134,10 @@ const removeStyleProperties = (elements: any[], shouldRemoveStyles: boolean): an
         if (element.widgetType === 'button') {
           // Good padding for buttons
           cleanSettings.text_padding = {
-            top: '14', 
-            left: '24', 
-            right: '24', 
-            bottom: '14', 
+            top: '16', 
+            left: '32', 
+            right: '32', 
+            bottom: '16', 
             unit: 'px', 
             isLinked: false
           };

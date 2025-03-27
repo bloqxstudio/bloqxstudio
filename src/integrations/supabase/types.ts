@@ -11,11 +11,14 @@ export type Database = {
     Tables: {
       components: {
         Row: {
+          alignment: string | null
           category: string
           code: string
+          columns: string | null
           created_at: string
           created_by: string | null
           description: string | null
+          elements: string[] | null
           id: string
           json_code: string | null
           preview_image: string | null
@@ -26,11 +29,14 @@ export type Database = {
           visibility: string
         }
         Insert: {
+          alignment?: string | null
           category: string
           code: string
+          columns?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
+          elements?: string[] | null
           id?: string
           json_code?: string | null
           preview_image?: string | null
@@ -41,11 +47,14 @@ export type Database = {
           visibility?: string
         }
         Update: {
+          alignment?: string | null
           category?: string
           code?: string
+          columns?: string | null
           created_at?: string
           created_by?: string | null
           description?: string | null
+          elements?: string[] | null
           id?: string
           json_code?: string | null
           preview_image?: string | null
