@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
@@ -10,7 +9,7 @@ import { validateJson, validateElementorJson, cleanElementorJson } from '@/utils
 import { toast } from 'sonner';
 import JsonToolsExplanation from './JsonToolsExplanation';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui';
-import { Check, AlertCircle, Wand2, Paintbrush, Copy, ExternalLink } from 'lucide-react';
+import { Check, AlertCircle, Wand2, Paintbrush, Copy, ExternalLink, X } from 'lucide-react';
 import WireframeExample from '../WireframeExample';
 
 interface JsonCodeSectionProps {
