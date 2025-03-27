@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
@@ -31,7 +30,6 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
   const [showExplanation, setShowExplanation] = useState(false);
   const [copied, setCopied] = useState(false);
   
-  // Validar JSON quando ele mudar
   useEffect(() => {
     const currentJson = form.getValues('jsonCode');
     if (currentJson) {
@@ -111,7 +109,7 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
     try {
       navigator.clipboard.writeText(currentJson);
       setCopied(true);
-      toast.success('Código copiado para área de transferência! Você pode colar no Elementor para testar.');
+      toast.success('Código copiado para área de transferência! Cole no Elementor para testar.');
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
       console.error('Erro ao copiar para área de transferência:', error);
@@ -170,7 +168,7 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
                 className="flex items-center gap-1"
               >
                 {copied ? <Check size={14} /> : <Copy size={14} />}
-                <span>{copied ? 'Copiado!' : 'Copiar para testar'}</span>
+                <span>{copied ? 'Copiado!' : 'Copiar para Elementor'}</span>
               </Button>
 
               {!isValidJson && field.value && field.value.length > 0 && (
