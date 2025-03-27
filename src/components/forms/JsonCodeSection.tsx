@@ -153,7 +153,7 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
                     <AlertTitle>Formato Incorreto</AlertTitle>
                     <AlertDescription>
                       Este JSON parece não ser um componente Elementor válido.
-                      O formato correto deve incluir {"type": "elementor"} e uma matriz "elements".
+                      O formato correto deve incluir {'{"type": "elementor"}'} e uma matriz "elements".
                     </AlertDescription>
                   </Alert>
                 )}
