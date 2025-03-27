@@ -4,8 +4,8 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
-import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
-import { createComponent, uploadComponentImage, getCategories } from '@/lib/api';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { createComponent, uploadComponentImage } from '@/lib/api';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Card, 
@@ -17,7 +17,6 @@ import { formSchema, type FormValues } from './componentFormSchema';
 
 // Import the smaller components
 import BasicInfoSection from './BasicInfoSection';
-import DescriptionSection from './DescriptionSection';
 import VisibilitySection from './VisibilitySection';
 import TagsSection from './TagsSection';
 import ImageUploadSection from './ImageUploadSection';
@@ -31,20 +30,11 @@ const ComponentCreateForm = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [removeStyles, setRemoveStyles] = useState(false);
-
-  // Fetch categories
-  const { data: categories = [] } = useQuery({
-    queryKey: ['categories'],
-    queryFn: getCategories,
-  });
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: '',
-      description: '',
-      category: '',
       tags: '',
       jsonCode: '',
       visibility: 'public',
@@ -133,19 +123,18 @@ const ComponentCreateForm = () => {
         }
       }
       
-      // Criar o componente com os nomes de campo corretos
+      // Criar o componente com os campos simplificados
       const componentData = {
         title: values.title,
-        description: values.description || '',
-        category: values.category || '',
-        code: values.jsonCode, // Isso é 'code' no banco de dados
-        json_code: values.jsonCode, // Também armazenar em 'json_code'
+        description: '',
+        category: '',
+        code: values.jsonCode,
+        json_code: values.jsonCode,
         tags: values.tags ? values.tags.split(',').map(tag => tag.trim()) : [],
         visibility: values.visibility,
-        preview_image: imageUrl, // Usar preview_image em vez de image
+        preview_image: imageUrl,
         type: 'elementor',
         created_by: (await supabase.auth.getUser()).data.user?.id || '',
-        // Adicionar os novos campos
         alignment: values.alignment,
         columns: values.columns,
         elements: values.elements
@@ -163,9 +152,7 @@ const ComponentCreateForm = () => {
       <CardContent className="pt-6">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <BasicInfoSection form={form} categories={categories} />
-            
-            <DescriptionSection form={form} />
+            <BasicInfoSection form={form} categories={[]} />
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <VisibilitySection form={form} />
@@ -183,8 +170,7 @@ const ComponentCreateForm = () => {
             <JsonCodeSection 
               form={form}
               onProcessJson={handleProcessJson}
-              removeStyles={removeStyles}
-              setRemoveStyles={setRemoveStyles}
+              simplified={true}
             />
             
             <FormSubmitButton isLoading={createMutation.isPending || isUploading} />

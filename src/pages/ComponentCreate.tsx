@@ -10,7 +10,7 @@ import { toast } from 'sonner';
 
 const ComponentCreate = () => {
   const navigate = useNavigate();
-  const { user } = useAuth(); // We only need to check if user is logged in, not if they're admin
+  const { user } = useAuth();
   
   // Check if user is logged in
   useEffect(() => {
@@ -39,7 +39,7 @@ const ComponentCreate = () => {
           <div>
             <h1 className="text-3xl font-bold tracking-tighter">Criar novo componente</h1>
             <p className="text-muted-foreground mt-1">
-              Apenas o título e o código JSON são obrigatórios
+              Componentes curados pelo nosso time
             </p>
           </div>
           <Button variant="outline" size="sm" onClick={handleCancel}>
