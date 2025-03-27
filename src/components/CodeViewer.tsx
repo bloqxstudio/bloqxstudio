@@ -1,7 +1,7 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Copy, Check, Download, Lock } from 'lucide-react';
+import { Copy, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthContext';
 import { 
@@ -16,70 +16,18 @@ import { Link } from 'react-router-dom';
 
 interface CodeViewerProps {
   code: string;
-  language?: string;
-  title?: string;
   fileName?: string;
   restricted?: boolean;
 }
 
-const formatJSON = (jsonString: string): string => {
-  try {
-    const parsed = JSON.parse(jsonString);
-    return JSON.stringify(parsed, null, 2);
-  } catch (e) {
-    console.error("Invalid JSON string:", e);
-    return jsonString;
-  }
-};
-
-const syntaxHighlight = (json: string): string => {
-  // Simple syntax highlighting
-  json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  return json.replace(
-    /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,
-    function (match) {
-      let cls = 'text-blue-600 dark:text-blue-400'; // number
-      if (/^"/.test(match)) {
-        if (/:$/.test(match)) {
-          cls = 'text-pink-600 dark:text-pink-400'; // key
-        } else {
-          cls = 'text-green-600 dark:text-green-400'; // string
-        }
-      } else if (/true|false/.test(match)) {
-        cls = 'text-purple-600 dark:text-purple-400'; // boolean
-      } else if (/null/.test(match)) {
-        cls = 'text-red-600 dark:text-red-400'; // null
-      }
-      return '<span class="' + cls + '">' + match + '</span>';
-    }
-  );
-};
-
 const CodeViewer: React.FC<CodeViewerProps> = ({ 
   code, 
-  language = 'json', 
-  title = 'Código JSON',
   fileName = 'elementor-component.json',
   restricted = false
 }) => {
   const [copied, setCopied] = useState(false);
-  const [formattedCode, setFormattedCode] = useState('');
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const { user } = useAuth();
-
-  useEffect(() => {
-    if (language === 'json' && code && (user || !restricted)) {
-      try {
-        const formatted = formatJSON(code);
-        setFormattedCode(syntaxHighlight(formatted));
-      } catch (error) {
-        console.error("Error formatting JSON:", error);
-        setFormattedCode("Erro ao formatar o código JSON");
-      }
-    } else {
-      setFormattedCode(user || !restricted ? code : '');
-    }
-  }, [code, language, user, restricted]);
 
   const handleCopy = () => {
     if (restricted && !user) {
@@ -93,89 +41,25 @@ const CodeViewer: React.FC<CodeViewerProps> = ({
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const downloadCode = () => {
-    if (restricted && !user) {
-      setShowAuthDialog(true);
-      return;
-    }
-    
-    const element = document.createElement('a');
-    const file = new Blob([code], { type: 'application/json' });
-    element.href = URL.createObjectURL(file);
-    element.download = fileName;
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
-    toast.success(`Arquivo ${fileName} baixado com sucesso!`);
-  };
-
   return (
     <>
-      <div className="w-full rounded-lg overflow-hidden border border-border bg-card">
-        <div className="flex items-center justify-between px-4 py-2 bg-muted/50">
-          <h3 className="text-sm font-medium">{title}</h3>
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="h-8 px-2 text-xs"
-              onClick={downloadCode}
-            >
-              {restricted && !user ? (
-                <Lock className="h-3.5 w-3.5 mr-1" />
-              ) : (
-                <Download className="h-3.5 w-3.5 mr-1" />
-              )}
-              Baixar
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="h-8 px-2 text-xs"
-              onClick={handleCopy}
-            >
-              {copied ? (
-                <>
-                  <Check className="h-3.5 w-3.5 mr-1" />
-                  Copiado!
-                </>
-              ) : (
-                <>
-                  {restricted && !user ? (
-                    <Lock className="h-3.5 w-3.5 mr-1" />
-                  ) : (
-                    <Copy className="h-3.5 w-3.5 mr-1" />
-                  )}
-                  Copiar
-                </>
-              )}
-            </Button>
-          </div>
-        </div>
-        <div className="overflow-auto max-h-[500px] bg-card relative">
-          {user || !restricted ? (
-            <pre className="text-sm p-4 code-json">
-              <div dangerouslySetInnerHTML={{ __html: formattedCode }} />
-            </pre>
-          ) : (
-            <div className="flex flex-col items-center justify-center py-16 px-4 bg-background/50">
-              <Lock className="h-10 w-10 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-medium mb-2">Conteúdo Exclusivo</h3>
-              <p className="text-center text-muted-foreground mb-4 max-w-md">
-                Faça login para visualizar, copiar e baixar o código completo deste componente.
-              </p>
-              <div className="flex gap-2">
-                <Button asChild size="sm" variant="outline">
-                  <Link to="/login">Entrar</Link>
-                </Button>
-                <Button asChild size="sm">
-                  <Link to="/register">Registrar</Link>
-                </Button>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
+      <Button 
+        onClick={handleCopy}
+        size="sm"
+        className="flex items-center gap-2"
+      >
+        {copied ? (
+          <>
+            <Check className="h-4 w-4" />
+            Copiado!
+          </>
+        ) : (
+          <>
+            <Copy className="h-4 w-4" />
+            Copiar
+          </>
+        )}
+      </Button>
 
       <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
         <DialogContent className="sm:max-w-md">

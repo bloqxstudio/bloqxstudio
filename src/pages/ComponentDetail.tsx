@@ -1,15 +1,15 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import CodeViewer from '@/components/CodeViewer';
+import ComponentBreadcrumb from '@/components/ComponentBreadcrumb';
 import { useAuth } from '@/context/AuthContext';
 import { 
   Button, 
-  Badge,
-  Separator,
   Card,
   CardContent,
+  Separator,
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -19,7 +19,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui';
-import { ArrowLeft, Calendar, Copy, Download, Tag, Lock, Pencil, Trash, User, Shield } from 'lucide-react';
+import { ArrowLeft, Calendar, Download, Eye, Pencil, Trash, User, Shield, Clock, Tag } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { Component } from '@/lib/database.types';
@@ -79,58 +79,14 @@ const ComponentDetail = () => {
     }
   };
 
-  useEffect(() => {
+  React.useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 100);
+      setIsScrolled(window.scrollY > 20);
     };
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  const handleCopyCode = () => {
-    if (!user) {
-      toast.error('Faça login para copiar o código');
-      return;
-    }
-    
-    if (component) {
-      // Use json_code if available, otherwise fall back to code
-      const codeToCopy = component.json_code || component.code;
-      navigator.clipboard.writeText(codeToCopy);
-      toast.success('Código copiado para a área de transferência!');
-    }
-  };
-
-  const handleDownloadCode = () => {
-    if (!user) {
-      toast.error('Faça login para baixar o código');
-      return;
-    }
-    
-    if (component) {
-      const element = document.createElement('a');
-      // Use json_code if available, otherwise fall back to code
-      const codeToCopy = component.json_code || component.code;
-      const file = new Blob([codeToCopy], { type: 'application/json' });
-      element.href = URL.createObjectURL(file);
-      element.download = `${component.id}.json`;
-      document.body.appendChild(element);
-      element.click();
-      document.body.removeChild(element);
-      toast.success(`Arquivo ${component.id}.json baixado com sucesso!`);
-    }
-  };
-
-  const handleEdit = () => {
-    if (id) {
-      if (isAdmin) {
-        navigate(`/component/edit/${id}`);
-      } else if (isOwner) {
-        navigate(`/my-component/edit/${id}`);
-      }
-    }
-  };
 
   // Show loading state
   if (isLoading) {
@@ -169,6 +125,16 @@ const ComponentDetail = () => {
     );
   }
 
+  const handleEdit = () => {
+    if (id) {
+      if (isAdmin) {
+        navigate(`/component/edit/${id}`);
+      } else if (isOwner) {
+        navigate(`/my-component/edit/${id}`);
+      }
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
@@ -205,39 +171,6 @@ const ComponentDetail = () => {
                 </Button>
               </>
             )}
-            {user ? (
-              <>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="hidden sm:flex"
-                  onClick={handleDownloadCode}
-                >
-                  <Download className="h-4 w-4 mr-1" />
-                  Baixar
-                </Button>
-                <Button 
-                  onClick={handleCopyCode}
-                  size="sm"
-                >
-                  <Copy className="h-4 w-4 mr-1" />
-                  Copiar Código
-                </Button>
-              </>
-            ) : (
-              <div className="flex items-center gap-2">
-                <Button asChild size="sm" variant="outline">
-                  <Link to="/login">
-                    Entrar
-                  </Link>
-                </Button>
-                <Button asChild size="sm">
-                  <Link to="/register">
-                    Criar conta
-                  </Link>
-                </Button>
-              </div>
-            )}
           </div>
         </div>
       </div>
@@ -246,161 +179,121 @@ const ComponentDetail = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-8 animate-fade-up">
             <div>
-              <h1 className="text-3xl font-bold tracking-tighter">{component.title}</h1>
-              <p className="text-muted-foreground mt-2">{component.description}</p>
+              <ComponentBreadcrumb category={component.category} title={component.title} />
+              <h1 className="text-3xl font-bold tracking-tighter mb-4">{component.title}</h1>
               
-              <div className="flex flex-wrap items-center gap-3 mt-4">
-                <div className="flex items-center text-sm text-muted-foreground">
-                  <Calendar className="h-4 w-4 mr-1" />
-                  Criado em: {new Date(component.created_at).toLocaleDateString('pt-BR')}
-                </div>
-                <div className="flex items-center text-sm text-muted-foreground">
-                  <Calendar className="h-4 w-4 mr-1" />
-                  Atualizado em: {new Date(component.updated_at).toLocaleDateString('pt-BR')}
-                </div>
-                {component.created_by && (
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <User className="h-4 w-4 mr-1" />
-                    {isOwner && "Você é o autor"}
-                    {isAdmin && !isOwner && "Criado por um usuário"}
-                    {!isAdmin && !isOwner && ""}
-                  </div>
-                )}
-                {component.visibility && (
-                  <Badge variant={component.visibility === 'public' ? 'default' : 'secondary'}>
-                    {component.visibility === 'public' ? 'Público' : 'Privado'}
-                  </Badge>
-                )}
-              </div>
-              
-              <div className="flex items-center gap-2 mt-4">
-                <Tag className="h-4 w-4 text-muted-foreground" />
-                {component.tags && component.tags.map((tag, i) => (
-                  <Badge key={i} variant="secondary">
-                    {tag}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-            
-            <Separator />
-            
-            <div className="space-y-4">
-              <h2 className="text-xl font-bold">Visualização</h2>
-              <div className="rounded-lg overflow-hidden border bg-muted/20">
+              <div className="rounded-lg overflow-hidden border bg-card shadow-sm mb-6">
                 <img 
                   src={component.preview_image || '/placeholder.svg'} 
                   alt={component.title}
-                  className="w-full max-h-[400px] object-contain"
+                  className="w-full object-contain bg-white"
+                  style={{ maxHeight: '500px' }}
                 />
               </div>
-            </div>
-            
-            <div className="space-y-4">
-              <h2 className="text-xl font-bold">Código Elementor</h2>
-              <CodeViewer 
-                code={component.json_code || component.code}
-                title="Código JSON para Elementor"
-                fileName={`${component.id}.json`}
-                restricted={true}
-              />
+              
+              <div className="flex flex-wrap gap-3 my-6">
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Eye className="h-4 w-4" />
+                  Visualizar
+                </Button>
+                
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Download className="h-4 w-4" />
+                  Baixar
+                </Button>
+                
+                {component && (
+                  <CodeViewer 
+                    code={component.json_code || component.code}
+                    fileName={`${component.id}.json`}
+                    restricted={true}
+                  />
+                )}
+              </div>
+              
+              {component.description && (
+                <>
+                  <Separator className="my-6" />
+                  <div className="space-y-4">
+                    <h2 className="text-xl font-semibold">Descrição</h2>
+                    <p className="text-muted-foreground">{component.description}</p>
+                  </div>
+                </>
+              )}
             </div>
           </div>
           
           <div className="lg:col-span-1 space-y-6 animate-fade-up delay-200">
-            <Card>
+            <Card className="shadow-sm">
               <CardContent className="p-6">
-                <h3 className="text-lg font-bold mb-4">Instruções de Uso</h3>
-                <ol className="space-y-4 text-sm">
-                  <li className="flex gap-2">
-                    <div className="flex-shrink-0 h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium">
-                      1
-                    </div>
-                    <div>
-                      <p><strong>Copie o código JSON</strong> clicando no botão "Copiar Código" acima.</p>
-                    </div>
-                  </li>
-                  <li className="flex gap-2">
-                    <div className="flex-shrink-0 h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium">
-                      2
-                    </div>
-                    <div>
-                      <p><strong>Abra o Elementor</strong> na página onde deseja usar este componente.</p>
-                    </div>
-                  </li>
-                  <li className="flex gap-2">
-                    <div className="flex-shrink-0 h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium">
-                      3
-                    </div>
-                    <div>
-                      <p>Clique no ícone de <strong>hambúrguer</strong> (três linhas) no canto superior esquerdo do painel do Elementor.</p>
-                    </div>
-                  </li>
-                  <li className="flex gap-2">
-                    <div className="flex-shrink-0 h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium">
-                      4
-                    </div>
-                    <div>
-                      <p>Selecione <strong>"Copiar de outro site"</strong> no menu.</p>
-                    </div>
-                  </li>
-                  <li className="flex gap-2">
-                    <div className="flex-shrink-0 h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium">
-                      5
-                    </div>
-                    <div>
-                      <p><strong>Cole o código JSON</strong> na caixa de texto e clique em "Importar".</p>
-                    </div>
-                  </li>
-                </ol>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardContent className="p-6">
-                <h3 className="text-lg font-bold mb-4">Informações Adicionais</h3>
-                <div className="space-y-3 text-sm">
-                  <div>
-                    <p className="font-medium">Tipo de componente:</p>
-                    <p className="text-muted-foreground">{component.type || 'elementor'}</p>
+                <h3 className="text-lg font-semibold mb-4">Detalhes</h3>
+                <div className="space-y-4">
+                  <div className="flex items-center text-sm text-muted-foreground">
+                    <Clock className="h-4 w-4 mr-2" />
+                    Última atualização: {new Date(component.updated_at).toLocaleDateString('pt-BR')}
                   </div>
-                  <div>
-                    <p className="font-medium">Categoria:</p>
-                    <p className="text-muted-foreground">
-                      {component.category}
-                    </p>
+                  
+                  <div className="flex items-center text-sm text-muted-foreground">
+                    <Tag className="h-4 w-4 mr-2" />
+                    Licença: <span className="text-primary ml-1">Gratuito</span>
                   </div>
-                  <div>
-                    <p className="font-medium">ID:</p>
-                    <p className="text-muted-foreground">{component.id}</p>
-                  </div>
-                  {(isAdmin || isOwner) && (
-                    <div>
-                      <p className="font-medium">Status:</p>
-                      <div className="flex items-center gap-1 mt-1">
-                        {isOwner ? (
-                          <span className="flex items-center text-primary">
-                            <User className="h-4 w-4 mr-1" />
-                            Você é o proprietário
-                          </span>
-                        ) : isAdmin ? (
-                          <span className="flex items-center text-amber-500">
-                            <Shield className="h-4 w-4 mr-1" />
-                            Acesso administrativo
-                          </span>
-                        ) : null}
-                      </div>
+                  
+                  {component.category && (
+                    <div className="flex items-center text-sm text-muted-foreground">
+                      <Tag className="h-4 w-4 mr-2" />
+                      Categoria: <span className="ml-1">{component.category}</span>
+                    </div>
+                  )}
+                  
+                  {component.tags && component.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {component.tags.map((tag, i) => (
+                        <span key={i} className="text-xs bg-muted rounded-full px-2.5 py-0.5">
+                          {tag}
+                        </span>
+                      ))}
                     </div>
                   )}
                 </div>
               </CardContent>
             </Card>
             
-            <div className="p-4 rounded-lg bg-muted/30 relative overflow-hidden">
-              <h3 className="text-sm font-medium mb-2">Ações rápidas</h3>
-              <div className="flex flex-col gap-2">
-                {(isAdmin || isOwner) && (
-                  <>
+            <Card className="shadow-sm">
+              <CardContent className="p-6">
+                <h3 className="text-lg font-semibold mb-4">Ajuda</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Precisa de assistência com este componente? Nossa equipe está pronta para ajudar.
+                </p>
+                <Button className="w-full" variant="outline" asChild>
+                  <a href="https://wa.me/5511999999999" target="_blank" rel="noopener noreferrer">
+                    Fale com a Bloqx Studio
+                  </a>
+                </Button>
+              </CardContent>
+            </Card>
+            
+            {(isAdmin || isOwner) && (
+            <Card className="shadow-sm">
+              <CardContent className="p-6">
+                <h3 className="text-lg font-semibold mb-4">Ações de administrador</h3>
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-sm font-medium">Status:</p>
+                    <div className="flex items-center gap-1 mt-1">
+                      {isOwner ? (
+                        <span className="flex items-center text-primary text-sm">
+                          <User className="h-4 w-4 mr-1" />
+                          Você é o proprietário
+                        </span>
+                      ) : isAdmin ? (
+                        <span className="flex items-center text-amber-500 text-sm">
+                          <Shield className="h-4 w-4 mr-1" />
+                          Acesso administrativo
+                        </span>
+                      ) : null}
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-2 pt-2">
                     <Button 
                       variant="outline" 
                       size="sm"
@@ -419,72 +312,11 @@ const ComponentDetail = () => {
                       <Trash className="h-4 w-4 mr-2" />
                       Excluir componente
                     </Button>
-                  </>
-                )}
-                {user ? (
-                  <>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      className="justify-start"
-                      onClick={handleCopyCode}
-                    >
-                      <Copy className="h-4 w-4 mr-2" />
-                      Copiar código JSON
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      className="justify-start"
-                      onClick={handleDownloadCode}
-                    >
-                      <Download className="h-4 w-4 mr-2" />
-                      Baixar arquivo JSON
-                    </Button>
-                  </>
-                ) : (
-                  <>
-                    <div className="relative">
-                      <div className="opacity-60 pointer-events-none filter blur-[0.5px]">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          className="justify-start w-full"
-                          disabled
-                        >
-                          <Copy className="h-4 w-4 mr-2" />
-                          Copiar código JSON
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          className="justify-start w-full mt-2"
-                          disabled
-                        >
-                          <Download className="h-4 w-4 mr-2" />
-                          Baixar arquivo JSON
-                        </Button>
-                      </div>
-                      
-                      <div className="absolute inset-0 bg-background/70 backdrop-blur-[1px] flex flex-col justify-center p-4">
-                        <div className="text-center">
-                          <Lock className="h-6 w-6 mx-auto mb-3 text-primary" />
-                          <p className="text-sm font-medium mb-3">Faça login para acessar</p>
-                          <div className="flex gap-2 justify-center">
-                            <Button asChild size="sm" variant="outline">
-                              <Link to="/login">Entrar</Link>
-                            </Button>
-                            <Button asChild size="sm">
-                              <Link to="/register">Registrar</Link>
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            )}
           </div>
         </div>
       </main>
