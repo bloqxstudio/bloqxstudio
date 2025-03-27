@@ -1,5 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 // User management operations
 export const getUserRole = async (userId: string) => {
