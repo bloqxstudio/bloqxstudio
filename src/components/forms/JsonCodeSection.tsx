@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
@@ -9,7 +10,8 @@ import { validateJson, validateElementorJson, cleanElementorJson } from '@/utils
 import { toast } from 'sonner';
 import JsonToolsExplanation from './JsonToolsExplanation';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui';
-import { Check, AlertCircle, Wand2, Paintbrush, Copy } from 'lucide-react';
+import { Check, AlertCircle, Wand2, Paintbrush, Copy, ExternalLink } from 'lucide-react';
+import WireframeExample from '../WireframeExample';
 
 interface JsonCodeSectionProps {
   form: UseFormReturn<FormValues>;
@@ -28,6 +30,7 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
   const [isValidatingJson, setIsValidatingJson] = useState(false);
   const [isElementorJson, setIsElementorJson] = useState(true);
   const [showExplanation, setShowExplanation] = useState(false);
+  const [showWireframeExample, setShowWireframeExample] = useState(false);
   const [copied, setCopied] = useState(false);
   
   useEffect(() => {
@@ -79,7 +82,7 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
       form.setValue('jsonCode', cleanedJson);
       
       toast.success(removeStyles 
-        ? 'JSON processado com estilo wireframe aplicado!' 
+        ? 'JSON processado com estilo wireframe premium em preto & branco aplicado!' 
         : 'JSON processado e formatado com sucesso!');
         
       onProcessJson();
@@ -92,7 +95,7 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
   const handleToggleRemoveStyles = () => {
     setRemoveStyles(!removeStyles);
     if (!removeStyles) {
-      toast.info('Modo wireframe ativado. Estrutura mantida e estilos padronizados.');
+      toast.info('Modo wireframe preto & branco ativado. Estrutura mantida e estilos padronizados.');
     } else {
       toast.info('Modo wireframe desativado. Estilos originais preservados.');
     }
@@ -117,6 +120,10 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
     }
   };
 
+  const toggleWireframeExample = () => {
+    setShowWireframeExample(!showWireframeExample);
+  };
+
   return (
     <>
       <FormField
@@ -126,16 +133,45 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
           <FormItem>
             <div className="flex justify-between items-center">
               <FormLabel>Código JSON do Elementor*</FormLabel>
-              <button 
-                type="button" 
-                className="text-sm text-primary hover:text-primary/80"
-                onClick={() => setShowExplanation(!showExplanation)}
-              >
-                {showExplanation ? 'Ocultar explicação' : 'Como usar a ferramenta?'}
-              </button>
+              <div className="flex gap-2">
+                <button 
+                  type="button" 
+                  className="text-sm text-primary hover:text-primary/80"
+                  onClick={toggleWireframeExample}
+                >
+                  {showWireframeExample ? 'Ocultar exemplo' : 'Ver exemplo de wireframe'}
+                </button>
+                <button 
+                  type="button" 
+                  className="text-sm text-primary hover:text-primary/80"
+                  onClick={() => setShowExplanation(!showExplanation)}
+                >
+                  {showExplanation ? 'Ocultar explicação' : 'Como usar a ferramenta?'}
+                </button>
+              </div>
             </div>
             
             {showExplanation && <JsonToolsExplanation />}
+            
+            {showWireframeExample && (
+              <div className="mb-4 p-4 border rounded-lg">
+                <div className="flex justify-between items-center mb-2">
+                  <h3 className="font-medium text-base">Exemplo de Wireframe Preto & Branco</h3>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={toggleWireframeExample} 
+                    className="h-7 px-2"
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Exemplo de como seus componentes ficarão com o estilo wireframe premium em preto & branco aplicado.
+                </p>
+                <WireframeExample />
+              </div>
+            )}
             
             <div className="flex flex-wrap gap-2 mb-2">
               <Button 
@@ -157,7 +193,7 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
                 className="flex items-center gap-1 h-9 px-3"
               >
                 <Paintbrush size={14} />
-                <span>Estilo Wireframe</span>
+                <span>Estilo Wireframe P&B</span>
               </Toggle>
 
               <Button

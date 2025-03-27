@@ -23,15 +23,15 @@ const JsonToolsExplanation: React.FC = () => {
           <div className="flex items-start gap-2">
             <Paintbrush className="h-4 w-4 mt-0.5 flex-shrink-0" />
             <div>
-              <p className="font-medium">Estilo Wireframe</p>
-              <p className="text-sm text-muted-foreground">Aplica estilo de wireframe premium ao JSON, mantendo a estrutura do componente e padronizando os estilos com nomenclatura Client-First.</p>
+              <p className="font-medium">Estilo Wireframe P&B</p>
+              <p className="text-sm text-muted-foreground">Aplica estilo de wireframe premium em preto e branco ao JSON, mantendo a estrutura original do componente com visual limpo e profissional.</p>
             </div>
           </div>
         </div>
         
         <div className="mt-4 pt-2 border-t border-blue-100 dark:border-blue-800">
           <p className="text-sm">
-            <strong>Dica:</strong> Utilize o exemplo fornecido como referência para estruturar seu JSON. A estrutura deve respeitar o formato Elementor com o tipo de container adequado.
+            <strong>Dica:</strong> Utilize o botão "Ver exemplo de wireframe" para visualizar como o componente ficará após aplicar o estilo wireframe. A estrutura é preservada, mas com uma estética preto e branco profissional.
           </p>
         </div>
       </AlertDescription>

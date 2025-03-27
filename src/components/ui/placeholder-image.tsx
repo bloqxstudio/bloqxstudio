@@ -25,7 +25,7 @@ const PlaceholderImage = ({
   return (
     <div 
       className={cn(
-        'bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden',
+        'bg-gray-200 rounded-lg flex items-center justify-center overflow-hidden border border-gray-300',
         aspectRatioClass,
         className
       )}
