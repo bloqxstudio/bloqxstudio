@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -11,28 +10,30 @@ import { ArrowRight, Layers, Code, Copy, Zap } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
-
 const Index = () => {
   const categories = getSampleCategories();
 
   // Fetch featured components from Supabase with improved error handling
-  const { data: featuredComponents = [], isLoading, error } = useQuery({
+  const {
+    data: featuredComponents = [],
+    isLoading,
+    error
+  } = useQuery({
     queryKey: ['featuredComponents'],
     queryFn: async () => {
       try {
-        const { data, error } = await supabase
-          .from('components')
-          .select('*')
-          .eq('visibility', 'public')
-          .order('created_at', { ascending: false })
-          .limit(6); // Aumentado para 6 para mostrar mais componentes
-        
+        const {
+          data,
+          error
+        } = await supabase.from('components').select('*').eq('visibility', 'public').order('created_at', {
+          ascending: false
+        }).limit(6); // Aumentado para 6 para mostrar mais componentes
+
         if (error) {
           console.error('Error fetching featured components:', error);
           toast.error('Não foi possível carregar os componentes.');
           return [];
         }
-        
         return data as Component[];
       } catch (e) {
         console.error('Erro inesperado ao buscar componentes:', e);
@@ -40,11 +41,11 @@ const Index = () => {
       }
     },
     // Configurações para melhorar a performance
-    staleTime: 2 * 60 * 1000, // 2 minutos
+    staleTime: 2 * 60 * 1000,
+    // 2 minutos
     retry: 1,
-    refetchOnMount: false,
+    refetchOnMount: false
   });
-
   return <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
       
@@ -55,9 +56,7 @@ const Index = () => {
             <div className="inline-block rounded-lg bg-primary/10 px-3 py-1 text-sm text-primary">
               Documentação simplificada para Elementor
             </div>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tighter max-w-3xl mx-auto lg:text-7xl">Crie sites no Elementor até 5x mais tasttsadtasd rápido.
-
-          </h1>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tighter max-w-3xl mx-auto lg:text-7xl">Crie sites no Elementor até 5x mais rápido.</h1>
             <p className="text-muted-foreground text-base sm:text-lg md:text-xl max-w-[800px] mx-auto">Tenha acesso a uma biblioteca premium com componentes, sessões e páginas prontas para infoprodutores, empresas e freelancers.</p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Button asChild size="lg" className="hover-lift">
@@ -140,40 +139,28 @@ const Index = () => {
               </Button>
             </div>
 
-            {isLoading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[1, 2, 3].map((i) => (
-                  <Card key={i} className="animate-pulse">
+            {isLoading ? <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[1, 2, 3].map(i => <Card key={i} className="animate-pulse">
                     <div className="h-40 bg-muted/50 rounded-t-lg"></div>
                     <CardContent className="p-4">
                       <div className="h-6 bg-muted/50 rounded w-3/4 mb-2"></div>
                       <div className="h-4 bg-muted/50 rounded w-full mb-2"></div>
                       <div className="h-4 bg-muted/50 rounded w-2/3"></div>
                     </CardContent>
-                  </Card>
-                ))}
-              </div>
-            ) : error ? (
-              <div className="text-center py-12">
+                  </Card>)}
+              </div> : error ? <div className="text-center py-12">
                 <p className="text-red-500">Erro ao carregar componentes. Tente novamente mais tarde.</p>
                 <Button variant="outline" className="mt-4" onClick={() => window.location.reload()}>
                   Recarregar
                 </Button>
-              </div>
-            ) : featuredComponents.length === 0 ? (
-              <div className="text-center py-12">
+              </div> : featuredComponents.length === 0 ? <div className="text-center py-12">
                 <p className="text-muted-foreground">Nenhum componente encontrado. Adicione alguns componentes!</p>
                 <Button asChild className="mt-4">
                   <Link to="/components/new">Adicionar Componente</Link>
                 </Button>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {featuredComponents.map(component => (
-                  <ComponentCard key={component.id} component={component} />
-                ))}
-              </div>
-            )}
+              </div> : <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {featuredComponents.map(component => <ComponentCard key={component.id} component={component} />)}
+              </div>}
           </div>
         </section>
 
