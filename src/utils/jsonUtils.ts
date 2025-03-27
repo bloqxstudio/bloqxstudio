@@ -41,7 +41,7 @@ export const cleanElementorJson = (jsonString: string, removeStyles = false): st
 
     // Se removeStyles for true, remover propriedades de estilo
     if (removeStyles) {
-      cleaned.elements = removeStyleProperties(cleaned.elements);
+      cleaned.elements = removeStyleProperties(cleaned.elements, removeStyles);
     }
 
     return JSON.stringify(cleaned, null, 2);
@@ -52,7 +52,7 @@ export const cleanElementorJson = (jsonString: string, removeStyles = false): st
 };
 
 // Função para remover propriedades de estilo recursivamente
-const removeStyleProperties = (elements: any[]): any[] => {
+const removeStyleProperties = (elements: any[], shouldRemoveStyles: boolean): any[] => {
   if (!elements || !Array.isArray(elements)) return [];
   
   return elements.map(element => {
@@ -81,7 +81,7 @@ const removeStyleProperties = (elements: any[]): any[] => {
       // Copiar apenas propriedades essenciais
       Object.keys(newElement.settings).forEach(key => {
         const isEssential = essentialProps.some(prop => key.includes(prop));
-        const isLayout = !removeStyles || layoutProps.some(prop => key.includes(prop));
+        const isLayout = !shouldRemoveStyles || layoutProps.some(prop => key.includes(prop));
         
         // Remover propriedades começando com '__globals__' e certos prefixos
         const isGlobal = key.startsWith('__globals__');
@@ -95,7 +95,7 @@ const removeStyleProperties = (elements: any[]): any[] => {
       });
       
       // Aplicar estilo wireframe se necessário
-      if (removeStyles) {
+      if (shouldRemoveStyles) {
         // Aplicar classes CSS do Tailwind de acordo com o tipo de elemento
         if (element.elType === 'section' || element.elType === 'container') {
           cleanSettings.css_classes = (cleanSettings.css_classes || '') + ' bg-gray-50 py-8 px-4';
@@ -124,7 +124,7 @@ const removeStyleProperties = (elements: any[]): any[] => {
     
     // Processar elementos filhos recursivamente
     if (newElement.elements && Array.isArray(newElement.elements)) {
-      newElement.elements = removeStyleProperties(newElement.elements);
+      newElement.elements = removeStyleProperties(newElement.elements, shouldRemoveStyles);
     }
     
     return newElement;
