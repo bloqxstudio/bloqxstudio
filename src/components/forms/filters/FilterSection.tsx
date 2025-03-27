@@ -15,7 +15,7 @@ const FilterSection: React.FC<FilterSectionProps> = ({ form }) => {
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-lg">Filtros do Componente</CardTitle>
+        <CardTitle className="text-lg font-medium">Filtros do Componente</CardTitle>
       </CardHeader>
       <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <AlignmentFilterSection form={form} />

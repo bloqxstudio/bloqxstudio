@@ -11,7 +11,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Textarea, Button, Toggle } from '@/components/ui';
-import { Wand2, Paintbrush, Copy, Check } from 'lucide-react';
+import { Wand2, Paintbrush, Copy, Check, AlertCircle } from 'lucide-react';
 import { cleanElementorJson, validateJson } from '@/utils/jsonUtils';
 
 interface JsonCodeEditorProps {
@@ -26,6 +26,19 @@ const JsonCodeEditor: React.FC<JsonCodeEditorProps> = ({
   setRemoveStyles 
 }) => {
   const [copied, setCopied] = useState(false);
+  const [isValidJson, setIsValidJson] = useState(true);
+
+  // Check JSON validity when code changes
+  React.useEffect(() => {
+    const currentCode = form.getValues('code');
+    if (currentCode) {
+      try {
+        setIsValidJson(validateJson(currentCode));
+      } catch (e) {
+        setIsValidJson(false);
+      }
+    }
+  }, [form.watch('code')]);
 
   const handleCleanJson = () => {
     const currentCode = form.getValues('code');
@@ -115,6 +128,13 @@ const JsonCodeEditor: React.FC<JsonCodeEditorProps> = ({
                 {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                 {copied ? 'Copiado!' : 'Copiar para testar'}
               </Button>
+              
+              {!isValidJson && field.value && (
+                <div className="flex items-center text-destructive gap-1 ml-2">
+                  <AlertCircle className="h-4 w-4" />
+                  <span className="text-sm">JSON inválido</span>
+                </div>
+              )}
             </div>
             
             <div className="flex items-center gap-2">
@@ -142,8 +162,8 @@ const JsonCodeEditor: React.FC<JsonCodeEditorProps> = ({
               className="font-mono text-xs"
             />
           </FormControl>
-          <FormDescription>
-            Cole o código do componente
+          <FormDescription className="mt-1">
+            Cole o código do componente Elementor para processamento
           </FormDescription>
           <FormMessage />
         </FormItem>
