@@ -18,12 +18,14 @@ interface CodeViewerProps {
   code: string;
   fileName?: string;
   restricted?: boolean;
+  title?: string; // Add the title property that was missing
 }
 
 const CodeViewer: React.FC<CodeViewerProps> = ({ 
   code, 
   fileName = 'elementor-component.json',
-  restricted = false
+  restricted = false,
+  title
 }) => {
   const [copied, setCopied] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
@@ -56,7 +58,7 @@ const CodeViewer: React.FC<CodeViewerProps> = ({
         ) : (
           <>
             <Copy className="h-4 w-4" />
-            Copiar
+            {title ? title : "Copiar"}
           </>
         )}
       </Button>
