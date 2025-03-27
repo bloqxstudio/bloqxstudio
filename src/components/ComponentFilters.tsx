@@ -19,7 +19,8 @@ import {
   Heading,
   List,
   Video,
-  SquareX
+  SquareX,
+  Check
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -69,28 +70,33 @@ const ComponentFilters: React.FC<ComponentFiltersProps> = ({
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className={cn(
                 "gap-2",
-                selectedAlignments.length > 0 && "border-primary text-primary"
+                selectedAlignments.length > 0 && "border-primary bg-primary/10 text-primary font-medium"
               )}>
                 <AlignLeft className="h-4 w-4" />
                 Alignment
+                {selectedAlignments.length > 0 && (
+                  <Badge variant="secondary" className="ml-1 bg-primary/20 text-primary hover:bg-primary/20">
+                    {selectedAlignments.length}
+                  </Badge>
+                )}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="bg-background">
               <DropdownMenuItem onClick={() => onAlignmentChange('left')} className="gap-2">
                 <AlignLeft className="h-4 w-4" /> Left
-                {selectedAlignments.includes('left') && <span className="ml-auto">✓</span>}
+                {selectedAlignments.includes('left') && <Check className="h-4 w-4 ml-auto text-primary" />}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onAlignmentChange('center')} className="gap-2">
                 <AlignCenter className="h-4 w-4" /> Center
-                {selectedAlignments.includes('center') && <span className="ml-auto">✓</span>}
+                {selectedAlignments.includes('center') && <Check className="h-4 w-4 ml-auto text-primary" />}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onAlignmentChange('right')} className="gap-2">
                 <AlignRight className="h-4 w-4" /> Right
-                {selectedAlignments.includes('right') && <span className="ml-auto">✓</span>}
+                {selectedAlignments.includes('right') && <Check className="h-4 w-4 ml-auto text-primary" />}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onAlignmentChange('full')} className="gap-2">
                 <AlignJustify className="h-4 w-4" /> Full
-                {selectedAlignments.includes('full') && <span className="ml-auto">✓</span>}
+                {selectedAlignments.includes('full') && <Check className="h-4 w-4 ml-auto text-primary" />}
               </DropdownMenuItem>
               <DropdownMenuItem 
                 onClick={() => onClearFilter('alignment')} 
@@ -107,24 +113,29 @@ const ComponentFilters: React.FC<ComponentFiltersProps> = ({
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className={cn(
                 "gap-2",
-                selectedColumns.length > 0 && "border-primary text-primary"
+                selectedColumns.length > 0 && "border-primary bg-primary/10 text-primary font-medium"
               )}>
                 <Columns2 className="h-4 w-4" />
                 Columns
+                {selectedColumns.length > 0 && (
+                  <Badge variant="secondary" className="ml-1 bg-primary/20 text-primary hover:bg-primary/20">
+                    {selectedColumns.length}
+                  </Badge>
+                )}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="bg-background">
               <DropdownMenuItem onClick={() => onColumnsChange('1')} className="gap-2">
                 1 Column
-                {selectedColumns.includes('1') && <span className="ml-auto">✓</span>}
+                {selectedColumns.includes('1') && <Check className="h-4 w-4 ml-auto text-primary" />}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onColumnsChange('2')} className="gap-2">
                 <Columns2 className="h-4 w-4" /> 2 Columns
-                {selectedColumns.includes('2') && <span className="ml-auto">✓</span>}
+                {selectedColumns.includes('2') && <Check className="h-4 w-4 ml-auto text-primary" />}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onColumnsChange('3+')} className="gap-2">
                 <Columns3 className="h-4 w-4" /> 3+ Columns
-                {selectedColumns.includes('3+') && <span className="ml-auto">✓</span>}
+                {selectedColumns.includes('3+') && <Check className="h-4 w-4 ml-auto text-primary" />}
               </DropdownMenuItem>
               <DropdownMenuItem 
                 onClick={() => onClearFilter('columns')} 
@@ -141,34 +152,40 @@ const ComponentFilters: React.FC<ComponentFiltersProps> = ({
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className={cn(
                 "gap-2",
-                selectedElements.length > 0 && "border-primary text-primary"
+                selectedElements.length > 0 && "border-primary bg-primary/10 text-primary font-medium"
               )}>
-                {selectedElements.length > 0 ? selectedElements.length > 1 
-                  ? `${selectedElements.length} Elements` 
-                  : getElementIcon(selectedElements[0]) 
-                  : "Elements"}
+                {selectedElements.length > 0 ? (
+                  <>
+                    {selectedElements.length > 1 
+                      ? "Elements" 
+                      : getElementIcon(selectedElements[0])}
+                    <Badge variant="secondary" className="ml-1 bg-primary/20 text-primary hover:bg-primary/20">
+                      {selectedElements.length}
+                    </Badge>
+                  </>
+                ) : "Elements"}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="bg-background">
               <DropdownMenuItem onClick={() => onElementChange('image')} className="gap-2">
                 <Image className="h-4 w-4" /> Image
-                {selectedElements.includes('image') && <span className="ml-auto">✓</span>}
+                {selectedElements.includes('image') && <Check className="h-4 w-4 ml-auto text-primary" />}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onElementChange('heading')} className="gap-2">
                 <Heading className="h-4 w-4" /> Heading
-                {selectedElements.includes('heading') && <span className="ml-auto">✓</span>}
+                {selectedElements.includes('heading') && <Check className="h-4 w-4 ml-auto text-primary" />}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onElementChange('button')} className="gap-2">
                 Button
-                {selectedElements.includes('button') && <span className="ml-auto">✓</span>}
+                {selectedElements.includes('button') && <Check className="h-4 w-4 ml-auto text-primary" />}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onElementChange('list')} className="gap-2">
                 <List className="h-4 w-4" /> List
-                {selectedElements.includes('list') && <span className="ml-auto">✓</span>}
+                {selectedElements.includes('list') && <Check className="h-4 w-4 ml-auto text-primary" />}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => onElementChange('video')} className="gap-2">
                 <Video className="h-4 w-4" /> Video
-                {selectedElements.includes('video') && <span className="ml-auto">✓</span>}
+                {selectedElements.includes('video') && <Check className="h-4 w-4 ml-auto text-primary" />}
               </DropdownMenuItem>
               <DropdownMenuItem 
                 onClick={() => onClearFilter('element')} 
@@ -189,16 +206,16 @@ const ComponentFilters: React.FC<ComponentFiltersProps> = ({
         </div>
       </div>
       
-      {/* Active Filters */}
+      {/* Active Filters - Updated with better visual appearance */}
       {(selectedAlignments.length > 0 || selectedColumns.length > 0 || selectedElements.length > 0) && (
-        <div className="flex flex-wrap gap-2 items-center">
+        <div className="flex flex-wrap gap-2 items-center mt-3 pt-3 border-t">
           <span className="text-sm text-muted-foreground mr-1">Active filters:</span>
           
           {selectedAlignments.map(alignment => (
             <Badge 
               key={`alignment-${alignment}`} 
               variant="secondary"
-              className="flex items-center gap-1 px-2 py-1"
+              className="flex items-center gap-1 px-2 py-1 bg-primary/15 text-primary border-primary/30"
             >
               {getAlignmentIcon(alignment)}
               {capitalizeFirstLetter(alignment)}
@@ -217,7 +234,7 @@ const ComponentFilters: React.FC<ComponentFiltersProps> = ({
             <Badge 
               key={`columns-${columns}`} 
               variant="secondary"
-              className="flex items-center gap-1 px-2 py-1"
+              className="flex items-center gap-1 px-2 py-1 bg-primary/15 text-primary border-primary/30"
             >
               {columns === '2' ? <Columns2 className="h-4 w-4" /> : 
                columns === '3+' ? <Columns3 className="h-4 w-4" /> : null}
@@ -237,7 +254,7 @@ const ComponentFilters: React.FC<ComponentFiltersProps> = ({
             <Badge 
               key={`element-${element}`} 
               variant="secondary"
-              className="flex items-center gap-1 px-2 py-1"
+              className="flex items-center gap-1 px-2 py-1 bg-primary/15 text-primary border-primary/30"
             >
               {getElementIcon(element)}
               {capitalizeFirstLetter(element)}
@@ -254,7 +271,7 @@ const ComponentFilters: React.FC<ComponentFiltersProps> = ({
           
           {(selectedAlignments.length > 0 || selectedColumns.length > 0 || selectedElements.length > 0) && (
             <Button 
-              variant="ghost" 
+              variant="outline" 
               size="sm" 
               className="text-xs ml-2 h-7"
               onClick={() => {

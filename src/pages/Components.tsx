@@ -7,7 +7,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getComponents } from '@/lib/api';
 import { toast } from 'sonner';
 import { Filter } from 'lucide-react';
-import { Button } from '@/components/ui';
+import { Button, Badge } from '@/components/ui';
 
 // Import our components and hook
 import ComponentsHeader from '@/components/components/ComponentsHeader';
@@ -45,6 +45,9 @@ const Components = () => {
     setMobileFiltersOpen
   } = useComponentFilters(components);
 
+  // Get total active filters count
+  const totalActiveFilters = selectedAlignments.length + selectedColumns.length + selectedElements.length;
+
   // Show error if data fetching fails
   useEffect(() => {
     if (error) {
@@ -78,15 +81,20 @@ const Components = () => {
       <main className="container mx-auto px-4 py-8">
         <ComponentsHeader handleCreateClick={handleCreateClick} />
         
-        {/* Mobile filter toggle button */}
+        {/* Mobile filter toggle button - Enhanced with filter count */}
         <div className="flex md:hidden mb-4">
           <Button 
-            variant="outline" 
+            variant={totalActiveFilters > 0 ? "default" : "outline"}
             onClick={() => setMobileFiltersOpen(!mobileFiltersOpen)}
             className="w-full flex items-center justify-center"
           >
             <Filter className="h-4 w-4 mr-2" />
             Filtros {mobileFiltersOpen ? '▲' : '▼'}
+            {totalActiveFilters > 0 && (
+              <Badge className="ml-2 bg-background/90 text-primary hover:bg-background/90">
+                {totalActiveFilters}
+              </Badge>
+            )}
           </Button>
         </div>
         

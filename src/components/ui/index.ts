@@ -8,6 +8,7 @@ export { Input } from "./input";
 export { Textarea } from "./textarea";
 export { Toggle, toggleVariants } from "./toggle";
 export { Checkbox } from "./checkbox"; 
+export { ToggleGroup, ToggleGroupItem } from "./toggle-group";
 export {
   Form,
   FormControl,

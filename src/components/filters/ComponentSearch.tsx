@@ -16,11 +16,21 @@ const ComponentSearch: React.FC<ComponentSearchProps> = ({ searchTerm, setSearch
         <Input
           type="search"
           placeholder="Buscar componentes por título, descrição ou tags..."
-          className="w-full pl-10 pr-4"
+          className={`w-full pl-10 pr-4 transition-all ${searchTerm ? 'border-primary ring-1 ring-primary/20' : ''}`}
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
       </div>
+      {searchTerm && (
+        <div className="absolute right-3 top-1/2 -translate-y-1/2">
+          <button 
+            className="text-muted-foreground hover:text-foreground text-xs"
+            onClick={() => setSearchTerm('')}
+          >
+            Clear
+          </button>
+        </div>
+      )}
     </div>
   );
 };
