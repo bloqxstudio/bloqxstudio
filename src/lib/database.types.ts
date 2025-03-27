@@ -25,6 +25,9 @@ export interface Database {
           created_at: string
           updated_at: string
           created_by: string
+          alignment?: 'left' | 'center' | 'right' | 'full'
+          columns?: '1' | '2' | '3+'
+          elements?: string[]
         }
         Insert: {
           id?: string
@@ -40,6 +43,9 @@ export interface Database {
           created_at?: string
           updated_at?: string
           created_by: string
+          alignment?: 'left' | 'center' | 'right' | 'full'
+          columns?: '1' | '2' | '3+'
+          elements?: string[]
         }
         Update: {
           id?: string
@@ -53,6 +59,9 @@ export interface Database {
           type?: string
           visibility?: 'public' | 'private'
           updated_at?: string
+          alignment?: 'left' | 'center' | 'right' | 'full'
+          columns?: '1' | '2' | '3+'
+          elements?: string[]
         }
       }
       categories: {
