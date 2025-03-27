@@ -4,18 +4,16 @@ import { FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessa
 import { Textarea } from '@/components/ui/textarea';
 import { UseFormReturn } from 'react-hook-form';
 import { FormValues } from './componentFormSchema';
-import ComponentFormActions from './ComponentFormActions';
-import CodeViewer from '@/components/CodeViewer';
-import { validateJson, validateElementorJson } from '@/utils/jsonUtils';
+import { Button } from '@/components/ui/button';
+import { Toggle } from '@/components/ui/toggle';
+import { validateJson, validateElementorJson, cleanElementorJson } from '@/utils/jsonUtils';
 import { toast } from 'sonner';
 import JsonToolsExplanation from './JsonToolsExplanation';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui';
-import { Check, AlertCircle } from 'lucide-react';
+import { Check, AlertCircle, Wand2, Paintbrush } from 'lucide-react';
 
 interface JsonCodeSectionProps {
   form: UseFormReturn<FormValues>;
-  showPreview: boolean;
-  previewJson: string;
   onProcessJson: () => void;
   removeStyles: boolean;
   setRemoveStyles: (value: boolean) => void;
@@ -23,8 +21,6 @@ interface JsonCodeSectionProps {
 
 const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({ 
   form, 
-  showPreview, 
-  previewJson, 
   onProcessJson,
   removeStyles,
   setRemoveStyles,
@@ -34,7 +30,7 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
   const [isElementorJson, setIsElementorJson] = useState(true);
   const [showExplanation, setShowExplanation] = useState(false);
   
-  // Validate JSON whenever it changes
+  // Validar JSON quando ele mudar
   useEffect(() => {
     const currentJson = form.getValues('jsonCode');
     if (currentJson) {
@@ -60,17 +56,46 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
     }
   }, [form.watch('jsonCode')]);
 
+  const handleProcessJson = () => {
+    const currentJson = form.getValues('jsonCode');
+    
+    if (!currentJson) {
+      toast.warning('Nenhum código para processar');
+      return;
+    }
+    
+    try {
+      if (!validateJson(currentJson)) {
+        toast.error('O código não é um JSON válido. Verifique a sintaxe.');
+        return;
+      }
+      
+      const parsedJson = JSON.parse(currentJson);
+      if (!validateElementorJson(parsedJson)) {
+        toast.warning('O JSON não parece ser um componente Elementor válido.');
+        return;
+      }
+      
+      const cleanedJson = cleanElementorJson(currentJson, removeStyles);
+      form.setValue('jsonCode', cleanedJson);
+      
+      toast.success(removeStyles 
+        ? 'JSON processado com estilo wireframe aplicado!' 
+        : 'JSON processado e formatado com sucesso!');
+        
+      onProcessJson();
+    } catch (error) {
+      console.error('Erro ao processar JSON:', error);
+      toast.error('Erro ao processar o JSON. Verifique o formato.');
+    }
+  };
+
   const handleToggleRemoveStyles = () => {
     setRemoveStyles(!removeStyles);
-    // Provide feedback to the user
     if (!removeStyles) {
-      toast.info('Modo wireframe ativado. Estrutura do componente será mantida e estilos serão padronizados.', {
-        duration: 3000,
-      });
+      toast.info('Modo wireframe ativado. Estrutura mantida e estilos padronizados.');
     } else {
-      toast.info('Modo wireframe desativado. Os estilos originais serão preservados.', {
-        duration: 3000,
-      });
+      toast.info('Modo wireframe desativado. Estilos originais preservados.');
     }
   };
 
@@ -94,51 +119,42 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
             
             {showExplanation && <JsonToolsExplanation />}
             
-            <ComponentFormActions 
-              onProcessJson={onProcessJson}
-              hasValidJson={isValidJson}
-              isValidating={isValidatingJson}
-              removeStyles={removeStyles}
-              onToggleRemoveStyles={handleToggleRemoveStyles}
-            />
+            <div className="flex flex-wrap gap-2 mb-2">
+              <Button 
+                type="button" 
+                variant="default" 
+                size="sm"
+                onClick={handleProcessJson}
+                disabled={!isValidJson || isValidatingJson}
+                className="flex items-center gap-1"
+              >
+                <Wand2 size={14} />
+                <span>Processar JSON</span>
+              </Button>
+              
+              <Toggle
+                pressed={removeStyles}
+                onPressedChange={handleToggleRemoveStyles}
+                aria-label="Estilo Wireframe"
+                className="flex items-center gap-1 h-9 px-3"
+              >
+                <Paintbrush size={14} />
+                <span>Estilo Wireframe</span>
+              </Toggle>
+
+              {!isValidJson && field.value && field.value.length > 0 && (
+                <div className="flex items-center text-destructive gap-1 text-sm ml-2">
+                  <AlertCircle size={14} />
+                  <span>JSON inválido</span>
+                </div>
+              )}
+            </div>
             
             <FormControl>
               <Textarea 
                 placeholder='{"type": "elementor", "elements": [...]}'
                 className="min-h-[200px] font-mono text-sm"
                 {...field} 
-                onChange={(e) => {
-                  field.onChange(e);
-                  // Immediate validation feedback for large changes
-                  if (e.target.value.length > 50) {
-                    try {
-                      const isValid = validateJson(e.target.value);
-                      setIsValidJson(isValid);
-                      if (!isValid && e.target.value.length > 0) {
-                        form.setError('jsonCode', { 
-                          type: 'manual', 
-                          message: 'JSON inválido. Verifique a sintaxe.'
-                        });
-                      } else {
-                        form.clearErrors('jsonCode');
-                        
-                        // Validate if it's an Elementor JSON
-                        if (isValid) {
-                          const jsonObj = JSON.parse(e.target.value);
-                          const isElementor = validateElementorJson(jsonObj);
-                          setIsElementorJson(isElementor);
-                        }
-                      }
-                    } catch (error) {
-                      setIsValidJson(false);
-                      setIsElementorJson(false);
-                      form.setError('jsonCode', { 
-                        type: 'manual', 
-                        message: 'JSON inválido. Verifique a sintaxe.'
-                      });
-                    }
-                  }
-                }}
               />
             </FormControl>
             
@@ -167,13 +183,6 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
           </FormItem>
         )}
       />
-      
-      {showPreview && (
-        <div className="mt-4 pt-4 border-t">
-          <h3 className="text-lg font-medium mb-3">Pré-visualização:</h3>
-          <CodeViewer code={previewJson} title="JSON Formatado" />
-        </div>
-      )}
     </>
   );
 };

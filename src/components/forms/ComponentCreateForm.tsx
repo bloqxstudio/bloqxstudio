@@ -12,7 +12,7 @@ import {
   CardContent,
   Form,
 } from '@/components/ui';
-import { cleanElementorJson, validateJson, validateElementorJson } from '@/utils/jsonUtils';
+import { validateJson, validateElementorJson } from '@/utils/jsonUtils';
 import { formSchema, type FormValues } from './componentFormSchema';
 
 // Import the smaller components
@@ -28,8 +28,6 @@ import FilterSection from './filters/FilterSection';
 const ComponentCreateForm = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [previewJson, setPreviewJson] = useState('');
-  const [showPreview, setShowPreview] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -85,6 +83,7 @@ const ComponentCreateForm = () => {
   };
 
   const handleProcessJson = () => {
+    // Esta função agora é usada apenas para validar o JSON antes de enviar
     const currentJson = form.getValues('jsonCode');
     
     if (!currentJson) {
@@ -92,85 +91,61 @@ const ComponentCreateForm = () => {
       return;
     }
     
+    // Validar o JSON
     try {
-      // First validate the JSON structure
       if (!validateJson(currentJson)) {
-        toast.error('O código não é um JSON válido. Verifique a sintaxe.', {
-          duration: 3000,
-          id: 'invalid-json',
-        });
+        toast.error('O código não é um JSON válido. Verifique a sintaxe.');
         return;
       }
       
-      // Parse and check if it's an Elementor component
-      const parsed = JSON.parse(currentJson);
-      if (!validateElementorJson(parsed)) {
-        toast.warning('O JSON não parece ser um componente Elementor válido. A estrutura deve ter "type": "elementor" e um array "elements".', {
-          duration: 5000,
-          id: 'invalid-elementor',
-        });
+      const jsonObj = JSON.parse(currentJson);
+      if (!validateElementorJson(jsonObj)) {
+        toast.warning('O JSON não parece ser um componente Elementor válido.');
       }
-      
-      // Clean and format the JSON with the wireframe mode
-      const cleanedJson = cleanElementorJson(currentJson, removeStyles, false);
-      form.setValue('jsonCode', cleanedJson);
-      setPreviewJson(cleanedJson);
-      setShowPreview(true);
-      
-      let successMessage = removeStyles 
-        ? 'JSON processado com estilo wireframe premium aplicado!'
-        : 'JSON processado e formatado com sucesso!';
-      
-      toast.success(successMessage, {
-        id: 'process-success',
-      });
     } catch (e) {
-      console.error('Error processing JSON:', e);
-      toast.error('Erro ao processar o JSON. Verifique o formato e tente novamente.', {
-        id: 'process-error',
-      });
+      console.error('Erro ao validar JSON:', e);
     }
   };
 
   const onSubmit = async (values: FormValues) => {
     try {
-      // Validate if the JSON field has content
+      // Validar se o campo JSON tem conteúdo
       if (!values.jsonCode) {
         toast.error('Por favor, insira o código JSON do componente.');
         return;
       }
 
-      // Start the upload process
+      // Iniciar processo de upload
       let imageUrl = null;
       
       if (selectedFile) {
         setIsUploading(true);
         try {
-          // Generate a unique path for the image
+          // Gerar um caminho único para a imagem
           const timestamp = new Date().getTime();
           const path = `${timestamp}-${selectedFile.name}`;
           imageUrl = await uploadComponentImage(selectedFile, path);
         } catch (error) {
-          console.error('Error uploading image:', error);
+          console.error('Erro ao fazer upload da imagem:', error);
           toast.error('Erro ao fazer upload da imagem. O componente será criado sem imagem.');
         } finally {
           setIsUploading(false);
         }
       }
       
-      // Create the component with the correct field names
+      // Criar o componente com os nomes de campo corretos
       const componentData = {
         title: values.title,
         description: values.description || '',
         category: values.category || '',
-        code: values.jsonCode, // This is actually 'code' in the database
-        json_code: values.jsonCode, // Also store in 'json_code'
+        code: values.jsonCode, // Isso é 'code' no banco de dados
+        json_code: values.jsonCode, // Também armazenar em 'json_code'
         tags: values.tags ? values.tags.split(',').map(tag => tag.trim()) : [],
         visibility: values.visibility,
-        preview_image: imageUrl, // Use preview_image instead of image
+        preview_image: imageUrl, // Usar preview_image em vez de image
         type: 'elementor',
         created_by: (await supabase.auth.getUser()).data.user?.id || '',
-        // Add the new fields
+        // Adicionar os novos campos
         alignment: values.alignment,
         columns: values.columns,
         elements: values.elements
@@ -178,7 +153,7 @@ const ComponentCreateForm = () => {
       
       createMutation.mutate(componentData);
     } catch (error) {
-      console.error('Error in form submission:', error);
+      console.error('Erro no envio do formulário:', error);
       toast.error('Erro ao processar o formulário: ' + (error as Error).message);
     }
   };
@@ -190,7 +165,6 @@ const ComponentCreateForm = () => {
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <BasicInfoSection form={form} categories={categories} />
             
-            {/* We'll make description optional */}
             <DescriptionSection form={form} />
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -204,14 +178,11 @@ const ComponentCreateForm = () => {
               onFileChange={handleFileChange} 
             />
             
-            {/* Add the filter section */}
             <FilterSection form={form} />
             
             <JsonCodeSection 
-              form={form} 
-              showPreview={showPreview} 
-              previewJson={previewJson} 
-              onProcessJson={handleProcessJson} 
+              form={form}
+              onProcessJson={handleProcessJson}
               removeStyles={removeStyles}
               setRemoveStyles={setRemoveStyles}
             />
