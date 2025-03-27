@@ -1,4 +1,3 @@
-
 export const validateJson = (jsonString: string): boolean => {
   try {
     JSON.parse(jsonString);

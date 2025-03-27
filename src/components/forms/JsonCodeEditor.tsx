@@ -11,7 +11,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Textarea, Button, Toggle } from '@/components/ui';
-import { Wand2, Paintbrush } from 'lucide-react';
+import { Wand2, Paintbrush, Copy, Check } from 'lucide-react';
 import { cleanElementorJson, validateJson } from '@/utils/jsonUtils';
 
 interface JsonCodeEditorProps {
@@ -25,7 +25,7 @@ const JsonCodeEditor: React.FC<JsonCodeEditorProps> = ({
   removeStyles, 
   setRemoveStyles 
 }) => {
-  const [wireframeMode, setWireframeMode] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const handleCleanJson = () => {
     const currentCode = form.getValues('code');
@@ -64,6 +64,25 @@ const JsonCodeEditor: React.FC<JsonCodeEditorProps> = ({
     }
   };
 
+  const handleCopyToClipboard = () => {
+    const currentCode = form.getValues('code');
+    
+    if (!currentCode) {
+      toast.warning('Nenhum código para copiar');
+      return;
+    }
+    
+    try {
+      navigator.clipboard.writeText(currentCode);
+      setCopied(true);
+      toast.success('Código copiado para área de transferência! Você pode colar no Elementor para testar.');
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      console.error('Erro ao copiar para área de transferência:', error);
+      toast.error('Erro ao copiar para área de transferência.');
+    }
+  };
+
   return (
     <FormField
       control={form.control}
@@ -72,7 +91,7 @@ const JsonCodeEditor: React.FC<JsonCodeEditorProps> = ({
         <FormItem>
           <FormLabel>Código</FormLabel>
           <div className="space-y-3 mb-2">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <Button 
                 type="button" 
                 variant="outline" 
@@ -83,6 +102,18 @@ const JsonCodeEditor: React.FC<JsonCodeEditorProps> = ({
               >
                 <Wand2 className="h-4 w-4" />
                 Limpar e Formatar
+              </Button>
+
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleCopyToClipboard}
+                className="gap-1"
+                title="Copiar JSON para testar no Elementor"
+              >
+                {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                {copied ? 'Copiado!' : 'Copiar para testar'}
               </Button>
             </div>
             

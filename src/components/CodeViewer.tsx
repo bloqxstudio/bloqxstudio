@@ -18,7 +18,7 @@ interface CodeViewerProps {
   code: string;
   fileName?: string;
   restricted?: boolean;
-  title?: string; // Add the title property that was missing
+  title?: string;
 }
 
 const CodeViewer: React.FC<CodeViewerProps> = ({ 
@@ -39,7 +39,7 @@ const CodeViewer: React.FC<CodeViewerProps> = ({
     
     navigator.clipboard.writeText(code);
     setCopied(true);
-    toast.success('Código copiado para a área de transferência!');
+    toast.success('Código copiado para a área de transferência! Você pode colar no Elementor para testar.');
     setTimeout(() => setCopied(false), 2000);
   };
 
@@ -58,7 +58,7 @@ const CodeViewer: React.FC<CodeViewerProps> = ({
         ) : (
           <>
             <Copy className="h-4 w-4" />
-            {title ? title : "Copiar"}
+            {title ? title : "Copiar para Elementor"}
           </>
         )}
       </Button>

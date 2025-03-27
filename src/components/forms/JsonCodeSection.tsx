@@ -10,7 +10,7 @@ import { validateJson, validateElementorJson, cleanElementorJson } from '@/utils
 import { toast } from 'sonner';
 import JsonToolsExplanation from './JsonToolsExplanation';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui';
-import { Check, AlertCircle, Wand2, Paintbrush } from 'lucide-react';
+import { Check, AlertCircle, Wand2, Paintbrush, Copy } from 'lucide-react';
 
 interface JsonCodeSectionProps {
   form: UseFormReturn<FormValues>;
@@ -29,6 +29,7 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
   const [isValidatingJson, setIsValidatingJson] = useState(false);
   const [isElementorJson, setIsElementorJson] = useState(true);
   const [showExplanation, setShowExplanation] = useState(false);
+  const [copied, setCopied] = useState(false);
   
   // Validar JSON quando ele mudar
   useEffect(() => {
@@ -99,6 +100,25 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
     }
   };
 
+  const handleCopyToClipboard = () => {
+    const currentJson = form.getValues('jsonCode');
+    
+    if (!currentJson) {
+      toast.warning('Nenhum código para copiar');
+      return;
+    }
+    
+    try {
+      navigator.clipboard.writeText(currentJson);
+      setCopied(true);
+      toast.success('Código copiado para área de transferência! Você pode colar no Elementor para testar.');
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      console.error('Erro ao copiar para área de transferência:', error);
+      toast.error('Erro ao copiar para área de transferência.');
+    }
+  };
+
   return (
     <>
       <FormField
@@ -141,6 +161,17 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
                 <Paintbrush size={14} />
                 <span>Estilo Wireframe</span>
               </Toggle>
+
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleCopyToClipboard}
+                className="flex items-center gap-1"
+              >
+                {copied ? <Check size={14} /> : <Copy size={14} />}
+                <span>{copied ? 'Copiado!' : 'Copiar para testar'}</span>
+              </Button>
 
               {!isValidJson && field.value && field.value.length > 0 && (
                 <div className="flex items-center text-destructive gap-1 text-sm ml-2">
