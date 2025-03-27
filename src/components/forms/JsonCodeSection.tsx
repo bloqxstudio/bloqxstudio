@@ -4,14 +4,17 @@ import { FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessa
 import { Textarea } from '@/components/ui/textarea';
 import { UseFormReturn } from 'react-hook-form';
 import { FormValues } from './componentFormSchema';
-import { Button } from '@/components/ui/button';
-import { Toggle } from '@/components/ui/toggle';
 import { validateJson, validateElementorJson, cleanElementorJson } from '@/utils/jsonUtils';
 import { toast } from 'sonner';
 import JsonToolsExplanation from './JsonToolsExplanation';
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui';
-import { Check, AlertCircle, Wand2, Paintbrush, Copy, ExternalLink, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { ExternalLink, X } from 'lucide-react';
 import WireframeExample from '../WireframeExample';
+
+// Import the extracted components
+import JsonActionsToolbar from './json/JsonActionsToolbar';
+import JsonValidityIndicator from './json/JsonValidityIndicator';
+import ElementorJsonAlert from './json/ElementorJsonAlert';
 
 interface JsonCodeSectionProps {
   form: UseFormReturn<FormValues>;
@@ -31,7 +34,6 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
   const [isElementorJson, setIsElementorJson] = useState(true);
   const [showExplanation, setShowExplanation] = useState(false);
   const [showWireframeExample, setShowWireframeExample] = useState(false);
-  const [copied, setCopied] = useState(false);
   
   useEffect(() => {
     const currentJson = form.getValues('jsonCode');
@@ -101,24 +103,7 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
     }
   };
 
-  const handleCopyToClipboard = () => {
-    const currentJson = form.getValues('jsonCode');
-    
-    if (!currentJson) {
-      toast.warning('Nenhum código para copiar');
-      return;
-    }
-    
-    try {
-      navigator.clipboard.writeText(currentJson);
-      setCopied(true);
-      toast.success('Código copiado para área de transferência! Cole no Elementor para testar.');
-      setTimeout(() => setCopied(false), 2000);
-    } catch (error) {
-      console.error('Erro ao copiar para área de transferência:', error);
-      toast.error('Erro ao copiar para área de transferência.');
-    }
-  };
+  const getJsonContent = () => form.getValues('jsonCode');
 
   const toggleWireframeExample = () => {
     setShowWireframeExample(!showWireframeExample);
@@ -173,47 +158,14 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
               </div>
             )}
             
-            <div className="flex flex-wrap gap-2 mb-2">
-              <Button 
-                type="button" 
-                variant="default" 
-                size="sm"
-                onClick={handleProcessJson}
-                disabled={!isValidJson || isValidatingJson}
-                className="flex items-center gap-1"
-              >
-                <Wand2 size={14} />
-                <span>Processar JSON</span>
-              </Button>
-              
-              <Toggle
-                pressed={removeStyles}
-                onPressedChange={handleToggleRemoveStyles}
-                aria-label="Estilo Wireframe"
-                className="flex items-center gap-1 h-9 px-3"
-              >
-                <Paintbrush size={14} />
-                <span>Estilo Wireframe</span>
-              </Toggle>
-
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={handleCopyToClipboard}
-                className="flex items-center gap-1"
-              >
-                {copied ? <Check size={14} /> : <Copy size={14} />}
-                <span>{copied ? 'Copiado!' : 'Copiar para Elementor'}</span>
-              </Button>
-
-              {!isValidJson && field.value && field.value.length > 0 && (
-                <div className="flex items-center text-destructive gap-1 text-sm ml-2">
-                  <AlertCircle size={14} />
-                  <span>JSON inválido</span>
-                </div>
-              )}
-            </div>
+            <JsonActionsToolbar
+              onProcessJson={handleProcessJson}
+              isValidJson={isValidJson}
+              isValidating={isValidatingJson}
+              removeStyles={removeStyles}
+              onToggleRemoveStyles={handleToggleRemoveStyles}
+              getJsonContent={getJsonContent}
+            />
             
             <FormControl>
               <Textarea 
@@ -223,22 +175,15 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
               />
             </FormControl>
             
-            {isValidJson && field.value && field.value.length > 0 && (
-              <div className="mt-2 flex items-center text-green-600 gap-1 text-sm">
-                <Check size={16} />
-                <span>JSON válido</span>
-                
-                {!isElementorJson && (
-                  <Alert variant="destructive" className="mt-2">
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertTitle>Formato Incorreto</AlertTitle>
-                    <AlertDescription>
-                      Este JSON parece não ser um componente Elementor válido.
-                      O formato correto deve incluir {'{"type": "elementor"}'} e uma matriz "elements".
-                    </AlertDescription>
-                  </Alert>
-                )}
-              </div>
+            <JsonValidityIndicator 
+              isValidJson={isValidJson} 
+              isElementorJson={isElementorJson}
+              hasContent={!!field.value && field.value.length > 0}
+              isValidating={isValidatingJson}
+            />
+            
+            {isValidJson && field.value && field.value.length > 0 && !isElementorJson && (
+              <ElementorJsonAlert />
             )}
             
             <FormDescription>
