@@ -24,7 +24,7 @@ import ImageUploadSection from './ImageUploadSection';
 import JsonCodeSection from './JsonCodeSection';
 import FormSubmitButton from './FormSubmitButton';
 import WireframeExample from '@/components/WireframeExample';
-import ComponentFormActions from './ComponentFormActions';
+import FilterSection from './filters/FilterSection';
 
 const ComponentCreateForm = () => {
   const navigate = useNavigate();
@@ -52,7 +52,10 @@ const ComponentCreateForm = () => {
       category: '',
       tags: '',
       jsonCode: '',
-      visibility: 'public'
+      visibility: 'public',
+      alignment: undefined,
+      columns: undefined,
+      elements: []
     }
   });
 
@@ -206,7 +209,11 @@ const ComponentCreateForm = () => {
         visibility: values.visibility,
         preview_image: imageUrl, // Use preview_image instead of image
         type: 'elementor',
-        created_by: (await supabase.auth.getUser()).data.user?.id || ''
+        created_by: (await supabase.auth.getUser()).data.user?.id || '',
+        // Add the new fields
+        alignment: values.alignment,
+        columns: values.columns,
+        elements: values.elements
       };
       
       createMutation.mutate(componentData);
@@ -216,14 +223,6 @@ const ComponentCreateForm = () => {
     }
   };
 
-  const toggleRemoveStyles = () => {
-    setRemoveStyles(!removeStyles);
-  };
-
-  const toggleWireframeMode = () => {
-    setWireframeMode(!wireframeMode);
-  };
-
   return (
     <Card>
       <CardContent className="pt-6">
@@ -231,6 +230,7 @@ const ComponentCreateForm = () => {
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <BasicInfoSection form={form} categories={categories} />
             
+            {/* We'll make description optional */}
             <DescriptionSection form={form} />
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -243,6 +243,9 @@ const ComponentCreateForm = () => {
               imagePreview={imagePreview}
               onFileChange={handleFileChange} 
             />
+            
+            {/* Add the new filter section */}
+            <FilterSection form={form} />
             
             <JsonCodeSection 
               form={form} 

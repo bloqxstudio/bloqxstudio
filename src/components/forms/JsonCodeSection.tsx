@@ -8,6 +8,7 @@ import ComponentFormActions from './ComponentFormActions';
 import CodeViewer from '@/components/CodeViewer';
 import { validateJson } from '@/utils/jsonUtils';
 import { toast } from 'sonner';
+import JsonToolsExplanation from './JsonToolsExplanation';
 
 interface JsonCodeSectionProps {
   form: UseFormReturn<FormValues>;
@@ -33,6 +34,7 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
   setWireframeMode
 }) => {
   const [isValidJson, setIsValidJson] = useState(true);
+  const [showExplanation, setShowExplanation] = useState(false);
   
   // Validate JSON whenever it changes
   useEffect(() => {
@@ -78,7 +80,19 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
         name="jsonCode"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Código JSON do Elementor*</FormLabel>
+            <div className="flex justify-between items-center">
+              <FormLabel>Código JSON do Elementor*</FormLabel>
+              <button 
+                type="button" 
+                className="text-sm text-primary hover:text-primary/80"
+                onClick={() => setShowExplanation(!showExplanation)}
+              >
+                {showExplanation ? 'Ocultar explicação' : 'O que são essas ferramentas?'}
+              </button>
+            </div>
+            
+            {showExplanation && <JsonToolsExplanation />}
+            
             <ComponentFormActions 
               onCleanJson={onCleanJson}
               onPreviewJson={onPreviewJson}
