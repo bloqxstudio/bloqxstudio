@@ -73,7 +73,7 @@ const Register = () => {
           <div className="mb-8 text-center">
             <h1 className="text-3xl font-bold mb-2">Criar Conta</h1>
             <p className="text-muted-foreground">
-              Registre-se para acessar nossa biblioteca de componentes
+              Registre-se agora no nosso site para acessar nossa biblioteca de componentes
             </p>
           </div>
           
