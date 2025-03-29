@@ -31,7 +31,7 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
   const [jsonContent, setJsonContent] = useState('');
   
   useEffect(() => {
-    // Use form.watch() without arguments to watch all fields
+    // Subscribe to form changes without arguments
     const subscription = form.watch(() => {
       const currentJsonCode = form.getValues('jsonCode');
       setJsonContent(currentJsonCode);
@@ -45,6 +45,7 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
       validateJsonContent(initialValue);
     }
     
+    // Cleanup subscription
     return () => subscription.unsubscribe();
   }, [form]);
   
