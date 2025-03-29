@@ -30,14 +30,12 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
   const [showExplanation, setShowExplanation] = useState(false);
   const [jsonContent, setJsonContent] = useState('');
   
-  // Use form.getValues instead of form.watch for better performance
   useEffect(() => {
-    const subscription = form.watch((value, { name }) => {
-      if (name === 'jsonCode' || name === undefined) {
-        const currentJsonCode = form.getValues('jsonCode');
-        setJsonContent(currentJsonCode);
-        validateJsonContent(currentJsonCode);
-      }
+    // Use form.watch() without arguments to watch all fields
+    const subscription = form.watch(() => {
+      const currentJsonCode = form.getValues('jsonCode');
+      setJsonContent(currentJsonCode);
+      validateJsonContent(currentJsonCode);
     });
     
     // Initial validation on component mount
