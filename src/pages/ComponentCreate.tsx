@@ -9,22 +9,7 @@ import JsonTransformer from '@/components/forms/JsonTransformer';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui';
-
-const PageWrapper = ({ children }: { children: React.ReactNode }) => {
-  return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <Navbar />
-      <main className="flex-grow container mx-auto px-4 py-8">
-        {children}
-      </main>
-      <footer className="border-t py-6">
-        <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          &copy; {new Date().getFullYear()} Bloqx Studio. Todos os direitos reservados.
-        </div>
-      </footer>
-    </div>
-  );
-};
+import PageWrapper from '@/components/layout/PageWrapper';
 
 const ComponentCreate = () => {
   const navigate = useNavigate();

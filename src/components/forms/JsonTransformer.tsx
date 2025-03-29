@@ -12,6 +12,7 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui';
 import { Info } from 'lucide-react';
 import JsonCopyButton from './json/JsonCopyButton';
 import ProcessJsonButton from './json/ProcessJsonButton';
+import ClaudeJsonAnalyzer from './ClaudeJsonAnalyzer';
 
 const JsonTransformer = () => {
   const [activeTab, setActiveTab] = useState('upload');
@@ -63,6 +64,11 @@ const JsonTransformer = () => {
   };
 
   const getJsonContent = () => form.getValues('jsonCode');
+  
+  const handleJsonUpdate = (updatedJson: string) => {
+    form.setValue('jsonCode', updatedJson);
+    toast.success('JSON atualizado com as sugestões do Claude');
+  };
 
   return (
     <Card className="border shadow-sm">
@@ -136,6 +142,13 @@ const JsonTransformer = () => {
                 )}
               />
             </Form>
+            
+            {isValidJson && form.getValues('jsonCode') && (
+              <ClaudeJsonAnalyzer 
+                jsonCode={form.getValues('jsonCode')}
+                onJsonUpdate={handleJsonUpdate}
+              />
+            )}
           </TabsContent>
         </Tabs>
       </CardContent>
