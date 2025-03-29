@@ -21,7 +21,7 @@ import {
   AlertTitle,
   AlertDescription
 } from '@/components/ui';
-import { Bot, Sparkles, Loader2 } from 'lucide-react';
+import { Bot, Sparkles, Loader2, Code } from 'lucide-react';
 
 interface AnalyzerProps {
   jsonCode: string;
@@ -38,7 +38,7 @@ const ClaudeJsonAnalyzer: React.FC<AnalyzerProps> = ({
 
   const form = useForm({
     defaultValues: {
-      instructions: "Analise este JSON do Elementor e sugira melhorias para torná-lo mais eficiente e limpo. Se possível, converta elementos para containers modernos e otimize a estrutura."
+      instructions: "Otimize este JSON para container moderno, responsivo e limpo. Remova propriedades desnecessárias e simplifique a estrutura. Retorne apenas o JSON otimizado."
     }
   });
 
@@ -66,7 +66,7 @@ const ClaudeJsonAnalyzer: React.FC<AnalyzerProps> = ({
 
       if (data.success) {
         setAnalysis(data.analysis);
-        toast.success("Análise concluída com sucesso!");
+        toast.success("Componente otimizado com sucesso!");
       } else {
         throw new Error(data.error || "Erro desconhecido na análise");
       }
@@ -110,15 +110,19 @@ const ClaudeJsonAnalyzer: React.FC<AnalyzerProps> = ({
     }
   };
 
+  const useQuickPrompt = () => {
+    form.setValue("instructions", "Transforme este componente em um container moderno e responsivo. Simplifique ao máximo a estrutura mantendo a funcionalidade. Remova propriedades desnecessárias. Retorne APENAS o JSON final.");
+  };
+
   return (
     <Card className="mb-6">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Bot className="h-5 w-5" />
-          <span>Análise Inteligente com Claude</span>
+          <span>Otimização Automática de Componentes</span>
         </CardTitle>
         <CardDescription>
-          Use IA para analisar e melhorar seu componente do Elementor
+          Simplifique e modernize componentes do Elementor com um clique
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -129,16 +133,28 @@ const ClaudeJsonAnalyzer: React.FC<AnalyzerProps> = ({
               name="instructions"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Instruções para o Claude</FormLabel>
+                  <FormLabel>Instruções para otimização</FormLabel>
                   <FormControl>
                     <Textarea 
-                      placeholder="Ex: Otimize este componente para mobile, simplifique a estrutura..." 
+                      placeholder="Ex: Transforme em container moderno e responsivo" 
                       {...field} 
-                      rows={3}
+                      rows={2}
                     />
                   </FormControl>
-                  <FormDescription>
-                    Descreva o que você gostaria que o Claude analisasse ou melhorasse no seu componente
+                  <FormDescription className="flex justify-between items-center">
+                    <span>
+                      Descreva como o componente deve ser otimizado
+                    </span>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={useQuickPrompt}
+                      className="text-xs"
+                    >
+                      <Code className="h-3 w-3 mr-1" />
+                      Usar prompt padrão
+                    </Button>
                   </FormDescription>
                 </FormItem>
               )}
@@ -153,12 +169,12 @@ const ClaudeJsonAnalyzer: React.FC<AnalyzerProps> = ({
                 {isAnalyzing ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    Analisando...
+                    Otimizando...
                   </>
                 ) : (
                   <>
                     <Sparkles className="h-4 w-4" />
-                    Analisar com IA
+                    Otimizar Componente
                   </>
                 )}
               </Button>
@@ -170,7 +186,7 @@ const ClaudeJsonAnalyzer: React.FC<AnalyzerProps> = ({
                   onClick={applyChanges}
                   className="gap-2"
                 >
-                  Aplicar Sugestões
+                  Aplicar Componente Otimizado
                 </Button>
               )}
             </div>
@@ -179,21 +195,26 @@ const ClaudeJsonAnalyzer: React.FC<AnalyzerProps> = ({
 
         {error && (
           <Alert variant="destructive" className="mt-4">
-            <AlertTitle>Erro na análise</AlertTitle>
+            <AlertTitle>Erro na otimização</AlertTitle>
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
 
-        {analysis && (
+        {analysis && extractJsonFromText(analysis) && (
           <div className="mt-6 border rounded-md p-4 bg-muted/20">
-            <h3 className="text-lg font-medium mb-2">Análise do Claude</h3>
-            <div className="prose prose-sm max-w-none">
-              {analysis.split('\n').map((line, i) => (
-                <React.Fragment key={i}>
-                  {line}
-                  <br />
-                </React.Fragment>
-              ))}
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="text-lg font-medium">Componente Otimizado</h3>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={applyChanges}
+                className="text-xs"
+              >
+                Aplicar
+              </Button>
+            </div>
+            <div className="bg-black/90 text-green-400 p-3 rounded text-xs font-mono overflow-auto max-h-64">
+              <pre>{extractJsonFromText(analysis)}</pre>
             </div>
           </div>
         )}

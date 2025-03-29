@@ -30,21 +30,17 @@ serve(async (req) => {
     }
 
     // Criar o prompt para o Claude com instruções contextuais
-    const systemPrompt = "Você é um assistente especializado em analisar e melhorar componentes JSON do Elementor. Sua tarefa é analisar o JSON fornecido e sugerir melhorias com base nas instruções do usuário.";
+    const systemPrompt = "Você é um especialista em otimização de componentes JSON do Elementor. Sua função é transformar o JSON fornecido em um componente de container moderno e limpo. RETORNE APENAS O JSON OTIMIZADO, sem explicações, análises ou comentários. O componente deve seguir as melhores práticas, ser responsivo e usar containers modernos. Use flexbox para layouts e mantenha a estrutura limpa.";
     
     const userPrompt = `
-      INSTRUÇÕES: ${instructions || "Analise este JSON do Elementor e sugira melhorias para torná-lo mais eficiente, limpo e compatível."}
+      INSTRUÇÕES: ${instructions || "Otimize este JSON do Elementor para um container moderno. Remova configurações desnecessárias, melhore a responsividade e simplifique a estrutura. Retorne APENAS o JSON otimizado."}
       
       CÓDIGO JSON:
       \`\`\`json
       ${jsonCode}
       \`\`\`
       
-      Por favor, forneça:
-      1. Uma análise do componente (estrutura, problemas potenciais)
-      2. Sugestões de melhorias específicas
-      3. Uma versão aprimorada do JSON, se aplicável
-      4. Dicas para otimizar o componente
+      IMPORTANTE: Retorne APENAS o JSON do componente otimizado, nenhuma explicação ou comentário. Apenas o código JSON bruto envolto em \`\`\`json e \`\`\`.
     `;
 
     // Fazer a requisição para a API do Claude com o formato atualizado
