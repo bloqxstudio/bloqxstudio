@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
 import { UseFormReturn } from 'react-hook-form';
-import { validateJson } from '@/utils/jsonUtils';
+import { validateJson } from '@/utils/json';
 import JsonToolsExplanation from './JsonToolsExplanation';
 import ProcessJsonButton from './json/ProcessJsonButton';
 import JsonCopyButton from './json/JsonCopyButton';

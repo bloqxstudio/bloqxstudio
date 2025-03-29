@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -12,7 +11,7 @@ import {
 } from '@/components/ui/form';
 import { Textarea, Button, Toggle } from '@/components/ui';
 import { Wand2, Paintbrush, Copy, Check, AlertCircle } from 'lucide-react';
-import { cleanElementorJson, validateJson } from '@/utils/jsonUtils';
+import { cleanElementorJson, validateJson } from '@/utils/json';
 
 interface JsonCodeEditorProps {
   form: UseFormReturn<any>;

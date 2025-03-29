@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { generateBloqxkitElementorTemplate } from '@/utils/jsonUtils';
+import { generateBloqxkitElementorTemplate } from '@/utils/json';
 import { 
   Select,
   SelectContent,

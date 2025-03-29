@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { useForm } from 'react-hook-form';
 import { Form } from '@/components/ui/form';
-import { cleanElementorJson, validateJson } from '@/utils/jsonUtils';
+import { cleanElementorJson, validateJson } from '@/utils/json';
 import { toast } from 'sonner';
 import JsonFileUploader from './json/JsonFileUploader';
 import ClaudeJsonAnalyzer from './ClaudeJsonAnalyzer';

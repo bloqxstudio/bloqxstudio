@@ -3,7 +3,7 @@ import React, { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { FileJson, Upload } from 'lucide-react';
 import { toast } from 'sonner';
-import { validateJson } from '@/utils/jsonUtils';
+import { validateJson } from '@/utils/json';
 
 interface JsonFileUploaderProps {
   onJsonLoaded: (jsonContent: string) => void;
