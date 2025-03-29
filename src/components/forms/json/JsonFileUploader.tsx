@@ -11,12 +11,16 @@ interface JsonFileUploaderProps {
 
 const JsonFileUploader: React.FC<JsonFileUploaderProps> = ({ onJsonLoaded }) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    processFile(file);
+  };
 
+  const processFile = (file: File) => {
     setIsLoading(true);
     
     const reader = new FileReader();
@@ -67,8 +71,38 @@ const JsonFileUploader: React.FC<JsonFileUploaderProps> = ({ onJsonLoaded }) => 
     fileInputRef.current?.click();
   };
 
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      processFile(files[0]);
+    }
+  };
+
   return (
-    <div className="flex flex-col items-center p-6 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer" onClick={handleClick}>
+    <div 
+      className={`flex flex-col items-center p-6 border-2 border-dashed rounded-lg transition-colors cursor-pointer ${
+        isDragging 
+          ? 'border-primary bg-primary/5' 
+          : 'border-gray-300 bg-gray-50 hover:bg-gray-100'
+      }`}
+      onClick={handleClick}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
       <input
         type="file"
         ref={fileInputRef}
@@ -77,7 +111,7 @@ const JsonFileUploader: React.FC<JsonFileUploaderProps> = ({ onJsonLoaded }) => 
         onChange={handleFileChange}
       />
       
-      <FileJson className="h-12 w-12 text-gray-400 mb-2" />
+      <FileJson className={`h-12 w-12 mb-2 ${isDragging ? 'text-primary' : 'text-gray-400'}`} />
       
       <div className="text-center">
         <p className="text-sm font-medium">

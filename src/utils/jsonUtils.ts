@@ -11,10 +11,28 @@ export const validateJson = (jsonString: string): boolean => {
 export const validateElementorJson = (jsonObj: any): boolean => {
   // Validação básica da estrutura
   if (!jsonObj || typeof jsonObj !== 'object') return false;
-  if (jsonObj.type !== "elementor") return false;
-  if (!Array.isArray(jsonObj.elements)) return false;
   
-  return true;
+  // Verificar o formato 1: estrutura com "type": "elementor"
+  if (jsonObj.type === "elementor" && Array.isArray(jsonObj.elements)) {
+    return true;
+  }
+  
+  // Verificar o formato 2: estrutura com "content" contendo elementos
+  if (jsonObj.content && Array.isArray(jsonObj.content)) {
+    return true;
+  }
+  
+  // Verificar o formato 3: estrutura direta de elementos
+  if (Array.isArray(jsonObj) && jsonObj.length > 0 && jsonObj[0].elType) {
+    return true;
+  }
+  
+  // Verificar se é uma exportação de página do Elementor
+  if (jsonObj.content && jsonObj.page_settings) {
+    return true;
+  }
+  
+  return false;
 };
 
 export const cleanElementorJson = (jsonString: string, removeStyles = false): string => {
@@ -26,17 +44,36 @@ export const cleanElementorJson = (jsonString: string, removeStyles = false): st
 
     // Analisar o JSON
     const jsonObj = JSON.parse(jsonString);
-
-    // Validar que é um JSON do Elementor
-    if (!validateElementorJson(jsonObj)) {
-      throw new Error('Não é um JSON válido do Elementor');
+    let elements = [];
+    
+    // Determinar onde estão os elementos com base na estrutura
+    if (jsonObj.type === "elementor" && Array.isArray(jsonObj.elements)) {
+      // Formato 1: estrutura com type: "elementor"
+      elements = jsonObj.elements;
+    } else if (jsonObj.content && Array.isArray(jsonObj.content)) {
+      // Formato 2: estrutura com "content" contendo elementos
+      elements = jsonObj.content;
+    } else if (Array.isArray(jsonObj) && jsonObj.length > 0 && jsonObj[0].elType) {
+      // Formato 3: estrutura direta de elementos
+      elements = jsonObj;
+    } else if (jsonObj.content && jsonObj.page_settings) {
+      // Exportação de página completa
+      elements = [jsonObj.content];
+    } else {
+      // Tente encontrar elementos aninhados de alguma forma
+      if (Array.isArray(jsonObj) && jsonObj.length > 0) {
+        // Pode ser um array de elementos
+        elements = jsonObj;
+      } else {
+        throw new Error('Estrutura JSON incompatível');
+      }
     }
 
     // Formato básico
     const cleaned = {
       type: "elementor",
       siteurl: jsonObj.siteurl || "https://example.com/",
-      elements: jsonObj.elements || []
+      elements: elements || []
     };
 
     // Se removeStyles for true, remover propriedades de estilo

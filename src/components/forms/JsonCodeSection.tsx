@@ -28,17 +28,19 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
   const [isElementorJson, setIsElementorJson] = useState(true);
   const [showExplanation, setShowExplanation] = useState(false);
   
+  // Watch the jsonCode field for changes
+  const jsonCode = form.watch('jsonCode');
+  
   useEffect(() => {
-    const currentJson = form.getValues('jsonCode');
-    if (currentJson) {
+    if (jsonCode) {
       setIsValidatingJson(true);
       
       try {
-        const isValid = validateJson(currentJson);
+        const isValid = validateJson(jsonCode);
         setIsValidJson(isValid);
         
         if (isValid) {
-          const jsonObj = JSON.parse(currentJson);
+          const jsonObj = JSON.parse(jsonCode);
           const isElementor = validateElementorJson(jsonObj);
           setIsElementorJson(isElementor);
         } else {
@@ -51,7 +53,7 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
         setIsValidatingJson(false);
       }
     }
-  }, [form.watch('jsonCode')]);
+  }, [jsonCode]);
 
   const getJsonContent = () => form.getValues('jsonCode');
 
