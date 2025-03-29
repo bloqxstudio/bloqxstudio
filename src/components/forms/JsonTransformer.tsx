@@ -1,25 +1,20 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent } from '@/components/ui/card';
 import { useForm } from 'react-hook-form';
-import { Form, FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from '@/components/ui/form';
-import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
-import JsonFileUploader from './json/JsonFileUploader';
+import { Form } from '@/components/ui/form';
 import { cleanElementorJson, validateJson } from '@/utils/jsonUtils';
 import { toast } from 'sonner';
-import { Alert, AlertTitle, AlertDescription } from '@/components/ui';
-import { Info, ArrowRight } from 'lucide-react';
-import JsonCopyButton from './json/JsonCopyButton';
-import ProcessJsonButton from './json/ProcessJsonButton';
+import JsonFileUploader from './json/JsonFileUploader';
 import ClaudeJsonAnalyzer from './ClaudeJsonAnalyzer';
 import TemplateGenerator from './json/TemplateGenerator';
+import JsonTransformerHeader from './json/JsonTransformerHeader';
+import JsonTransformerActions from './json/JsonTransformerActions';
+import JsonFormField from './json/JsonFormField';
 
 const JsonTransformer = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('upload');
   const [isValidJson, setIsValidJson] = useState(true);
   const [isValidating, setIsValidating] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -72,19 +67,24 @@ const JsonTransformer = () => {
 
   const handleJsonLoaded = (jsonContent: string) => {
     form.setValue('jsonCode', jsonContent);
-    setActiveTab('edit');
+    validateJsonContent(jsonContent);
   };
 
   const validateJsonContent = (jsonContent: string) => {
-    setIsValidJson(jsonContent.trim() !== '' && isJsonValid(jsonContent));
-  };
-
-  const isJsonValid = (jsonString: string): boolean => {
+    if (!jsonContent.trim()) {
+      setIsValidJson(true);
+      return;
+    }
+    
+    setIsValidating(true);
+    
     try {
-      JSON.parse(jsonString);
-      return true;
+      const isValid = validateJson(jsonContent);
+      setIsValidJson(isValid);
     } catch (e) {
-      return false;
+      setIsValidJson(false);
+    } finally {
+      setIsValidating(false);
     }
   };
 
@@ -93,7 +93,6 @@ const JsonTransformer = () => {
   // Handle template generation
   const handleTemplateGenerated = (template: string) => {
     form.setValue('jsonCode', template);
-    setActiveTab('edit');
     validateJsonContent(template);
     toast.success('Template gerado! Você pode editá-lo agora.');
   };
@@ -106,81 +105,29 @@ const JsonTransformer = () => {
 
   return (
     <Card className="border shadow-sm">
-      <CardHeader>
-        <CardTitle className="text-xl">Transformador de JSON do Elementor</CardTitle>
-        <CardDescription>
-          Faça upload do JSON do Elementor, transforme e crie um componente
-        </CardDescription>
-      </CardHeader>
+      <JsonTransformerHeader />
       
       <CardContent>
-        <Alert variant="default" className="mb-4 bg-blue-50 text-blue-800 border-blue-200">
-          <Info className="h-4 w-4" />
-          <AlertTitle>Dica de uso</AlertTitle>
-          <AlertDescription>
-            Você pode colar componentes complexos e nossa ferramenta irá transformá-los em containers para uso no Elementor.
-          </AlertDescription>
-        </Alert>
-        
         {/* File uploader at the beginning */}
         <div className="mb-6">
           <JsonFileUploader onJsonLoaded={handleJsonLoaded} />
         </div>
         
-        <div className="flex flex-wrap gap-2 mb-4">
-          <ProcessJsonButton 
-            onProcessJson={handleProcessJson} 
-            disabled={!isValidJson || isValidating}
-            loading={isProcessing}
-          />
-          
-          <JsonCopyButton getJsonContent={getJsonContent} />
-          
-          <Button 
-            variant="default" 
-            className="gap-1"
-            onClick={handleCreateComponent}
-            disabled={!isValidJson}
-          >
-            Criar Componente
-            <ArrowRight className="h-4 w-4" />
-          </Button>
-          
-          {!isValidJson && form.getValues('jsonCode') && (
-            <div className="flex items-center text-destructive gap-1 text-sm ml-2">
-              <span>JSON inválido</span>
-            </div>
-          )}
-        </div>
+        <JsonTransformerActions 
+          onProcessJson={handleProcessJson}
+          getJsonContent={getJsonContent}
+          onCreateComponent={handleCreateComponent}
+          isValidJson={isValidJson}
+          isValidating={isValidating}
+          isProcessing={isProcessing}
+        />
         
         <TemplateGenerator onTemplateGenerated={handleTemplateGenerated} />
         
         <Form {...form}>
-          <FormField
-            control={form.control}
-            name="jsonCode"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Código JSON do Elementor</FormLabel>
-                
-                <FormControl>
-                  <Textarea 
-                    placeholder='{"type": "elementor", "elements": [...]}'
-                    className="min-h-[200px] font-mono text-sm"
-                    value={field.value}
-                    onChange={(e) => {
-                      field.onChange(e);
-                      validateJsonContent(e.target.value);
-                    }}
-                  />
-                </FormControl>
-                
-                <FormDescription>
-                  Cole o código JSON do Elementor para transformá-lo em container
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
+          <JsonFormField 
+            form={form} 
+            onJsonChange={validateJsonContent} 
           />
         </Form>
         
