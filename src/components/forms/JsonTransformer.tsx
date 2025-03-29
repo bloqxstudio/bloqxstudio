@@ -15,6 +15,7 @@ import { Info, ArrowRight } from 'lucide-react';
 import JsonCopyButton from './json/JsonCopyButton';
 import ProcessJsonButton from './json/ProcessJsonButton';
 import ClaudeJsonAnalyzer from './ClaudeJsonAnalyzer';
+import TemplateGenerator from './json/TemplateGenerator';
 
 const JsonTransformer = () => {
   const navigate = useNavigate();
@@ -89,6 +90,14 @@ const JsonTransformer = () => {
 
   const getJsonContent = () => form.getValues('jsonCode');
 
+  // Handle template generation
+  const handleTemplateGenerated = (template: string) => {
+    form.setValue('jsonCode', template);
+    setActiveTab('edit');
+    validateJsonContent(template);
+    toast.success('Template gerado! Você pode editá-lo agora.');
+  };
+
   // Define the handleJsonUpdate function inside the component
   const handleJsonUpdate = (updatedJson: string) => {
     form.setValue('jsonCode', updatedJson);
@@ -132,12 +141,14 @@ const JsonTransformer = () => {
             <ArrowRight className="h-4 w-4" />
           </Button>
           
-          {!isValidJson && (
+          {!isValidJson && form.getValues('jsonCode') && (
             <div className="flex items-center text-destructive gap-1 text-sm ml-2">
               <span>JSON inválido</span>
             </div>
           )}
         </div>
+        
+        <TemplateGenerator onTemplateGenerated={handleTemplateGenerated} />
         
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-2 mb-6">

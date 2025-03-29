@@ -9,6 +9,7 @@ import ProcessJsonButton from './json/ProcessJsonButton';
 import JsonCopyButton from './json/JsonCopyButton';
 import JsonValidityIndicator from './json/JsonValidityIndicator';
 import ElementorJsonAlert from './json/ElementorJsonAlert';
+import TemplateGenerator from './json/TemplateGenerator';
 
 interface JsonCodeSectionProps {
   form: UseFormReturn<any>;
@@ -36,7 +37,7 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
       setJsonContent(initialValue);
       validateJsonContent(initialValue);
     }
-  }, [form]);
+  }, []);
   
   const validateJsonContent = (content: string) => {
     if (!content) {
@@ -73,9 +74,19 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
   };
 
   const getJsonContent = () => form.getValues('jsonCode');
+  
+  const handleTemplateGenerated = (template: string) => {
+    form.setValue('jsonCode', template);
+    setJsonContent(template);
+    validateJsonContent(template);
+  };
 
   return (
     <>
+      {!simplified && (
+        <TemplateGenerator onTemplateGenerated={handleTemplateGenerated} />
+      )}
+    
       <FormField
         control={form.control}
         name="jsonCode"
