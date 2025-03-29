@@ -16,19 +16,21 @@ interface JsonCodeSectionProps {
   form: UseFormReturn<FormValues> | UseFormReturn<any>;
   onProcessJson: () => void;
   simplified?: boolean;
+  onContentChange?: (content: string) => void;
 }
 
 const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({ 
   form, 
   onProcessJson,
-  simplified = false
+  simplified = false,
+  onContentChange
 }) => {
   const [isValidJson, setIsValidJson] = useState(true);
   const [isValidatingJson, setIsValidatingJson] = useState(false);
   const [isElementorJson, setIsElementorJson] = useState(true);
   const [showExplanation, setShowExplanation] = useState(false);
   
-  // Watch the jsonCode field for changes
+  // Watch the jsonCode field
   const jsonCode = form.watch('jsonCode');
   
   useEffect(() => {
@@ -46,6 +48,11 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
         } else {
           setIsElementorJson(false);
         }
+        
+        // Call the onContentChange callback if provided
+        if (onContentChange) {
+          onContentChange(jsonCode);
+        }
       } catch (error) {
         setIsValidJson(false);
         setIsElementorJson(false);
@@ -53,7 +60,7 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
         setIsValidatingJson(false);
       }
     }
-  }, [jsonCode]);
+  }, [jsonCode, onContentChange]);
 
   const getJsonContent = () => form.getValues('jsonCode');
 

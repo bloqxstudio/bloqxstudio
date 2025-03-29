@@ -2,6 +2,7 @@
 import React from 'react';
 import ProcessJsonButton from './ProcessJsonButton';
 import WireframeToggle from './WireframeToggle';
+import ContainerToggle from './ContainerToggle';
 import JsonCopyButton from './JsonCopyButton';
 import { AlertCircle } from 'lucide-react';
 
@@ -11,6 +12,8 @@ interface JsonActionsToolbarProps {
   isValidating: boolean;
   removeStyles: boolean;
   onToggleRemoveStyles: () => void;
+  wrapInContainer: boolean;
+  onToggleContainer: () => void;
   getJsonContent: () => string;
 }
 
@@ -20,6 +23,8 @@ const JsonActionsToolbar: React.FC<JsonActionsToolbarProps> = ({
   isValidating,
   removeStyles,
   onToggleRemoveStyles,
+  wrapInContainer,
+  onToggleContainer,
   getJsonContent
 }) => {
   return (
@@ -32,6 +37,11 @@ const JsonActionsToolbar: React.FC<JsonActionsToolbarProps> = ({
       <WireframeToggle 
         removeStyles={removeStyles} 
         onToggleRemoveStyles={onToggleRemoveStyles} 
+      />
+      
+      <ContainerToggle
+        wrapInContainer={wrapInContainer}
+        onToggleContainer={onToggleContainer}
       />
 
       <JsonCopyButton getJsonContent={getJsonContent} />

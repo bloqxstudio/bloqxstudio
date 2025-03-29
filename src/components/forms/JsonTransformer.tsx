@@ -10,10 +10,14 @@ import { cleanElementorJson } from '@/utils/jsonUtils';
 import { toast } from 'sonner';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui';
 import { AlertCircle, Info } from 'lucide-react';
+import JsonActionsToolbar from './json/JsonActionsToolbar';
 
 const JsonTransformer = () => {
   const [activeTab, setActiveTab] = useState('upload');
   const [removeStyles, setRemoveStyles] = useState(false);
+  const [wrapInContainer, setWrapInContainer] = useState(false);
+  const [isValidJson, setIsValidJson] = useState(true);
+  const [isValidating, setIsValidating] = useState(false);
   
   const form = useForm({
     defaultValues: {
@@ -30,13 +34,17 @@ const JsonTransformer = () => {
     }
     
     try {
-      // Limpar o JSON com a opção de remover estilos
-      const cleanedJson = cleanElementorJson(currentJson, removeStyles);
+      // Limpar o JSON com a opção de remover estilos e envolver em container
+      const cleanedJson = cleanElementorJson(currentJson, removeStyles, wrapInContainer);
       form.setValue('jsonCode', cleanedJson);
       
-      const successMessage = removeStyles 
+      let successMessage = removeStyles 
         ? 'JSON limpo e formatado com estilo wireframe aplicado!'
         : 'JSON limpo e formatado com sucesso!';
+        
+      if (wrapInContainer) {
+        successMessage = `${successMessage} Transformado em container.`;
+      }
       
       toast.success(successMessage);
     } catch (e) {
@@ -59,6 +67,30 @@ const JsonTransformer = () => {
     }
   };
 
+  const toggleWrapInContainer = () => {
+    setWrapInContainer(!wrapInContainer);
+    if (!wrapInContainer) {
+      toast.info('Modo container ativado. O JSON será envolvido em um container ao processar.');
+    } else {
+      toast.info('Modo container desativado. A estrutura original será mantida.');
+    }
+  };
+
+  const validateJsonContent = (jsonContent: string) => {
+    setIsValidJson(jsonContent.trim() !== '' && isJsonValid(jsonContent));
+  };
+
+  const isJsonValid = (jsonString: string): boolean => {
+    try {
+      JSON.parse(jsonString);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  };
+
+  const getJsonContent = () => form.getValues('jsonCode');
+
   return (
     <Card className="border shadow-sm">
       <CardHeader>
@@ -75,24 +107,20 @@ const JsonTransformer = () => {
           <AlertDescription>
             Você pode colar componentes complexos e nossas ferramentas irão formatá-los para uso no Elementor.
             {removeStyles ? ' O modo wireframe está ativado.' : ' O modo wireframe está desativado.'}
+            {wrapInContainer ? ' O modo container está ativado.' : ' O modo container está desativado.'}
           </AlertDescription>
         </Alert>
         
-        <div className="flex items-center gap-2 mb-4">
-          <button 
-            onClick={toggleRemoveStyles}
-            className={`px-3 py-1 rounded text-sm ${removeStyles 
-              ? 'bg-primary text-white' 
-              : 'bg-gray-100 text-gray-700 border'}`}
-          >
-            {removeStyles ? 'Wireframe Ativado' : 'Wireframe Desativado'}
-          </button>
-          <span className="text-xs text-muted-foreground">
-            {removeStyles 
-              ? "Estilos serão simplificados" 
-              : "Manter estilos originais"}
-          </span>
-        </div>
+        <JsonActionsToolbar
+          onProcessJson={handleProcessJson}
+          isValidJson={isValidJson}
+          isValidating={isValidating}
+          removeStyles={removeStyles}
+          onToggleRemoveStyles={toggleRemoveStyles}
+          wrapInContainer={wrapInContainer}
+          onToggleContainer={toggleWrapInContainer}
+          getJsonContent={getJsonContent}
+        />
         
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-2 mb-6">
@@ -110,6 +138,7 @@ const JsonTransformer = () => {
                 form={form} 
                 onProcessJson={handleProcessJson} 
                 simplified={true}
+                onContentChange={validateJsonContent}
               />
             </Form>
           </TabsContent>

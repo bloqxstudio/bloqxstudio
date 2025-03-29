@@ -1,4 +1,3 @@
-
 export const validateJson = (jsonString: string): boolean => {
   try {
     JSON.parse(jsonString);
@@ -35,7 +34,7 @@ export const validateElementorJson = (jsonObj: any): boolean => {
   return false;
 };
 
-export const cleanElementorJson = (jsonString: string, removeStyles = false): string => {
+export const cleanElementorJson = (jsonString: string, removeStyles = false, wrapInContainer = false): string => {
   try {
     // Validar primeiro
     if (!validateJson(jsonString)) {
@@ -69,6 +68,11 @@ export const cleanElementorJson = (jsonString: string, removeStyles = false): st
       }
     }
 
+    // Aplicar opção de envolver em container
+    if (wrapInContainer) {
+      elements = wrapElementsInContainer(elements);
+    }
+
     // Formato básico
     const cleaned = {
       type: "elementor",
@@ -86,6 +90,56 @@ export const cleanElementorJson = (jsonString: string, removeStyles = false): st
     console.error("Erro ao limpar JSON:", e);
     return jsonString; // Retornar o original em caso de erro
   }
+};
+
+// Função para envolver elementos em um container
+const wrapElementsInContainer = (elements: any[]): any[] => {
+  if (!elements || elements.length === 0) return [];
+  
+  // Criar um container section
+  const containerSection = {
+    elType: "section",
+    settings: {
+      layout: "boxed",
+      content_width: {
+        unit: "px",
+        size: 1140,
+        sizes: []
+      },
+      gap: "no",
+      structure: "20",
+      padding: {
+        unit: "px",
+        top: "30",
+        right: "30",
+        bottom: "30",
+        left: "30",
+        isLinked: false
+      }
+    },
+    elements: [
+      {
+        elType: "column",
+        settings: {
+          _column_size: 100,
+          _inline_size: null,
+          content_position: "top",
+          space_between_widgets: "20",
+          padding: {
+            unit: "px",
+            top: "10",
+            right: "10",
+            bottom: "10",
+            left: "10",
+            isLinked: true
+          }
+        },
+        elements: elements
+      }
+    ]
+  };
+  
+  return [containerSection];
 };
 
 // Função para remover propriedades de estilo recursivamente
