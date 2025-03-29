@@ -139,7 +139,6 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
             
             <JsonValidityIndicator 
               isValidJson={isValidJson} 
-              isElementorJson={true}
               hasContent={!!jsonContent}
               isValidating={isValidatingJson}
             />

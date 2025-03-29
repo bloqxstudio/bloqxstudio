@@ -4,14 +4,12 @@ import { Check, AlertCircle, Loader2 } from 'lucide-react';
 
 interface JsonValidityIndicatorProps {
   isValidJson: boolean;
-  isElementorJson: boolean;
   hasContent: boolean;
   isValidating?: boolean;
 }
 
 const JsonValidityIndicator: React.FC<JsonValidityIndicatorProps> = ({
   isValidJson,
-  isElementorJson,
   hasContent,
   isValidating = false
 }) => {
