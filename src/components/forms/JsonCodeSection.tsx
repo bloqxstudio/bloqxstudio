@@ -31,21 +31,6 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
   const [jsonContent, setJsonContent] = useState('');
   
   useEffect(() => {
-    // Set up a manual watch effect for the jsonCode field
-    const handleFormChange = () => {
-      const currentValue = form.getValues('jsonCode');
-      setJsonContent(currentValue);
-      validateJsonContent(currentValue);
-    };
-    
-    // Subscribe to all form changes
-    const subscription = form.watch();
-    
-    // Add a listener for the jsonCode field
-    form.register('jsonCode', {
-      onChange: handleFormChange
-    });
-    
     // Initial validation on component mount
     const initialValue = form.getValues('jsonCode');
     if (initialValue) {
@@ -53,7 +38,7 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
       validateJsonContent(initialValue);
     }
     
-    // No need for cleanup as watch() without arguments doesn't return an unsubscribe function
+    // No need for cleanup
     return () => {};
   }, [form]);
   
