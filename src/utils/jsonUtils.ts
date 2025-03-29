@@ -1,3 +1,4 @@
+
 export const validateJson = (jsonString: string): boolean => {
   try {
     JSON.parse(jsonString);
@@ -68,10 +69,8 @@ export const cleanElementorJson = (jsonString: string, removeStyles = false, wra
       }
     }
 
-    // Aplicar transformação para container
-    if (wrapInContainer) {
-      elements = transformElementsToContainer(elements);
-    }
+    // Sempre transformar elementos para container
+    elements = transformElementsToContainer(elements);
 
     // Formato básico
     const cleaned = {
@@ -80,11 +79,6 @@ export const cleanElementorJson = (jsonString: string, removeStyles = false, wra
       elements: elements || []
     };
 
-    // Se removeStyles for true, remover propriedades de estilo (mantido por compatibilidade)
-    if (removeStyles) {
-      cleaned.elements = removeStyleProperties(cleaned.elements, removeStyles);
-    }
-
     return JSON.stringify(cleaned, null, 2);
   } catch (e) {
     console.error("Erro ao limpar JSON:", e);
@@ -92,7 +86,7 @@ export const cleanElementorJson = (jsonString: string, removeStyles = false, wra
   }
 };
 
-// Nova função para transformar todos os elType para "container"
+// Função para transformar todos os elType para "container"
 const transformElementsToContainer = (elements: any[]): any[] => {
   if (!elements || elements.length === 0) return [];
   
@@ -103,6 +97,24 @@ const transformElementsToContainer = (elements: any[]): any[] => {
     // Se o elemento for uma seção, transformar em container
     if (newElement.elType === "section") {
       newElement.elType = "container";
+      
+      // Ajustar configurações para container
+      if (newElement.settings) {
+        // Configurações específicas de container
+        newElement.settings = {
+          ...newElement.settings,
+          content_width: newElement.settings.content_width || {
+            unit: "px",
+            size: 1140,
+            sizes: []
+          },
+          flex_gap: newElement.settings.flex_gap || {
+            unit: "px",
+            size: 10,
+            sizes: []
+          }
+        };
+      }
     }
     
     // Processar elementos filhos recursivamente
@@ -112,56 +124,6 @@ const transformElementsToContainer = (elements: any[]): any[] => {
     
     return newElement;
   });
-};
-
-// Função para envolver elementos em um container
-const wrapElementsInContainer = (elements: any[]): any[] => {
-  if (!elements || elements.length === 0) return [];
-  
-  // Criar um container section
-  const containerSection = {
-    elType: "section",
-    settings: {
-      layout: "boxed",
-      content_width: {
-        unit: "px",
-        size: 1140,
-        sizes: []
-      },
-      gap: "no",
-      structure: "20",
-      padding: {
-        unit: "px",
-        top: "30",
-        right: "30",
-        bottom: "30",
-        left: "30",
-        isLinked: false
-      }
-    },
-    elements: [
-      {
-        elType: "column",
-        settings: {
-          _column_size: 100,
-          _inline_size: null,
-          content_position: "top",
-          space_between_widgets: "20",
-          padding: {
-            unit: "px",
-            top: "10",
-            right: "10",
-            bottom: "10",
-            left: "10",
-            isLinked: true
-          }
-        },
-        elements: elements
-      }
-    ]
-  };
-  
-  return [containerSection];
 };
 
 // Função para remover propriedades de estilo recursivamente
@@ -208,93 +170,6 @@ const removeStyleProperties = (elements: any[], shouldRemoveStyles: boolean): an
           cleanSettings[key] = newElement.settings[key];
         }
       });
-      
-      if (shouldRemoveStyles) {
-        // Typography and styling adjustments
-        if (element.widgetType === 'heading') {
-          // Maintain strong typography for headings
-          cleanSettings.typography_font_family = 'Inter';
-          cleanSettings.typography_font_weight = '600';
-          cleanSettings.title_color = '#1F2937';
-
-          // Specific sizes based on header type
-          if (cleanSettings.header_size === 'h1') {
-            cleanSettings.typography_font_size = { size: 56, unit: 'px', sizes: [] };
-            cleanSettings.typography_line_height = { size: '120%', unit: 'custom', sizes: [] };
-          } else if (cleanSettings.header_size === 'h2') {
-            cleanSettings.typography_font_size = { size: 48, unit: 'px', sizes: [] };
-            cleanSettings.typography_line_height = { size: '120%', unit: 'custom', sizes: [] };
-          } else if (cleanSettings.header_size === 'h3') {
-            cleanSettings.typography_font_size = { size: 36, unit: 'px', sizes: [] };
-            cleanSettings.typography_line_height = { size: '130%', unit: 'custom', sizes: [] };
-          } else if (cleanSettings.header_size === 'h4') {
-            cleanSettings.typography_font_size = { size: 24, unit: 'px', sizes: [] };
-            cleanSettings.typography_line_height = { size: '140%', unit: 'custom', sizes: [] };
-          } else if (cleanSettings.header_size === 'h5' || cleanSettings.header_size === 'h6') {
-            cleanSettings.typography_font_size = { size: 20, unit: 'px', sizes: [] };
-            cleanSettings.typography_line_height = { size: '140%', unit: 'custom', sizes: [] };
-          }
-        }
-
-        if (element.widgetType === 'text-editor') {
-          cleanSettings.typography_font_family = 'Inter';
-          cleanSettings.typography_font_weight = '400';
-          cleanSettings.typography_font_size = { size: 18, unit: 'px', sizes: [] };
-          cleanSettings.text_color = '#4B5563';
-          cleanSettings.typography_line_height = { size: '150%', unit: 'custom', sizes: [] };
-        }
-
-        if (element.widgetType === 'button') {
-          // Good padding for buttons
-          cleanSettings.text_padding = {
-            top: '16', 
-            left: '32', 
-            right: '32', 
-            bottom: '16', 
-            unit: 'px', 
-            isLinked: false
-          };
-          
-          cleanSettings.typography_font_family = 'Inter';
-          cleanSettings.typography_font_weight = '500';
-          cleanSettings.typography_font_size = { size: 16, unit: 'px', sizes: [] };
-          
-          // Primary button style
-          if (!cleanSettings.text || 
-              (!cleanSettings.text.includes("Learn more") && 
-               !cleanSettings.text.includes("Saiba"))) {
-            cleanSettings.background_color = '#0047FF';
-            cleanSettings.button_text_color = '#FFFFFF';
-            cleanSettings.border_radius = { 
-              top: 8, right: 8, bottom: 8, left: 8, 
-              unit: 'px', 
-              isLinked: true 
-            };
-          } else {
-            // Secondary button style
-            cleanSettings.background_color = '#FFFFFF';
-            cleanSettings.button_text_color = '#344054';
-            cleanSettings.border_color = '#D0D5DD';
-            cleanSettings.border_width = { 
-              top: 1, right: 1, bottom: 1, left: 1, 
-              unit: 'px', 
-              isLinked: true 
-            };
-            cleanSettings.border_radius = { 
-              top: 8, right: 8, bottom: 8, left: 8, 
-              unit: 'px', 
-              isLinked: true 
-            };
-          }
-        }
-
-        // Image placeholder
-        if (element.widgetType === 'image') {
-          if (cleanSettings.image && cleanSettings.image.url) {
-            cleanSettings.image.url = 'https://placehold.co/800x640/F2F4F7/4A5568?text=Image';
-          }
-        }
-      }
       
       newElement.settings = cleanSettings;
     }

@@ -19,10 +19,10 @@ const ProcessJsonButton: React.FC<ProcessJsonButtonProps> = ({
       size="sm"
       onClick={onProcessJson}
       disabled={disabled}
-      className="flex items-center gap-1"
+      className="flex items-center gap-1 bg-green-600 hover:bg-green-700"
     >
       <Wand2 size={14} />
-      <span>Processar JSON</span>
+      <span>Transformar em Container</span>
     </Button>
   );
 };
