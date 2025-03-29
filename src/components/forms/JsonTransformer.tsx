@@ -1,20 +1,23 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useForm } from 'react-hook-form';
 import { Form, FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
 import JsonFileUploader from './json/JsonFileUploader';
-import { cleanElementorJson } from '@/utils/jsonUtils';
+import { cleanElementorJson, validateJson } from '@/utils/jsonUtils';
 import { toast } from 'sonner';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui';
-import { Info } from 'lucide-react';
+import { Info, ArrowRight } from 'lucide-react';
 import JsonCopyButton from './json/JsonCopyButton';
 import ProcessJsonButton from './json/ProcessJsonButton';
 import ClaudeJsonAnalyzer from './ClaudeJsonAnalyzer';
 
 const JsonTransformer = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('upload');
   const [isValidJson, setIsValidJson] = useState(true);
   const [isValidating, setIsValidating] = useState(false);
@@ -50,6 +53,22 @@ const JsonTransformer = () => {
     }
   };
 
+  const handleCreateComponent = () => {
+    const currentJson = form.getValues('jsonCode');
+    
+    if (!currentJson || !isValidJson) {
+      toast.error('Por favor, verifique se o JSON é válido antes de criar um componente');
+      return;
+    }
+    
+    // Armazenar o JSON processado na sessionStorage para usar na página de criação
+    sessionStorage.setItem('processedJson', currentJson);
+    
+    // Redirecionar para a página de criação de componente
+    navigate('/components/new');
+    toast.success('JSON processado! Preencha os detalhes do componente');
+  };
+
   const handleJsonLoaded = (jsonContent: string) => {
     form.setValue('jsonCode', jsonContent);
     setActiveTab('edit');
@@ -81,7 +100,7 @@ const JsonTransformer = () => {
       <CardHeader>
         <CardTitle className="text-xl">Transformador de JSON do Elementor</CardTitle>
         <CardDescription>
-          Faça upload do JSON do Elementor, transforme e copie para utilizar
+          Faça upload do JSON do Elementor, transforme e crie um componente
         </CardDescription>
       </CardHeader>
       
@@ -102,6 +121,16 @@ const JsonTransformer = () => {
           />
           
           <JsonCopyButton getJsonContent={getJsonContent} />
+          
+          <Button 
+            variant="default" 
+            className="gap-1"
+            onClick={handleCreateComponent}
+            disabled={!isValidJson}
+          >
+            Criar Componente
+            <ArrowRight className="h-4 w-4" />
+          </Button>
           
           {!isValidJson && (
             <div className="flex items-center text-destructive gap-1 text-sm ml-2">
@@ -133,7 +162,7 @@ const JsonTransformer = () => {
                       <Textarea 
                         placeholder='{"type": "elementor", "elements": [...]}'
                         className="min-h-[200px] font-mono text-sm"
-                        {...field} 
+                        value={field.value}
                         onChange={(e) => {
                           field.onChange(e);
                           validateJsonContent(e.target.value);

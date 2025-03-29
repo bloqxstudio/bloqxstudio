@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
 import { UseFormReturn } from 'react-hook-form';
-import { FormValues } from './componentFormSchema';
 import { validateJson, validateElementorJson } from '@/utils/jsonUtils';
 import JsonToolsExplanation from './JsonToolsExplanation';
 import ProcessJsonButton from './json/ProcessJsonButton';
@@ -12,7 +11,7 @@ import JsonValidityIndicator from './json/JsonValidityIndicator';
 import ElementorJsonAlert from './json/ElementorJsonAlert';
 
 interface JsonCodeSectionProps {
-  form: UseFormReturn<FormValues> | UseFormReturn<any>;
+  form: UseFormReturn<any>;
   onProcessJson: () => void;
   simplified?: boolean;
   onContentChange?: (content: string) => void;
@@ -117,7 +116,7 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
               <Textarea 
                 placeholder='{"type": "elementor", "elements": [...]}'
                 className="min-h-[200px] font-mono text-sm"
-                {...field} 
+                value={field.value}
                 onChange={(e) => {
                   field.onChange(e);
                   setJsonContent(e.target.value);

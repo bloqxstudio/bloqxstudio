@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -44,6 +44,17 @@ const ComponentCreateForm = () => {
       elements: []
     }
   });
+
+  // Verificar se existe um JSON processado na sessionStorage
+  useEffect(() => {
+    const processedJson = sessionStorage.getItem('processedJson');
+    if (processedJson) {
+      form.setValue('jsonCode', processedJson);
+      // Limpar depois de carregar
+      sessionStorage.removeItem('processedJson');
+      toast.info('JSON carregado da transformação anterior');
+    }
+  }, [form]);
 
   // Mutation for creating component
   const createMutation = useMutation({
