@@ -70,6 +70,12 @@ const JsonTransformer = () => {
 
   const getJsonContent = () => form.getValues('jsonCode');
 
+  // Define the handleJsonUpdate function inside the component
+  const handleJsonUpdate = (updatedJson: string) => {
+    form.setValue('jsonCode', updatedJson);
+    toast.success('JSON atualizado com as sugestões do Claude');
+  };
+
   return (
     <Card className="border shadow-sm">
       <CardHeader>
@@ -155,11 +161,6 @@ const JsonTransformer = () => {
       </CardContent>
     </Card>
   );
-};
-
-const handleJsonUpdate = (updatedJson: string) => {
-  form.setValue('jsonCode', updatedJson);
-  toast.success('JSON atualizado com as sugestões do Claude');
 };
 
 export default JsonTransformer;

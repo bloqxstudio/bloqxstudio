@@ -32,7 +32,7 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
   
   useEffect(() => {
     // Subscribe to form changes without arguments
-    const subscription = form.watch((value) => {
+    const subscription = form.watch(() => {
       const currentJsonCode = form.getValues('jsonCode');
       setJsonContent(currentJsonCode);
       validateJsonContent(currentJsonCode);
