@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Check, AlertCircle } from 'lucide-react';
+import { Check, AlertCircle, Loader2 } from 'lucide-react';
 
 interface JsonValidityIndicatorProps {
   isValidJson: boolean;
@@ -15,7 +15,14 @@ const JsonValidityIndicator: React.FC<JsonValidityIndicatorProps> = ({
   hasContent,
   isValidating = false
 }) => {
-  if (isValidating) return null;
+  if (isValidating) {
+    return (
+      <div className="mt-2 flex items-center text-muted-foreground gap-1 text-sm">
+        <Loader2 size={16} className="animate-spin" />
+        <span>Validando JSON...</span>
+      </div>
+    );
+  }
   
   if (!hasContent) return null;
   

@@ -28,38 +28,61 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
   const [isValidatingJson, setIsValidatingJson] = useState(false);
   const [isElementorJson, setIsElementorJson] = useState(true);
   const [showExplanation, setShowExplanation] = useState(false);
+  const [jsonContent, setJsonContent] = useState('');
   
-  // Watch the jsonCode field
-  const jsonCode = form.watch('jsonCode');
-  
+  // Use form.getValues instead of form.watch for better performance
   useEffect(() => {
-    if (jsonCode) {
-      setIsValidatingJson(true);
-      
-      try {
-        const isValid = validateJson(jsonCode);
-        setIsValidJson(isValid);
-        
-        if (isValid) {
-          const jsonObj = JSON.parse(jsonCode);
-          const isElementor = validateElementorJson(jsonObj);
-          setIsElementorJson(isElementor);
-        } else {
-          setIsElementorJson(false);
-        }
-        
-        // Call the onContentChange callback if provided
-        if (onContentChange) {
-          onContentChange(jsonCode);
-        }
-      } catch (error) {
-        setIsValidJson(false);
-        setIsElementorJson(false);
-      } finally {
-        setIsValidatingJson(false);
+    const subscription = form.watch((value, { name }) => {
+      if (name === 'jsonCode' || name === undefined) {
+        const currentJsonCode = form.getValues('jsonCode');
+        setJsonContent(currentJsonCode);
+        validateJsonContent(currentJsonCode);
       }
+    });
+    
+    // Initial validation on component mount
+    const initialValue = form.getValues('jsonCode');
+    if (initialValue) {
+      setJsonContent(initialValue);
+      validateJsonContent(initialValue);
     }
-  }, [jsonCode, onContentChange]);
+    
+    return () => subscription.unsubscribe();
+  }, [form]);
+  
+  const validateJsonContent = (content: string) => {
+    if (!content) {
+      setIsValidJson(true); // Empty is considered valid initially
+      setIsElementorJson(true);
+      return;
+    }
+    
+    setIsValidatingJson(true);
+    
+    try {
+      const isValid = validateJson(content);
+      setIsValidJson(isValid);
+      
+      if (isValid) {
+        const jsonObj = JSON.parse(content);
+        const isElementor = validateElementorJson(jsonObj);
+        setIsElementorJson(isElementor);
+      } else {
+        setIsElementorJson(false);
+      }
+      
+      // Call the onContentChange callback if provided
+      if (onContentChange) {
+        onContentChange(content);
+      }
+    } catch (error) {
+      setIsValidJson(false);
+      setIsElementorJson(false);
+      console.error('Error validating JSON:', error);
+    } finally {
+      setIsValidatingJson(false);
+    }
+  };
 
   const getJsonContent = () => form.getValues('jsonCode');
 
@@ -93,7 +116,7 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
               
               <JsonCopyButton getJsonContent={getJsonContent} />
               
-              {!isValidJson && field.value && (
+              {!isValidJson && jsonContent && (
                 <div className="flex items-center text-destructive gap-1 text-sm ml-2">
                   <span>JSON inválido</span>
                 </div>
@@ -111,11 +134,11 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
             <JsonValidityIndicator 
               isValidJson={isValidJson} 
               isElementorJson={isElementorJson}
-              hasContent={!!field.value && field.value.length > 0}
+              hasContent={!!jsonContent}
               isValidating={isValidatingJson}
             />
             
-            {isValidJson && field.value && field.value.length > 0 && !isElementorJson && (
+            {isValidJson && jsonContent && !isElementorJson && (
               <ElementorJsonAlert />
             )}
             

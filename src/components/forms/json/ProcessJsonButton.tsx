@@ -1,16 +1,18 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Wand2 } from 'lucide-react';
+import { Wand2, Loader2 } from 'lucide-react';
 
 interface ProcessJsonButtonProps {
   onProcessJson: () => void;
   disabled: boolean;
+  loading?: boolean;
 }
 
 const ProcessJsonButton: React.FC<ProcessJsonButtonProps> = ({
   onProcessJson,
-  disabled
+  disabled,
+  loading = false
 }) => {
   return (
     <Button 
@@ -18,11 +20,15 @@ const ProcessJsonButton: React.FC<ProcessJsonButtonProps> = ({
       variant="default" 
       size="sm"
       onClick={onProcessJson}
-      disabled={disabled}
+      disabled={disabled || loading}
       className="flex items-center gap-1 bg-green-600 hover:bg-green-700"
     >
-      <Wand2 size={14} />
-      <span>Transformar em Container</span>
+      {loading ? (
+        <Loader2 size={14} className="animate-spin" />
+      ) : (
+        <Wand2 size={14} />
+      )}
+      <span>{loading ? 'Processando...' : 'Transformar em Container'}</span>
     </Button>
   );
 };
