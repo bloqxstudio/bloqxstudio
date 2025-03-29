@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
@@ -30,8 +31,15 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
   const [jsonContent, setJsonContent] = useState('');
   
   useEffect(() => {
-    // Subscribe to form changes without arguments
-    const subscription = form.watch();
+    // Set up a subscription to watch for changes to the jsonCode field
+    const subscription = form.watch((values, { name }) => {
+      // Only update if the jsonCode field changed
+      if (name === 'jsonCode') {
+        const currentValue = form.getValues('jsonCode');
+        setJsonContent(currentValue);
+        validateJsonContent(currentValue);
+      }
+    });
     
     // Initial validation on component mount
     const initialValue = form.getValues('jsonCode');
@@ -40,7 +48,7 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
       validateJsonContent(initialValue);
     }
     
-    // Cleanup subscription
+    // Cleanup subscription on unmount
     return () => subscription.unsubscribe();
   }, [form]);
   
@@ -123,6 +131,11 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
                 placeholder='{"type": "elementor", "elements": [...]}'
                 className="min-h-[200px] font-mono text-sm"
                 {...field} 
+                onChange={(e) => {
+                  field.onChange(e);
+                  setJsonContent(e.target.value);
+                  validateJsonContent(e.target.value);
+                }}
               />
             </FormControl>
             
