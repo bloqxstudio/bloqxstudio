@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
@@ -32,11 +31,7 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
   
   useEffect(() => {
     // Subscribe to form changes without arguments
-    const subscription = form.watch(() => {
-      const currentJsonCode = form.getValues('jsonCode');
-      setJsonContent(currentJsonCode);
-      validateJsonContent(currentJsonCode);
-    });
+    const subscription = form.watch();
     
     // Initial validation on component mount
     const initialValue = form.getValues('jsonCode');
