@@ -37,9 +37,6 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
       setJsonContent(initialValue);
       validateJsonContent(initialValue);
     }
-    
-    // No need for cleanup
-    return () => {};
   }, [form]);
   
   const validateJsonContent = (content: string) => {
