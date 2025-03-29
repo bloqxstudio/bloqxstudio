@@ -5,8 +5,10 @@ import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui';
 import { X } from 'lucide-react';
 import ComponentCreateForm from '@/components/forms/ComponentCreateForm';
+import JsonTransformer from '@/components/forms/JsonTransformer';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui';
 
 const ComponentCreate = () => {
   const navigate = useNavigate();
@@ -37,7 +39,7 @@ const ComponentCreate = () => {
       <main className="flex-grow container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-3xl font-bold tracking-tighter">Criar novo componente</h1>
+            <h1 className="text-3xl font-bold tracking-tighter">Ferramenta para Componentes</h1>
             <p className="text-muted-foreground mt-1">
               Componentes curados pelo nosso time
             </p>
@@ -48,7 +50,20 @@ const ComponentCreate = () => {
           </Button>
         </div>
         
-        <ComponentCreateForm />
+        <Tabs defaultValue="create" className="mb-8">
+          <TabsList className="grid w-full grid-cols-2 max-w-md mb-6">
+            <TabsTrigger value="create">Criar Componente</TabsTrigger>
+            <TabsTrigger value="transform">Transformar JSON</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="create">
+            <ComponentCreateForm />
+          </TabsContent>
+          
+          <TabsContent value="transform">
+            <JsonTransformer />
+          </TabsContent>
+        </Tabs>
       </main>
       
       <footer className="border-t py-6">

@@ -13,7 +13,7 @@ import JsonValidityIndicator from './json/JsonValidityIndicator';
 import ElementorJsonAlert from './json/ElementorJsonAlert';
 
 interface JsonCodeSectionProps {
-  form: UseFormReturn<FormValues>;
+  form: UseFormReturn<FormValues> | UseFormReturn<any>;
   onProcessJson: () => void;
   simplified?: boolean;
 }
@@ -63,7 +63,7 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
         render={({ field }) => (
           <FormItem>
             <div className="flex justify-between items-center">
-              <FormLabel>Código JSON do Elementor*</FormLabel>
+              <FormLabel>Código JSON do Elementor{simplified ? '' : '*'}</FormLabel>
               {!simplified && (
                 <button 
                   type="button" 
@@ -85,7 +85,7 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
               
               <JsonCopyButton getJsonContent={getJsonContent} />
               
-              {!isValidJson && (
+              {!isValidJson && field.value && (
                 <div className="flex items-center text-destructive gap-1 text-sm ml-2">
                   <span>JSON inválido</span>
                 </div>
