@@ -10,6 +10,22 @@ import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui';
 
+const PageWrapper = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <div className="min-h-screen flex flex-col bg-background">
+      <Navbar />
+      <main className="flex-grow container mx-auto px-4 py-8">
+        {children}
+      </main>
+      <footer className="border-t py-6">
+        <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
+          &copy; {new Date().getFullYear()} Bloqx Studio. Todos os direitos reservados.
+        </div>
+      </footer>
+    </div>
+  );
+};
+
 const ComponentCreate = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -33,45 +49,35 @@ const ComponentCreate = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <Navbar />
-      
-      <main className="flex-grow container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tighter">Ferramenta para Componentes</h1>
-            <p className="text-muted-foreground mt-1">
-              Componentes curados pelo nosso time
-            </p>
-          </div>
-          <Button variant="outline" size="sm" onClick={handleCancel}>
-            <X className="h-4 w-4 mr-1" />
-            Cancelar
-          </Button>
+    <PageWrapper>
+      <div className="flex justify-between items-center mb-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tighter">Ferramenta para Componentes</h1>
+          <p className="text-muted-foreground mt-1">
+            Componentes curados pelo nosso time
+          </p>
         </div>
+        <Button variant="outline" size="sm" onClick={handleCancel}>
+          <X className="h-4 w-4 mr-1" />
+          Cancelar
+        </Button>
+      </div>
+      
+      <Tabs defaultValue="create" className="mb-8">
+        <TabsList className="grid w-full grid-cols-2 max-w-md mb-6">
+          <TabsTrigger value="create">Criar Componente</TabsTrigger>
+          <TabsTrigger value="transform">Transformar JSON</TabsTrigger>
+        </TabsList>
         
-        <Tabs defaultValue="create" className="mb-8">
-          <TabsList className="grid w-full grid-cols-2 max-w-md mb-6">
-            <TabsTrigger value="create">Criar Componente</TabsTrigger>
-            <TabsTrigger value="transform">Transformar JSON</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="create">
-            <ComponentCreateForm />
-          </TabsContent>
-          
-          <TabsContent value="transform">
-            <JsonTransformer />
-          </TabsContent>
-        </Tabs>
-      </main>
-      
-      <footer className="border-t py-6">
-        <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          &copy; {new Date().getFullYear()} Bloqx Studio. Todos os direitos reservados.
-        </div>
-      </footer>
-    </div>
+        <TabsContent value="create">
+          <ComponentCreateForm />
+        </TabsContent>
+        
+        <TabsContent value="transform">
+          <JsonTransformer />
+        </TabsContent>
+      </Tabs>
+    </PageWrapper>
   );
 };
 

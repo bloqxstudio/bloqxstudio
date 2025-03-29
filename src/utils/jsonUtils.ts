@@ -94,8 +94,8 @@ const transformElementsToContainer = (elements: any[]): any[] => {
     // Clonar o elemento para não modificar o original
     const newElement = { ...element };
     
-    // Se o elemento for uma seção, transformar em container
-    if (newElement.elType === "section") {
+    // Se o elemento for uma seção ou coluna, transformar em container
+    if (newElement.elType === "section" || newElement.elType === "column") {
       newElement.elType = "container";
       
       // Ajustar configurações para container
@@ -112,7 +112,10 @@ const transformElementsToContainer = (elements: any[]): any[] => {
             unit: "px",
             size: 10,
             sizes: []
-          }
+          },
+          flex_direction: newElement.settings.flex_direction || "row",
+          flex_wrap: newElement.settings.flex_wrap || "wrap",
+          content_position: newElement.settings.content_position || "center"
         };
       }
     }
@@ -127,7 +130,7 @@ const transformElementsToContainer = (elements: any[]): any[] => {
 };
 
 // Função para remover propriedades de estilo recursivamente
-const removeStyleProperties = (elements: any[], shouldRemoveStyles: boolean): any[] => {
+const removeStyleProperties = (elements: any[]): any[] => {
   if (!elements || !Array.isArray(elements)) return [];
   
   return elements.map(element => {
@@ -139,7 +142,7 @@ const removeStyleProperties = (elements: any[], shouldRemoveStyles: boolean): an
       // Manter apenas propriedades essenciais e remover estilos
       const cleanSettings: any = {};
       
-      // Lista de propriedades a manter mesmo em modo wireframe
+      // Lista de propriedades a manter mesmo
       const essentialProps = [
         'content_width', 'structure', '_title', 'html_tag',
         'title', 'editor', 'text', 'link', 'url', 'selected_icon',
@@ -158,7 +161,7 @@ const removeStyleProperties = (elements: any[], shouldRemoveStyles: boolean): an
       // Copiar apenas propriedades essenciais
       Object.keys(newElement.settings).forEach(key => {
         const isEssential = essentialProps.some(prop => key.includes(prop));
-        const isLayout = !shouldRemoveStyles || layoutProps.some(prop => key.includes(prop));
+        const isLayout = layoutProps.some(prop => key.includes(prop));
         
         // Remover propriedades começando com '__globals__' e certos prefixos
         const isGlobal = key.startsWith('__globals__');
@@ -176,7 +179,7 @@ const removeStyleProperties = (elements: any[], shouldRemoveStyles: boolean): an
     
     // Process child elements recursively
     if (newElement.elements && Array.isArray(newElement.elements)) {
-      newElement.elements = removeStyleProperties(newElement.elements, shouldRemoveStyles);
+      newElement.elements = removeStyleProperties(newElement.elements);
     }
     
     return newElement;
