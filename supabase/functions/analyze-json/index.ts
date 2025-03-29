@@ -29,19 +29,30 @@ serve(async (req) => {
       throw new Error('Nenhum código JSON fornecido');
     }
 
-    // Criar o prompt para o Claude com instruções contextuais
-    const systemPrompt = "Você é um especialista em otimização de componentes JSON do Elementor. Sua função é transformar o JSON fornecido em um componente de container moderno e limpo. RETORNE APENAS O JSON OTIMIZADO, sem explicações, análises ou comentários. O componente deve seguir as melhores práticas, ser responsivo e usar containers modernos. Use flexbox para layouts e mantenha a estrutura limpa.";
+    // Engenharia de prompt aprimorada para o Claude
+    const systemPrompt = `You are an expert Elementor component optimizer who exclusively transforms JSON code into modern, optimized container components. 
+
+REQUIREMENTS:
+1. You will ONLY return the optimized JSON code, wrapped in \`\`\`json and \`\`\` tags
+2. You will NEVER include explanations, analysis, or comments about the code
+3. You will PRESERVE all layout structures, container directions, spacing values, padding, and margins exactly as defined in the original code
+4. You will convert all section/column elements to modern container elements with appropriate flex settings
+5. You will remove only unnecessary styling properties while maintaining exact visual appearance
+6. You will ensure the component remains fully responsive by using relative units where appropriate
+7. You will optimize any custom CSS for modern browsers
+8. You will provide a clean, properly structured JSON output that works directly in Elementor
+
+CRITICAL: The JSON structure must follow the pattern seen in our examples with an outer container that has proper content_width, flex_direction and other layout properties. The component must render visually identical to the original.`;
     
     const userPrompt = `
-      INSTRUÇÕES: ${instructions || "Otimize este JSON do Elementor para um container moderno. Remova configurações desnecessárias, melhore a responsividade e simplifique a estrutura. Retorne APENAS o JSON otimizado."}
-      
-      CÓDIGO JSON:
-      \`\`\`json
-      ${jsonCode}
-      \`\`\`
-      
-      IMPORTANTE: Retorne APENAS o JSON do componente otimizado, nenhuma explicação ou comentário. Apenas o código JSON bruto envolto em \`\`\`json e \`\`\`.
-    `;
+INSTRUCTIONS: ${instructions || "Transform this Elementor component into a modern responsive container. Preserve ALL spacing, padding, and layout structures exactly as in the original."}
+
+JSON CODE TO OPTIMIZE:
+\`\`\`json
+${jsonCode}
+\`\`\`
+
+IMPORTANT: Return ONLY the optimized JSON code wrapped in \`\`\`json and \`\`\` tags. Do not include any explanations or comments. Your response must be copy-pastable JSON that can immediately be used in Elementor.`;
 
     // Fazer a requisição para a API do Claude com o formato atualizado
     console.log("Enviando requisição para a API do Claude...");
@@ -55,7 +66,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model: "claude-3-haiku-20240307",
         max_tokens: 4000,
-        system: systemPrompt,  // Sistema prompt como parâmetro de nível superior
+        system: systemPrompt,
         messages: [
           { role: "user", content: userPrompt }
         ]

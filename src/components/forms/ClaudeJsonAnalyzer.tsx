@@ -38,7 +38,7 @@ const ClaudeJsonAnalyzer: React.FC<AnalyzerProps> = ({
 
   const form = useForm({
     defaultValues: {
-      instructions: "Otimize este JSON para container moderno, responsivo e limpo. Remova propriedades desnecessárias e simplifique a estrutura. Retorne apenas o JSON otimizado."
+      instructions: "Transform this Elementor component into a modern responsive container. Keep all spacing, padding, and flex directions. Improve responsiveness and remove unnecessary properties while maintaining the original structure and functionality."
     }
   });
 
@@ -111,7 +111,11 @@ const ClaudeJsonAnalyzer: React.FC<AnalyzerProps> = ({
   };
 
   const useQuickPrompt = () => {
-    form.setValue("instructions", "Transforme este componente em um container moderno e responsivo. Simplifique ao máximo a estrutura mantendo a funcionalidade. Remova propriedades desnecessárias. Retorne APENAS o JSON final.");
+    form.setValue("instructions", "Optimize this Elementor component by converting all sections and columns to modern flex containers. Preserve all spacing, padding, margins, and flex directions. Remove unnecessary styling properties but keep the exact structure and layout. Return ONLY the optimized JSON without explanations.");
+  };
+
+  const useExpertPrompt = () => {
+    form.setValue("instructions", "You are a senior front-end developer specializing in Elementor. Transform this JSON into a highly optimized and responsive container component. CRITICAL REQUIREMENTS: 1) Preserve ALL flex directions, container structures, spacing values and padding; 2) Convert all sections/columns to modern containers with proper flex settings; 3) Remove only unnecessary styling properties while keeping layout intact; 4) Ensure the component remains visually identical; 5) Return ONLY the optimized JSON code with no explanations.");
   };
 
   return (
@@ -138,23 +142,35 @@ const ClaudeJsonAnalyzer: React.FC<AnalyzerProps> = ({
                     <Textarea 
                       placeholder="Ex: Transforme em container moderno e responsivo" 
                       {...field} 
-                      rows={2}
+                      rows={3}
                     />
                   </FormControl>
-                  <FormDescription className="flex justify-between items-center">
+                  <FormDescription className="flex flex-wrap justify-between items-center gap-2">
                     <span>
                       Descreva como o componente deve ser otimizado
                     </span>
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={useQuickPrompt}
-                      className="text-xs"
-                    >
-                      <Code className="h-3 w-3 mr-1" />
-                      Usar prompt padrão
-                    </Button>
+                    <div className="flex flex-wrap gap-2">
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={useQuickPrompt}
+                        className="text-xs"
+                      >
+                        <Code className="h-3 w-3 mr-1" />
+                        Prompt básico
+                      </Button>
+                      <Button 
+                        type="button" 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={useExpertPrompt}
+                        className="text-xs"
+                      >
+                        <Sparkles className="h-3 w-3 mr-1" />
+                        Prompt avançado
+                      </Button>
+                    </div>
                   </FormDescription>
                 </FormItem>
               )}
