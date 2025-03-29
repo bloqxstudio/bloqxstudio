@@ -12,7 +12,7 @@ import {
   CardContent,
   Form,
 } from '@/components/ui';
-import { validateJson, validateElementorJson } from '@/utils/jsonUtils';
+import { validateJson, cleanElementorJson, validateElementorJson } from '@/utils/jsonUtils';
 import { formSchema, type FormValues } from './componentFormSchema';
 
 // Import the smaller components
@@ -30,6 +30,7 @@ const ComponentCreateForm = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isProcessingJson, setIsProcessingJson] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -73,7 +74,6 @@ const ComponentCreateForm = () => {
   };
 
   const handleProcessJson = () => {
-    // Esta função agora é usada apenas para validar o JSON antes de enviar
     const currentJson = form.getValues('jsonCode');
     
     if (!currentJson) {
@@ -81,19 +81,25 @@ const ComponentCreateForm = () => {
       return;
     }
     
-    // Validar o JSON
+    setIsProcessingJson(true);
+    
     try {
+      // Validar e transformar o JSON
       if (!validateJson(currentJson)) {
         toast.error('O código não é um JSON válido. Verifique a sintaxe.');
         return;
       }
       
-      const jsonObj = JSON.parse(currentJson);
-      if (!validateElementorJson(jsonObj)) {
-        toast.warning('O JSON não parece ser um componente Elementor válido.');
-      }
+      // Transformar em container
+      const cleanedJson = cleanElementorJson(currentJson, false, true);
+      form.setValue('jsonCode', cleanedJson);
+      toast.success('JSON validado e transformado em container!');
+      
     } catch (e) {
-      console.error('Erro ao validar JSON:', e);
+      console.error('Erro ao processar JSON:', e);
+      toast.error('Erro ao processar o JSON. Verifique o formato.');
+    } finally {
+      setIsProcessingJson(false);
     }
   };
 

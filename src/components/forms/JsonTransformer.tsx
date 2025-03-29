@@ -18,6 +18,7 @@ const JsonTransformer = () => {
   const [activeTab, setActiveTab] = useState('upload');
   const [isValidJson, setIsValidJson] = useState(true);
   const [isValidating, setIsValidating] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   
   const form = useForm({
     defaultValues: {
@@ -33,15 +34,19 @@ const JsonTransformer = () => {
       return;
     }
     
+    setIsProcessing(true);
+    
     try {
       // Sempre transformar em container, sem opção de wireframe
       const cleanedJson = cleanElementorJson(currentJson, false, true);
       form.setValue('jsonCode', cleanedJson);
       
-      toast.success('JSON processado e transformado em container com sucesso!');
+      toast.success('JSON transformado em container com sucesso!');
     } catch (e) {
       console.error('Erro ao processar JSON:', e);
       toast.error('Erro ao processar o JSON. Verifique se é um código válido.');
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -64,11 +69,6 @@ const JsonTransformer = () => {
   };
 
   const getJsonContent = () => form.getValues('jsonCode');
-  
-  const handleJsonUpdate = (updatedJson: string) => {
-    form.setValue('jsonCode', updatedJson);
-    toast.success('JSON atualizado com as sugestões do Claude');
-  };
 
   return (
     <Card className="border shadow-sm">
@@ -91,7 +91,8 @@ const JsonTransformer = () => {
         <div className="flex flex-wrap gap-2 mb-4">
           <ProcessJsonButton 
             onProcessJson={handleProcessJson} 
-            disabled={!isValidJson || isValidating} 
+            disabled={!isValidJson || isValidating}
+            loading={isProcessing}
           />
           
           <JsonCopyButton getJsonContent={getJsonContent} />
@@ -154,6 +155,11 @@ const JsonTransformer = () => {
       </CardContent>
     </Card>
   );
+};
+
+const handleJsonUpdate = (updatedJson: string) => {
+  form.setValue('jsonCode', updatedJson);
+  toast.success('JSON atualizado com as sugestões do Claude');
 };
 
 export default JsonTransformer;
