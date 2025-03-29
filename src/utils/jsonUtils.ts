@@ -34,7 +34,7 @@ export const validateElementorJson = (jsonObj: any): boolean => {
   return false;
 };
 
-export const cleanElementorJson = (jsonString: string, removeStyles = false, wrapInContainer = false): string => {
+export const cleanElementorJson = (jsonString: string, removeStyles = false, wrapInContainer = true): string => {
   try {
     // Validar primeiro
     if (!validateJson(jsonString)) {
@@ -68,9 +68,9 @@ export const cleanElementorJson = (jsonString: string, removeStyles = false, wra
       }
     }
 
-    // Aplicar opção de envolver em container
+    // Aplicar transformação para container
     if (wrapInContainer) {
-      elements = wrapElementsInContainer(elements);
+      elements = transformElementsToContainer(elements);
     }
 
     // Formato básico
@@ -80,7 +80,7 @@ export const cleanElementorJson = (jsonString: string, removeStyles = false, wra
       elements: elements || []
     };
 
-    // Se removeStyles for true, remover propriedades de estilo
+    // Se removeStyles for true, remover propriedades de estilo (mantido por compatibilidade)
     if (removeStyles) {
       cleaned.elements = removeStyleProperties(cleaned.elements, removeStyles);
     }
@@ -90,6 +90,28 @@ export const cleanElementorJson = (jsonString: string, removeStyles = false, wra
     console.error("Erro ao limpar JSON:", e);
     return jsonString; // Retornar o original em caso de erro
   }
+};
+
+// Nova função para transformar todos os elType para "container"
+const transformElementsToContainer = (elements: any[]): any[] => {
+  if (!elements || elements.length === 0) return [];
+  
+  return elements.map(element => {
+    // Clonar o elemento para não modificar o original
+    const newElement = { ...element };
+    
+    // Se o elemento for uma seção, transformar em container
+    if (newElement.elType === "section") {
+      newElement.elType = "container";
+    }
+    
+    // Processar elementos filhos recursivamente
+    if (newElement.elements && Array.isArray(newElement.elements)) {
+      newElement.elements = transformElementsToContainer(newElement.elements);
+    }
+    
+    return newElement;
+  });
 };
 
 // Função para envolver elementos em um container

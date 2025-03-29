@@ -20,7 +20,7 @@ const ContainerToggle: React.FC<ContainerToggleProps> = ({
       className="flex items-center gap-1 h-9 px-3"
     >
       <Box size={14} />
-      <span>Container</span>
+      <span>Transformar em Container</span>
     </Toggle>
   );
 };

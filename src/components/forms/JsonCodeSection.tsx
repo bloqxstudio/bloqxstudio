@@ -5,7 +5,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { UseFormReturn } from 'react-hook-form';
 import { FormValues } from './componentFormSchema';
 import { validateJson, validateElementorJson } from '@/utils/jsonUtils';
-import { toast } from 'sonner';
 import JsonToolsExplanation from './JsonToolsExplanation';
 import ProcessJsonButton from './json/ProcessJsonButton';
 import JsonCopyButton from './json/JsonCopyButton';
@@ -121,7 +120,7 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
             )}
             
             <FormDescription>
-              Cole o código JSON do Elementor conforme o exemplo fornecido
+              Cole o código JSON do Elementor para transformá-lo em container
             </FormDescription>
             <FormMessage />
           </FormItem>

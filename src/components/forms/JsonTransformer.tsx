@@ -9,13 +9,12 @@ import JsonCodeSection from './JsonCodeSection';
 import { cleanElementorJson } from '@/utils/jsonUtils';
 import { toast } from 'sonner';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui';
-import { AlertCircle, Info } from 'lucide-react';
+import { Info } from 'lucide-react';
 import JsonActionsToolbar from './json/JsonActionsToolbar';
 
 const JsonTransformer = () => {
   const [activeTab, setActiveTab] = useState('upload');
-  const [removeStyles, setRemoveStyles] = useState(false);
-  const [wrapInContainer, setWrapInContainer] = useState(false);
+  const [wrapInContainer, setWrapInContainer] = useState(true);
   const [isValidJson, setIsValidJson] = useState(true);
   const [isValidating, setIsValidating] = useState(false);
   
@@ -34,19 +33,11 @@ const JsonTransformer = () => {
     }
     
     try {
-      // Limpar o JSON com a opção de remover estilos e envolver em container
-      const cleanedJson = cleanElementorJson(currentJson, removeStyles, wrapInContainer);
+      // Limpar o JSON com a opção de envolver em container sempre ativada
+      const cleanedJson = cleanElementorJson(currentJson, false, true);
       form.setValue('jsonCode', cleanedJson);
       
-      let successMessage = removeStyles 
-        ? 'JSON limpo e formatado com estilo wireframe aplicado!'
-        : 'JSON limpo e formatado com sucesso!';
-        
-      if (wrapInContainer) {
-        successMessage = `${successMessage} Transformado em container.`;
-      }
-      
-      toast.success(successMessage);
+      toast.success('JSON processado e transformado em container com sucesso!');
     } catch (e) {
       console.error('Erro ao processar JSON:', e);
       toast.error('Erro ao processar o JSON. Verifique se é um código válido.');
@@ -58,19 +49,10 @@ const JsonTransformer = () => {
     setActiveTab('edit');
   };
 
-  const toggleRemoveStyles = () => {
-    setRemoveStyles(!removeStyles);
-    if (!removeStyles) {
-      toast.info('Modo wireframe ativado. Ao limpar o JSON, será aplicado estilo wireframe limpo.');
-    } else {
-      toast.info('Modo wireframe desativado. Os estilos originais serão preservados.');
-    }
-  };
-
   const toggleWrapInContainer = () => {
     setWrapInContainer(!wrapInContainer);
     if (!wrapInContainer) {
-      toast.info('Modo container ativado. O JSON será envolvido em um container ao processar.');
+      toast.info('Modo container ativado. O JSON será transformado em container ao processar.');
     } else {
       toast.info('Modo container desativado. A estrutura original será mantida.');
     }
@@ -105,9 +87,7 @@ const JsonTransformer = () => {
           <Info className="h-4 w-4" />
           <AlertTitle>Dica de uso</AlertTitle>
           <AlertDescription>
-            Você pode colar componentes complexos e nossas ferramentas irão formatá-los para uso no Elementor.
-            {removeStyles ? ' O modo wireframe está ativado.' : ' O modo wireframe está desativado.'}
-            {wrapInContainer ? ' O modo container está ativado.' : ' O modo container está desativado.'}
+            Você pode colar componentes complexos e nossa ferramenta irá transformá-los em containers para uso no Elementor.
           </AlertDescription>
         </Alert>
         
@@ -115,8 +95,6 @@ const JsonTransformer = () => {
           onProcessJson={handleProcessJson}
           isValidJson={isValidJson}
           isValidating={isValidating}
-          removeStyles={removeStyles}
-          onToggleRemoveStyles={toggleRemoveStyles}
           wrapInContainer={wrapInContainer}
           onToggleContainer={toggleWrapInContainer}
           getJsonContent={getJsonContent}
