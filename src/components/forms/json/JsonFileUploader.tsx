@@ -3,7 +3,7 @@ import React, { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { FileJson, Upload } from 'lucide-react';
 import { toast } from 'sonner';
-import { validateJson, validateElementorJson } from '@/utils/jsonUtils';
+import { validateJson } from '@/utils/jsonUtils';
 
 interface JsonFileUploaderProps {
   onJsonLoaded: (jsonContent: string) => void;
@@ -34,14 +34,6 @@ const JsonFileUploader: React.FC<JsonFileUploaderProps> = ({ onJsonLoaded }) => 
           toast.error('O arquivo não contém JSON válido');
           setIsLoading(false);
           return;
-        }
-        
-        // Check if it's Elementor JSON
-        const jsonObj = JSON.parse(content);
-        const isElementor = validateElementorJson(jsonObj);
-        
-        if (!isElementor) {
-          toast.warning('O JSON não parece ser um componente Elementor. Processando mesmo assim.');
         }
         
         // Pass the content to parent component
@@ -93,7 +85,7 @@ const JsonFileUploader: React.FC<JsonFileUploaderProps> = ({ onJsonLoaded }) => 
 
   return (
     <div 
-      className={`flex flex-col items-center p-6 border-2 border-dashed rounded-lg transition-colors cursor-pointer ${
+      className={`flex flex-col items-center p-6 border-2 border-dashed rounded-lg transition-colors cursor-pointer mb-6 ${
         isDragging 
           ? 'border-primary bg-primary/5' 
           : 'border-gray-300 bg-gray-50 hover:bg-gray-100'

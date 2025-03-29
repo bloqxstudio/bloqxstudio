@@ -40,12 +40,6 @@ const JsonValidityIndicator: React.FC<JsonValidityIndicatorProps> = ({
       <div className="mt-2 flex items-center text-green-600 gap-1 text-sm">
         <Check size={16} />
         <span>JSON válido</span>
-        
-        {!isElementorJson && (
-          <div className="ml-2 text-amber-600">
-            (Não parece ser um componente Elementor)
-          </div>
-        )}
       </div>
     );
   }

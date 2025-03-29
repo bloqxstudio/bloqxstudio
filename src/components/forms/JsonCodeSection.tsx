@@ -3,12 +3,12 @@ import React, { useState, useEffect } from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
 import { UseFormReturn } from 'react-hook-form';
-import { validateJson, validateElementorJson } from '@/utils/jsonUtils';
+import { validateJson } from '@/utils/jsonUtils';
 import JsonToolsExplanation from './JsonToolsExplanation';
 import ProcessJsonButton from './json/ProcessJsonButton';
 import JsonCopyButton from './json/JsonCopyButton';
 import JsonValidityIndicator from './json/JsonValidityIndicator';
-import ElementorJsonAlert from './json/ElementorJsonAlert';
+import JsonFileUploader from './json/JsonFileUploader';
 import TemplateGenerator from './json/TemplateGenerator';
 
 interface JsonCodeSectionProps {
@@ -26,7 +26,6 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
 }) => {
   const [isValidJson, setIsValidJson] = useState(true);
   const [isValidatingJson, setIsValidatingJson] = useState(false);
-  const [isElementorJson, setIsElementorJson] = useState(true);
   const [showExplanation, setShowExplanation] = useState(false);
   const [jsonContent, setJsonContent] = useState('');
   
@@ -42,7 +41,6 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
   const validateJsonContent = (content: string) => {
     if (!content) {
       setIsValidJson(true); // Empty is considered valid initially
-      setIsElementorJson(true);
       return;
     }
     
@@ -52,21 +50,12 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
       const isValid = validateJson(content);
       setIsValidJson(isValid);
       
-      if (isValid) {
-        const jsonObj = JSON.parse(content);
-        const isElementor = validateElementorJson(jsonObj);
-        setIsElementorJson(isElementor);
-      } else {
-        setIsElementorJson(false);
-      }
-      
       // Call the onContentChange callback if provided
       if (onContentChange) {
         onContentChange(content);
       }
     } catch (error) {
       setIsValidJson(false);
-      setIsElementorJson(false);
       console.error('Error validating JSON:', error);
     } finally {
       setIsValidatingJson(false);
@@ -81,10 +70,22 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
     validateJsonContent(template);
   };
 
+  const handleJsonFileUploaded = (jsonContent: string) => {
+    form.setValue('jsonCode', jsonContent);
+    setJsonContent(jsonContent);
+    validateJsonContent(jsonContent);
+  };
+
   return (
     <>
       {!simplified && (
-        <TemplateGenerator onTemplateGenerated={handleTemplateGenerated} />
+        <>
+          <JsonFileUploader onJsonLoaded={handleJsonFileUploaded} />
+
+          <div className="mt-6 mb-6">
+            <TemplateGenerator onTemplateGenerated={handleTemplateGenerated} />
+          </div>
+        </>
       )}
     
       <FormField
@@ -138,14 +139,10 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
             
             <JsonValidityIndicator 
               isValidJson={isValidJson} 
-              isElementorJson={isElementorJson}
+              isElementorJson={true}
               hasContent={!!jsonContent}
               isValidating={isValidatingJson}
             />
-            
-            {isValidJson && jsonContent && !isElementorJson && (
-              <ElementorJsonAlert />
-            )}
             
             <FormDescription>
               Cole o código JSON do Elementor para transformá-lo em container

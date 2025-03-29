@@ -122,6 +122,11 @@ const JsonTransformer = () => {
           </AlertDescription>
         </Alert>
         
+        {/* File uploader at the beginning */}
+        <div className="mb-6">
+          <JsonFileUploader onJsonLoaded={handleJsonLoaded} />
+        </div>
+        
         <div className="flex flex-wrap gap-2 mb-4">
           <ProcessJsonButton 
             onProcessJson={handleProcessJson} 
@@ -150,54 +155,43 @@ const JsonTransformer = () => {
         
         <TemplateGenerator onTemplateGenerated={handleTemplateGenerated} />
         
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2 mb-6">
-            <TabsTrigger value="upload">Upload de Arquivo</TabsTrigger>
-            <TabsTrigger value="edit">Editar JSON</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="upload" className="mt-0">
-            <JsonFileUploader onJsonLoaded={handleJsonLoaded} />
-          </TabsContent>
-          
-          <TabsContent value="edit" className="mt-0">
-            <Form {...form}>
-              <FormField
-                control={form.control}
-                name="jsonCode"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Código JSON do Elementor</FormLabel>
-                    
-                    <FormControl>
-                      <Textarea 
-                        placeholder='{"type": "elementor", "elements": [...]}'
-                        className="min-h-[200px] font-mono text-sm"
-                        value={field.value}
-                        onChange={(e) => {
-                          field.onChange(e);
-                          validateJsonContent(e.target.value);
-                        }}
-                      />
-                    </FormControl>
-                    
-                    <FormDescription>
-                      Cole o código JSON do Elementor para transformá-lo em container
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </Form>
-            
-            {isValidJson && form.getValues('jsonCode') && (
-              <ClaudeJsonAnalyzer 
-                jsonCode={form.getValues('jsonCode')}
-                onJsonUpdate={handleJsonUpdate}
-              />
+        <Form {...form}>
+          <FormField
+            control={form.control}
+            name="jsonCode"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Código JSON do Elementor</FormLabel>
+                
+                <FormControl>
+                  <Textarea 
+                    placeholder='{"type": "elementor", "elements": [...]}'
+                    className="min-h-[200px] font-mono text-sm"
+                    value={field.value}
+                    onChange={(e) => {
+                      field.onChange(e);
+                      validateJsonContent(e.target.value);
+                    }}
+                  />
+                </FormControl>
+                
+                <FormDescription>
+                  Cole o código JSON do Elementor para transformá-lo em container
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
             )}
-          </TabsContent>
-        </Tabs>
+          />
+        </Form>
+        
+        {isValidJson && form.getValues('jsonCode') && (
+          <div className="mt-4">
+            <ClaudeJsonAnalyzer 
+              jsonCode={form.getValues('jsonCode')}
+              onJsonUpdate={handleJsonUpdate}
+            />
+          </div>
+        )}
       </CardContent>
     </Card>
   );
