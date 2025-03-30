@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Component, UpdateComponent, NewComponent } from '@/lib/database.types';
 import { toast } from 'sonner';
@@ -178,21 +177,13 @@ export const updateComponent = async (id: string, updates: UpdateComponent) => {
     throw new Error('Você não tem permissão para editar este componente');
   }
   
-  // Se for um usuário normal (não admin), limitar quais campos podem ser atualizados
-  let updatesToApply = updates;
-  if (!isAdmin) {
-    // Usuários normais só podem atualizar título, descrição, categoria e visibilidade
-    updatesToApply = {
-      title: updates.title,
-      description: updates.description,
-      category: updates.category,
-      visibility: updates.visibility,
-      updated_at: new Date().toISOString()
-    };
-  } else {
-    // Administradores podem atualizar todos os campos
-    updatesToApply = { ...updates, updated_at: new Date().toISOString() };
-  }
+  // Aplicar todas as atualizações para qualquer usuário (proprietário ou admin)
+  const updatesToApply = { 
+    ...updates, 
+    updated_at: new Date().toISOString(),
+    // Ensure json_code is updated alongside code if code is being updated
+    ...(updates.code ? { json_code: updates.code } : {})
+  };
   
   // Aplicar as atualizações
   const { data, error } = await supabase

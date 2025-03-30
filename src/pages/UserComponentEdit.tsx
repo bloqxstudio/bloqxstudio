@@ -27,15 +27,16 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
-  Toggle
 } from '@/components/ui';
-import { ArrowLeft, Save, Paintbrush, Wand2 } from 'lucide-react';
+import { ArrowLeft, Save } from 'lucide-react';
 import { cleanElementorJson, validateJson } from '@/utils/jsonUtils';
+import JsonCodeEditor from '@/components/forms/JsonCodeEditor';
+import ImageUploadSection from '@/components/forms/ImageUploadSection';
 
 const formSchema = z.object({
   title: z.string().min(3, { message: 'Título deve ter pelo menos 3 caracteres' }),
   description: z.string().optional(),
-  category: z.string().optional(),
+  code: z.string().min(10, { message: 'Código é obrigatório' }),
   visibility: z.enum(['public', 'private'], { message: 'Visibilidade deve ser pública ou privada' })
 });
 
@@ -47,6 +48,9 @@ const UserComponentEdit = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(true);
+  const [removeStyles, setRemoveStyles] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const { data: component, isLoading: isLoadingComponent } = useQuery({
     queryKey: ['component', id],
@@ -71,17 +75,12 @@ const UserComponentEdit = () => {
     }
   }, [component, isOwner, navigate]);
 
-  const { data: categories = [] } = useQuery({
-    queryKey: ['categories'],
-    queryFn: getCategories
-  });
-
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: '',
       description: '',
-      category: '',
+      code: '',
       visibility: 'public' as const
     }
   });
@@ -91,17 +90,53 @@ const UserComponentEdit = () => {
       form.reset({
         title: component.title,
         description: component.description || '',
-        category: component.category || '',
+        code: component.code,
         visibility: component.visibility
       });
+      
+      // Set image preview if component has an image
+      if (component.preview_image) {
+        setImagePreview(component.preview_image);
+      }
+      
       setIsLoading(false);
     }
   }, [component, isOwner, form]);
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setSelectedFile(file);
+      
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const updateMutation = useMutation({
-    mutationFn: (data: UpdateComponent) => {
+    mutationFn: async (data: UpdateComponent & { imageFile?: File | null }) => {
       if (!id) throw new Error('ID não fornecido');
-      return updateComponent(id, data);
+      
+      // Handle image upload if there's a new file
+      let imageUrl = component?.preview_image || null;
+      
+      if (data.imageFile) {
+        // Logic to upload the image would go here
+        // For now, we'll just use the existing image URL
+        // In a real implementation, you would upload the file and get a URL
+      }
+      
+      // Remove the imageFile from the data sent to the updateComponent function
+      const { imageFile, ...updateData } = data;
+      
+      return updateComponent(id, {
+        ...updateData,
+        preview_image: imageUrl
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['components'] });
@@ -116,13 +151,9 @@ const UserComponentEdit = () => {
   });
 
   const onSubmit = (data: FormData) => {
-    // Only update the title, description, category, and visibility
-    // Do not allow users to modify the code content
     updateMutation.mutate({
-      title: data.title,
-      description: data.description,
-      category: data.category,
-      visibility: data.visibility
+      ...data,
+      imageFile: selectedFile
     });
   };
 
@@ -207,28 +238,10 @@ const UserComponentEdit = () => {
                     )}
                   />
                   
-                  <FormField
-                    control={form.control}
-                    name="category"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Categoria</FormLabel>
-                        <FormControl>
-                          <select
-                            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                            {...field}
-                          >
-                            <option value="">Selecione uma categoria</option>
-                            {categories.map((category) => (
-                              <option key={category.id} value={category.id}>
-                                {category.name}
-                              </option>
-                            ))}
-                          </select>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
+                  <ImageUploadSection 
+                    selectedFile={selectedFile}
+                    imagePreview={imagePreview}
+                    onFileChange={handleFileChange}
                   />
                   
                   <FormField
@@ -269,12 +282,11 @@ const UserComponentEdit = () => {
                     )}
                   />
                   
-                  <div className="border p-4 rounded-md bg-muted/20">
-                    <h3 className="text-sm font-medium mb-2">Código do Componente</h3>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      O código do componente não pode ser editado diretamente. Se você precisar atualizar o código, crie um novo componente.
-                    </p>
-                  </div>
+                  <JsonCodeEditor
+                    form={form}
+                    removeStyles={removeStyles}
+                    setRemoveStyles={setRemoveStyles}
+                  />
                   
                   <div className="flex justify-end gap-3">
                     <Button type="button" variant="outline" onClick={() => navigate(`/component/${id}`)}>
