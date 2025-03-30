@@ -4,7 +4,9 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
 import { AuthProvider } from '@/context/AuthContext';
+import { SelectedComponentsProvider } from '@/context/SelectedComponentsContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import SelectionFloatingButton from '@/components/selection/SelectionFloatingButton';
 import Index from '@/pages/Index';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
@@ -36,47 +38,50 @@ const App: React.FC = () => {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AuthProvider>
-          <Toaster position="bottom-right" />
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            {/* Componentes acessíveis sem login */}
-            <Route path="/components" element={<Components />} />
-            <Route path="/component/:id" element={<ComponentDetail />} />
-            {/* Rotas protegidas */}
-            <Route path="/components/new" element={
-              <ProtectedRoute>
-                <ComponentCreate />
-              </ProtectedRoute>
-            } />
-            <Route path="/component/edit/:id" element={
-              <ProtectedRoute adminOnly>
-                <ComponentEdit />
-              </ProtectedRoute>
-            } />
-            <Route path="/my-component/edit/:id" element={
-              <ProtectedRoute ownerOnly>
-                <UserComponentEdit />
-              </ProtectedRoute>
-            } />
-            <Route path="/profile" element={
-              <ProtectedRoute>
-                <UserProfile />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin" element={
-              <ProtectedRoute adminOnly>
-                <AdminPanel />
-              </ProtectedRoute>
-            } />
-            <Route path="/admin/users" element={
-              <ProtectedRoute adminOnly>
-                <UserManagement />
-              </ProtectedRoute>
-            } />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <SelectedComponentsProvider>
+            <Toaster position="bottom-right" />
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
+              {/* Componentes acessíveis sem login */}
+              <Route path="/components" element={<Components />} />
+              <Route path="/component/:id" element={<ComponentDetail />} />
+              {/* Rotas protegidas */}
+              <Route path="/components/new" element={
+                <ProtectedRoute>
+                  <ComponentCreate />
+                </ProtectedRoute>
+              } />
+              <Route path="/component/edit/:id" element={
+                <ProtectedRoute adminOnly>
+                  <ComponentEdit />
+                </ProtectedRoute>
+              } />
+              <Route path="/my-component/edit/:id" element={
+                <ProtectedRoute ownerOnly>
+                  <UserComponentEdit />
+                </ProtectedRoute>
+              } />
+              <Route path="/profile" element={
+                <ProtectedRoute>
+                  <UserProfile />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin" element={
+                <ProtectedRoute adminOnly>
+                  <AdminPanel />
+                </ProtectedRoute>
+              } />
+              <Route path="/admin/users" element={
+                <ProtectedRoute adminOnly>
+                  <UserManagement />
+                </ProtectedRoute>
+              } />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            <SelectionFloatingButton />
+          </SelectedComponentsProvider>
         </AuthProvider>
       </BrowserRouter>
     </QueryClientProvider>

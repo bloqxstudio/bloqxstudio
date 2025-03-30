@@ -5,9 +5,10 @@ import { Component } from '@/lib/database.types';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Copy, Eye, Tag, Lock } from 'lucide-react';
+import { Copy, Eye, Tag, Lock, Plus, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthContext';
+import { useSelectedComponents } from '@/context/SelectedComponentsContext';
 import {
   Dialog,
   DialogContent,
@@ -26,6 +27,13 @@ const ComponentCard: React.FC<ComponentCardProps> = ({ component, className }) =
   const [isHovered, setIsHovered] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const { user } = useAuth();
+  const { 
+    addComponent, 
+    removeComponent, 
+    isComponentSelected 
+  } = useSelectedComponents();
+
+  const isSelected = isComponentSelected(component.id);
 
   const handleCopyCode = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -39,6 +47,24 @@ const ComponentCard: React.FC<ComponentCardProps> = ({ component, className }) =
     const codeContent = component.json_code || component.code;
     navigator.clipboard.writeText(codeContent);
     toast.success('Código copiado para a área de transferência!');
+  };
+
+  const handleSelectToggle = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!user) {
+      setShowAuthDialog(true);
+      return;
+    }
+
+    if (isSelected) {
+      removeComponent(component.id);
+      toast.info(`Componente "${component.title}" removido da seleção`);
+    } else {
+      addComponent(component);
+      toast.success(`Componente "${component.title}" adicionado à seleção`);
+    }
   };
 
   // Determine image source with fallback
@@ -78,6 +104,15 @@ const ComponentCard: React.FC<ComponentCardProps> = ({ component, className }) =
                 </Badge>
               </div>
             )}
+            
+            {/* Selection indicator */}
+            {isSelected && (
+              <div className="absolute top-2 left-2">
+                <Badge className="bg-green-500 text-white">
+                  <Check className="h-3 w-3 mr-1" /> Selecionado
+                </Badge>
+              </div>
+            )}
           </CardHeader>
           <CardContent className="p-4">
             <h3 className="font-medium text-lg truncate">{component.title}</h3>
@@ -100,15 +135,30 @@ const ComponentCard: React.FC<ComponentCardProps> = ({ component, className }) =
               </Badge>
             )}
           </div>
-          <Button 
-            size="sm" 
-            variant="outline" 
-            className="hover-lift"
-            onClick={handleCopyCode}
-          >
-            <Copy className="h-3 w-3 mr-1" />
-            Copiar
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              size="sm" 
+              variant="outline" 
+              className="hover-lift"
+              onClick={handleCopyCode}
+            >
+              <Copy className="h-3 w-3 mr-1" />
+              Copiar
+            </Button>
+            <Button
+              size="sm"
+              variant={isSelected ? "default" : "outline"}
+              className={`hover-lift ${isSelected ? "bg-green-600 hover:bg-green-700" : ""}`}
+              onClick={handleSelectToggle}
+            >
+              {isSelected ? (
+                <Check className="h-3 w-3 mr-1" />
+              ) : (
+                <Plus className="h-3 w-3 mr-1" />
+              )}
+              {isSelected ? 'Selecionado' : 'Selecionar'}
+            </Button>
+          </div>
         </CardFooter>
       </Card>
 
@@ -117,7 +167,7 @@ const ComponentCard: React.FC<ComponentCardProps> = ({ component, className }) =
           <DialogHeader>
             <DialogTitle>Acesso restrito</DialogTitle>
             <DialogDescription>
-              Você precisa estar logado para copiar o código deste componente.
+              Você precisa estar logado para {isSelected ? 'remover' : 'adicionar'} este componente.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">

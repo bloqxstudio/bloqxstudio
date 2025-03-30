@@ -6,6 +6,7 @@ import { validateJson, validateElementorJson } from './validators';
 import { cleanElementorJson } from './cleaners';
 import { transformElementsToContainer, removeStyleProperties } from './transformers';
 import { getTemplate } from './templates';
+import { mergeComponentsJson } from './mergeJson';
 
 // Generate template with proper JSON stringification
 export const generateBloqxkitElementorTemplate = (templateType = 'hero'): string => {
@@ -19,5 +20,6 @@ export {
   validateElementorJson,
   cleanElementorJson,
   transformElementsToContainer,
-  removeStyleProperties
+  removeStyleProperties,
+  mergeComponentsJson
 };
