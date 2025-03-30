@@ -98,13 +98,13 @@ const Index = () => {
               <div className="relative flex justify-center lg:justify-end">
                 <div className="w-full max-w-[600px] aspect-video rounded-lg shadow-lg overflow-hidden border">
                   <iframe
-                    width="100%"
-                    height="100%"
-                    src="https://www.youtube.com/embed/D8EaSEQK0zw"
-                    title="YouTube video player"
-                    frameBorder="0"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
+                      width="100%"
+                      height="100%"
+                      src="https://www.youtube.com/embed/D8EaSEQK0zw?autoplay=1&controls=0&showinfo=0&modestbranding=1&rel=0&mute=1"
+                      title="YouTube video player"
+                      frameborder="0"
+                      allow="autoplay; encrypted-media"
+                      allowfullscreen
                   ></iframe>
                 </div>
               </div>
