@@ -1,3 +1,4 @@
+
 /**
  * JSON transformation utilities for Elementor components
  */
@@ -14,21 +15,28 @@ export const transformElementsToContainer = (elements: any[]): any[] => {
     if (newElement.elType === "section" || newElement.elType === "column") {
       newElement.elType = "container";
       
-      // Ajustar configurações para container
+      // Ajustar configurações para container de forma mais compacta
       if (newElement.settings) {
         // Configurações específicas de container conforme solicitado
-        newElement.settings = {
-          ...newElement.settings,
-          content_width: "boxed", // Configuração conforme solicitado: boxed
-          flex_gap: newElement.settings.flex_gap || {
-            unit: "px",
-            size: 10,
-            sizes: []
-          },
-          flex_direction: "auto", // Configuração conforme solicitado: auto
-          flex_wrap: "disabled", // Configuração conforme solicitado: disabled
-          content_position: newElement.settings.content_position || "center"
-        };
+        // Usar valores diretos em vez de objetos completos para reduzir tamanho
+        const settings = { ...newElement.settings };
+        
+        // Aplicar os valores específicos solicitados
+        settings.content_width = "boxed";
+        settings.flex_direction = "auto";
+        settings.flex_wrap = "disabled";
+        
+        // Manter content_position se existir, ou definir um padrão
+        if (!settings.content_position) {
+          settings.content_position = "center";
+        }
+        
+        // Definir flex_gap de forma simplificada apenas se não existir
+        if (!settings.flex_gap) {
+          settings.flex_gap = { unit: "px", size: 10 };
+        }
+        
+        newElement.settings = settings;
       }
     }
     

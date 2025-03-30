@@ -75,6 +75,15 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
     validateJsonContent(jsonContent);
   };
 
+  // Função para formatar JSON para exibição
+  const formatJsonForDisplay = (json: string): string => {
+    try {
+      return JSON.stringify(JSON.parse(json), null, 2);
+    } catch (e) {
+      return json;
+    }
+  };
+
   return (
     <>
       {!simplified && (
@@ -122,7 +131,7 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
               <Textarea 
                 placeholder='{"type": "elementor", "elements": [...]}'
                 className="min-h-[200px] font-mono text-sm"
-                value={field.value}
+                value={field.value ? formatJsonForDisplay(field.value) : ''}
                 onChange={(e) => {
                   field.onChange(e);
                   setJsonContent(e.target.value);

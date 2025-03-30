@@ -39,17 +39,18 @@ export const cleanElementorJson = (jsonString: string, removeStyles = false, wra
       }
     }
 
-    // Sempre transformar elementos para container com as novas configurações padrão
+    // Transformar elementos para container com as configurações especificadas
     elements = transformElementsToContainer(elements);
 
-    // Formato básico
+    // Formato básico e compacto
     const cleaned = {
       type: "elementor",
       siteurl: jsonObj.siteurl || "https://example.com/",
       elements: elements || []
     };
 
-    return JSON.stringify(cleaned, null, 2);
+    // Usar uma serialização mais compacta para reduzir o tamanho do JSON
+    return JSON.stringify(cleaned);
   } catch (e) {
     console.error("Erro ao limpar JSON:", e);
     return jsonString; // Retornar o original em caso de erro
