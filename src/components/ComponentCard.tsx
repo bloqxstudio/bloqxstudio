@@ -223,19 +223,19 @@ const ComponentCard: React.FC<ComponentCardProps> = ({ component, className }) =
       <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{getTranslation('Restricted access', 'Acesso restrito')}</DialogTitle>
+            <DialogTitle>{getTranslation('Create a Free Account', 'Crie uma Conta Grátis')}</DialogTitle>
             <DialogDescription>
               {getTranslation(
-                'You need to be logged in to add this component.',
-                'Você precisa estar logado para adicionar este componente.'
+                'You need to be logged in to use this component.',
+                'Você precisa estar logado para utilizar este componente.'
               )}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <p className="text-center text-muted-foreground">
               {getTranslation(
-                'Create your free account to access this and many other Elementor components.',
-                'Crie sua conta gratuita para acessar este e muitos outros componentes Elementor.'
+                'Our platform is currently in BETA and 100% FREE. Create your account to access all Elementor components.',
+                'Nossa plataforma está atualmente em BETA e é 100% GRATUITA. Crie sua conta para acessar todos os componentes Elementor.'
               )}
             </p>
           </div>
@@ -247,7 +247,7 @@ const ComponentCard: React.FC<ComponentCardProps> = ({ component, className }) =
             </Button>
             <Button asChild>
               <Link to="/register" onClick={() => setShowAuthDialog(false)}>
-                {getTranslation('Register', 'Criar conta')}
+                {getTranslation('Register Now', 'Registrar Agora')}
               </Link>
             </Button>
           </DialogFooter>

@@ -19,15 +19,19 @@ export const getComponents = async () => {
     console.log('Dados do usuário:', userData?.user);
     console.log('É admin:', isAdmin);
     
-    // Para todos os usuários (logados ou não), buscar componentes públicos
-    let query = supabase.from('components').select('*');
+    // Always show public components to all users (logged in or not)
+    let query = supabase.from('components').select('*').eq('visibility', 'public');
     
-    // Se o usuário estiver logado, mostrar componentes públicos e os criados pelo usuário
+    // If the user is logged in, also show their own private components
     if (userData?.user) {
-      query = query.or(`visibility.eq.public,created_by.eq.${userData.user.id}`);
-    } else {
-      // Usuário não está logado, mostrar apenas componentes públicos
-      query = query.eq('visibility', 'public');
+      // For admins, show all components
+      if (isAdmin) {
+        query = supabase.from('components').select('*');
+      } else {
+        // For regular users, show public components and their own private components
+        query = supabase.from('components').select('*')
+          .or(`visibility.eq.public,created_by.eq.${userData.user.id}`);
+      }
     }
     
     const { data, error } = await query
