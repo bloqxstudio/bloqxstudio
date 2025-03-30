@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { UseFormReturn } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -26,6 +27,14 @@ const JsonCodeEditor: React.FC<JsonCodeEditorProps> = ({
 }) => {
   const [copied, setCopied] = useState(false);
   const [isValidJson, setIsValidJson] = useState(true);
+  const [isElementorCopied, setElementorCopied] = useState(false);
+  
+  // Get language preference
+  const language = localStorage.getItem('language') || 'en';
+  
+  const getTranslation = (en: string, pt: string) => {
+    return language === 'pt' ? pt : en;
+  };
 
   // Check JSON validity when code changes
   React.useEffect(() => {
@@ -43,13 +52,19 @@ const JsonCodeEditor: React.FC<JsonCodeEditorProps> = ({
     const currentCode = form.getValues('code');
     
     if (!currentCode) {
-      toast('Nenhum código para limpar');
+      toast(getTranslation(
+        'No code to clean',
+        'Nenhum código para limpar'
+      ));
       return;
     }
     
     try {
       if (!validateJson(currentCode)) {
-        toast.error('O código não é um JSON válido. Verifique a sintaxe.');
+        toast.error(getTranslation(
+          'The code is not valid JSON. Check the syntax.',
+          'O código não é um JSON válido. Verifique a sintaxe.'
+        ));
         return;
       }
       
@@ -57,22 +72,37 @@ const JsonCodeEditor: React.FC<JsonCodeEditorProps> = ({
       form.setValue('code', cleanedJson);
       
       const successMessage = removeStyles 
-        ? 'JSON limpo e formatado com estilo wireframe aplicado!'
-        : 'JSON limpo e formatado com sucesso!';
+        ? getTranslation(
+            'JSON cleaned and formatted with wireframe style applied!',
+            'JSON limpo e formatado com estilo wireframe aplicado!'
+          ) 
+        : getTranslation(
+            'JSON cleaned and formatted successfully!',
+            'JSON limpo e formatado com sucesso!'
+          );
       
       toast.success(successMessage);
     } catch (e) {
       console.error('Error cleaning JSON:', e);
-      toast.error('Erro ao processar o JSON. Verifique se é um código válido.');
+      toast.error(getTranslation(
+        'Error processing JSON. Check if it is valid code.',
+        'Erro ao processar o JSON. Verifique se é um código válido.'
+      ));
     }
   };
 
   const handleToggleRemoveStyles = () => {
     setRemoveStyles(!removeStyles);
     if (!removeStyles) {
-      toast.info('Modo wireframe ativado. Ao limpar o JSON, será aplicado estilo wireframe limpo.');
+      toast.info(getTranslation(
+        'Wireframe mode activated. When cleaning JSON, clean wireframe style will be applied.',
+        'Modo wireframe ativado. Ao limpar o JSON, será aplicado estilo wireframe limpo.'
+      ));
     } else {
-      toast.info('Modo wireframe desativado. Os estilos originais serão preservados.');
+      toast.info(getTranslation(
+        'Wireframe mode deactivated. Original styles will be preserved.',
+        'Modo wireframe desativado. Os estilos originais serão preservados.'
+      ));
     }
   };
 
@@ -80,18 +110,61 @@ const JsonCodeEditor: React.FC<JsonCodeEditorProps> = ({
     const currentCode = form.getValues('code');
     
     if (!currentCode) {
-      toast.warning('Nenhum código para copiar');
+      toast.warning(getTranslation(
+        'No code to copy',
+        'Nenhum código para copiar'
+      ));
       return;
     }
     
     try {
       navigator.clipboard.writeText(currentCode);
       setCopied(true);
-      toast.success('Código copiado para área de transferência! Você pode colar no Elementor para testar.');
+      toast.success(getTranslation(
+        'Code copied to clipboard! You can paste into Elementor to test.',
+        'Código copiado para área de transferência! Você pode colar no Elementor para testar.'
+      ));
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
-      console.error('Erro ao copiar para área de transferência:', error);
-      toast.error('Erro ao copiar para área de transferência.');
+      console.error('Error copying to clipboard:', error);
+      toast.error(getTranslation(
+        'Error copying to clipboard.',
+        'Erro ao copiar para área de transferência.'
+      ));
+    }
+  };
+
+  const handleCopyForElementor = () => {
+    const currentCode = form.getValues('code');
+    
+    if (!currentCode || !isValidJson) {
+      toast.warning(getTranslation(
+        'Cannot copy invalid JSON for Elementor',
+        'Não é possível copiar JSON inválido para o Elementor'
+      ));
+      return;
+    }
+    
+    try {
+      navigator.clipboard.writeText(currentCode);
+      setElementorCopied(true);
+      toast.success(
+        getTranslation(
+          'Copied to clipboard! Paste directly into Elementor',
+          'Copiado para área de transferência! Cole diretamente no Elementor'
+        ),
+        {
+          icon: <Copy className="h-4 w-4" />,
+          duration: 4000
+        }
+      );
+      setTimeout(() => setElementorCopied(false), 2000);
+    } catch (error) {
+      console.error('Error copying for Elementor:', error);
+      toast.error(getTranslation(
+        'Error copying to clipboard.',
+        'Erro ao copiar para área de transferência.'
+      ));
     }
   };
 
@@ -101,7 +174,9 @@ const JsonCodeEditor: React.FC<JsonCodeEditorProps> = ({
       name="code"
       render={({ field }) => (
         <FormItem>
-          <FormLabel>Código</FormLabel>
+          <FormLabel>
+            {getTranslation('Code', 'Código')}
+          </FormLabel>
           <div className="space-y-3 mb-2">
             <div className="flex items-center gap-2 flex-wrap">
               <Button 
@@ -110,10 +185,13 @@ const JsonCodeEditor: React.FC<JsonCodeEditorProps> = ({
                 size="sm"
                 onClick={handleCleanJson}
                 className="gap-1"
-                title="Limpa o JSON, remove propriedades desnecessárias e formata o código"
+                title={getTranslation(
+                  'Cleans the JSON, removes unnecessary properties and formats the code',
+                  'Limpa o JSON, remove propriedades desnecessárias e formata o código'
+                )}
               >
                 <Wand2 className="h-4 w-4" />
-                Limpar e Formatar
+                {getTranslation('Clean and Format', 'Limpar e Formatar')}
               </Button>
 
               <Button
@@ -122,16 +200,43 @@ const JsonCodeEditor: React.FC<JsonCodeEditorProps> = ({
                 size="sm"
                 onClick={handleCopyToClipboard}
                 className="gap-1"
-                title="Copiar JSON para testar no Elementor"
+                title={getTranslation(
+                  'Copy JSON to test in Elementor',
+                  'Copiar JSON para testar no Elementor'
+                )}
               >
                 {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                {copied ? 'Copiado!' : 'Copiar para testar'}
+                {copied ? 
+                  getTranslation('Copied!', 'Copiado!') : 
+                  getTranslation('Copy to test', 'Copiar para testar')
+                }
+              </Button>
+              
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleCopyForElementor}
+                disabled={!isValidJson}
+                className="gap-1 border-blue-300 hover:bg-blue-50 hover:text-blue-700"
+                title={getTranslation(
+                  'Copy for direct use in Elementor',
+                  'Copiar para uso direto no Elementor'
+                )}
+              >
+                {isElementorCopied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                {isElementorCopied ? 
+                  getTranslation('Copied!', 'Copiado!') : 
+                  getTranslation('Copy for Elementor', 'Copiar para Elementor')
+                }
               </Button>
               
               {!isValidJson && field.value && (
                 <div className="flex items-center text-destructive gap-1 ml-2">
                   <AlertCircle className="h-4 w-4" />
-                  <span className="text-sm">JSON inválido</span>
+                  <span className="text-sm">
+                    {getTranslation('Invalid JSON', 'JSON inválido')}
+                  </span>
                 </div>
               )}
             </div>
@@ -141,28 +246,44 @@ const JsonCodeEditor: React.FC<JsonCodeEditorProps> = ({
                 pressed={removeStyles}
                 onPressedChange={handleToggleRemoveStyles}
                 className="gap-1 text-xs"
-                title="Aplicar estilo wireframe clean"
+                title={getTranslation(
+                  'Apply clean wireframe style',
+                  'Aplicar estilo wireframe clean'
+                )}
               >
                 <Paintbrush className="h-4 w-4" />
-                Estilo Wireframe
+                {getTranslation('Wireframe Style', 'Estilo Wireframe')}
               </Toggle>
               <span className="text-xs text-muted-foreground">
                 {removeStyles 
-                  ? "Wireframe clean em preto, branco e azul" 
-                  : "Manter estilos originais"}
+                  ? getTranslation(
+                      "Clean wireframe in black, white and blue",
+                      "Wireframe clean em preto, branco e azul"
+                    )
+                  : getTranslation(
+                      "Keep original styles",
+                      "Manter estilos originais"
+                    )
+                }
               </span>
             </div>
           </div>
           <FormControl>
             <Textarea 
-              placeholder="Código do componente" 
+              placeholder={getTranslation(
+                "Component code", 
+                "Código do componente"
+              )}
               {...field} 
               rows={12}
               className="font-mono text-xs"
             />
           </FormControl>
           <FormDescription className="mt-1">
-            Cole o código do componente Elementor para processamento
+            {getTranslation(
+              'Paste the Elementor component code for processing',
+              'Cole o código do componente Elementor para processamento'
+            )}
           </FormDescription>
           <FormMessage />
         </FormItem>

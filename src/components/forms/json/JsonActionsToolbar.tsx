@@ -2,7 +2,7 @@
 import React from 'react';
 import ProcessJsonButton from './ProcessJsonButton';
 import JsonCopyButton from './JsonCopyButton';
-import { AlertCircle, Download } from 'lucide-react';
+import { AlertCircle, Download, Copy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
@@ -11,13 +11,15 @@ interface JsonActionsToolbarProps {
   isValidJson: boolean;
   isValidating: boolean;
   getJsonContent: () => string;
+  showElementorCopy?: boolean;
 }
 
 const JsonActionsToolbar: React.FC<JsonActionsToolbarProps> = ({
   onProcessJson,
   isValidJson,
   isValidating,
-  getJsonContent
+  getJsonContent,
+  showElementorCopy = false
 }) => {
   // Get language preference
   const language = localStorage.getItem('language') || 'en';
@@ -53,6 +55,35 @@ const JsonActionsToolbar: React.FC<JsonActionsToolbarProps> = ({
     ));
   };
 
+  const handleCopyForElementor = () => {
+    const content = getJsonContent();
+    
+    if (!content || !isValidJson) {
+      toast.warning(getTranslation(
+        'Cannot copy invalid JSON', 
+        'Não é possível copiar JSON inválido'
+      ));
+      return;
+    }
+
+    try {
+      navigator.clipboard.writeText(content);
+      toast.success(getTranslation(
+        'Copied to clipboard! Paste directly into Elementor',
+        'Copiado para área de transferência! Cole diretamente no Elementor'
+      ), {
+        duration: 4000,
+        icon: <Copy className="h-4 w-4" />
+      });
+    } catch (err) {
+      console.error('Failed to copy:', err);
+      toast.error(getTranslation(
+        'Failed to copy to clipboard',
+        'Falha ao copiar para área de transferência'
+      ));
+    }
+  };
+
   return (
     <div className="flex flex-wrap gap-2 mb-2">
       <ProcessJsonButton 
@@ -73,6 +104,20 @@ const JsonActionsToolbar: React.FC<JsonActionsToolbarProps> = ({
         <Download size={14} />
         <span>{getTranslation('Download', 'Baixar')}</span>
       </Button>
+
+      {showElementorCopy && (
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={handleCopyForElementor}
+          disabled={!isValidJson}
+          className="flex items-center gap-1 border-blue-300 hover:bg-blue-50 hover:text-blue-700"
+        >
+          <Copy size={14} />
+          <span>{getTranslation('Copy for Elementor', 'Copiar para Elementor')}</span>
+        </Button>
+      )}
 
       {!isValidJson && (
         <div className="flex items-center text-destructive gap-1 text-sm ml-2">

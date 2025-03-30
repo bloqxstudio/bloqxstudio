@@ -8,7 +8,7 @@ import SelectedComponentsSidebar from './SelectedComponentsSidebar';
 
 const SelectionFloatingButton: React.FC = () => {
   const { totalSelected } = useSelectedComponents();
-  // Get user language preference - in a real app, this would come from a language context
+  // Get user language preference
   const language = localStorage.getItem('language') || 'en';
 
   if (totalSelected === 0) {
@@ -21,14 +21,14 @@ const SelectionFloatingButton: React.FC = () => {
         trigger={
           <Button 
             size="lg" 
-            className="rounded-full h-14 pr-6 bg-green-600 hover:bg-green-700"
+            className="rounded-full h-14 pr-6 bg-blue-600 hover:bg-blue-700"
           >
             <ShoppingCart className="mr-2 h-5 w-5" />
             <span className="mr-1">
               {language === 'pt' ? 'Ver selecionados' : 'View selected'}
             </span>
             <Badge 
-              className="bg-white text-green-700 ml-1"
+              className="bg-white text-blue-700 ml-1"
               variant="secondary"
             >
               {totalSelected}

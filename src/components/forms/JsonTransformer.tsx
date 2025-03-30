@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 import JsonFileUploader from './json/JsonFileUploader';
 import ClaudeJsonAnalyzer from './ClaudeJsonAnalyzer';
 import JsonTransformerHeader from './json/JsonTransformerHeader';
-import JsonTransformerActions from './json/JsonTransformerActions';
+import JsonActionsToolbar from './json/JsonActionsToolbar';
 import JsonFormField from './json/JsonFormField';
 
 const JsonTransformer = () => {
@@ -17,6 +17,13 @@ const JsonTransformer = () => {
   const [isValidJson, setIsValidJson] = useState(true);
   const [isValidating, setIsValidating] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  
+  // Get language preference
+  const language = localStorage.getItem('language') || 'en';
+  
+  const getTranslation = (en: string, pt: string) => {
+    return language === 'pt' ? pt : en;
+  };
   
   const form = useForm({
     defaultValues: {
@@ -28,21 +35,30 @@ const JsonTransformer = () => {
     const currentJson = form.getValues('jsonCode');
     
     if (!currentJson) {
-      toast.warning('Nenhum código para processar');
+      toast.warning(getTranslation(
+        'No code to process',
+        'Nenhum código para processar'
+      ));
       return;
     }
     
     setIsProcessing(true);
     
     try {
-      // Sempre transformar em container, sem opção de wireframe
+      // Always transform to container, no wireframe option
       const cleanedJson = cleanElementorJson(currentJson, false, true);
       form.setValue('jsonCode', cleanedJson);
       
-      toast.success('JSON transformado com sucesso!');
+      toast.success(getTranslation(
+        'JSON transformed successfully!',
+        'JSON transformado com sucesso!'
+      ));
     } catch (e) {
-      console.error('Erro ao processar JSON:', e);
-      toast.error('Erro ao processar o JSON. Verifique se é um código válido.');
+      console.error('Error processing JSON:', e);
+      toast.error(getTranslation(
+        'Error processing JSON. Please check if it is valid code.',
+        'Erro ao processar o JSON. Verifique se é um código válido.'
+      ));
     } finally {
       setIsProcessing(false);
     }
@@ -52,16 +68,22 @@ const JsonTransformer = () => {
     const currentJson = form.getValues('jsonCode');
     
     if (!currentJson || !isValidJson) {
-      toast.error('Por favor, verifique se o JSON é válido antes de criar um componente');
+      toast.error(getTranslation(
+        'Please check if the JSON is valid before creating a component',
+        'Por favor, verifique se o JSON é válido antes de criar um componente'
+      ));
       return;
     }
     
-    // Armazenar o JSON processado na sessionStorage para usar na página de criação
+    // Store the processed JSON in sessionStorage for use on the component creation page
     sessionStorage.setItem('processedJson', currentJson);
     
-    // Redirecionar para a página de criação de componente
+    // Redirect to the component creation page
     navigate('/components/new');
-    toast.success('JSON processado! Preencha os detalhes do componente');
+    toast.success(getTranslation(
+      'JSON processed! Fill in the component details',
+      'JSON processado! Preencha os detalhes do componente'
+    ));
   };
 
   const handleJsonLoaded = (jsonContent: string) => {
@@ -93,13 +115,19 @@ const JsonTransformer = () => {
   const handleTemplateGenerated = (template: string) => {
     form.setValue('jsonCode', template);
     validateJsonContent(template);
-    toast.success('Template gerado! Você pode editá-lo agora.');
+    toast.success(getTranslation(
+      'Template generated! You can edit it now.',
+      'Template gerado! Você pode editá-lo agora.'
+    ));
   };
 
   // Define the handleJsonUpdate function inside the component
   const handleJsonUpdate = (updatedJson: string) => {
     form.setValue('jsonCode', updatedJson);
-    toast.success('JSON atualizado com as sugestões do Claude');
+    toast.success(getTranslation(
+      'JSON updated with Claude suggestions',
+      'JSON atualizado com as sugestões do Claude'
+    ));
   };
 
   return (
@@ -112,14 +140,28 @@ const JsonTransformer = () => {
           <JsonFileUploader onJsonLoaded={handleJsonLoaded} />
         </div>
         
-        <JsonTransformerActions 
+        <JsonActionsToolbar 
           onProcessJson={handleProcessJson}
           getJsonContent={getJsonContent}
-          onCreateComponent={handleCreateComponent}
           isValidJson={isValidJson}
           isValidating={isValidating}
-          isProcessing={isProcessing}
+          showElementorCopy={true}
         />
+        
+        <div className="mb-4">
+          <button 
+            type="button"
+            onClick={handleCreateComponent} 
+            disabled={!isValidJson || isValidating || isProcessing}
+            className={`px-4 py-2 rounded text-sm font-medium transition-colors flex items-center gap-2 ${
+              !isValidJson || isValidating || isProcessing
+                ? 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                : 'bg-blue-600 text-white hover:bg-blue-700'
+            }`}
+          >
+            {getTranslation('Create Component', 'Criar Componente')}
+          </button>
+        </div>
         
         <Form {...form}>
           <form>

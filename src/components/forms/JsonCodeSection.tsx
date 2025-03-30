@@ -5,8 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { UseFormReturn } from 'react-hook-form';
 import { validateJson } from '@/utils/json';
 import JsonToolsExplanation from './JsonToolsExplanation';
-import ProcessJsonButton from './json/ProcessJsonButton';
-import JsonCopyButton from './json/JsonCopyButton';
+import JsonActionsToolbar from './json/JsonActionsToolbar';
 import JsonValidityIndicator from './json/JsonValidityIndicator';
 import JsonFileUploader from './json/JsonFileUploader';
 
@@ -27,6 +26,13 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
   const [isValidatingJson, setIsValidatingJson] = useState(false);
   const [showExplanation, setShowExplanation] = useState(false);
   const [jsonContent, setJsonContent] = useState('');
+  
+  // Get language preference
+  const language = localStorage.getItem('language') || 'en';
+  
+  const getTranslation = (en: string, pt: string) => {
+    return language === 'pt' ? pt : en;
+  };
   
   useEffect(() => {
     // Initial validation on component mount
@@ -81,35 +87,36 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
         render={({ field }) => (
           <FormItem>
             <div className="flex justify-between items-center">
-              <FormLabel>Código JSON do Elementor{simplified ? '' : '*'}</FormLabel>
+              <FormLabel>
+                {getTranslation(
+                  'Elementor JSON Code',
+                  'Código JSON do Elementor'
+                )}
+                {simplified ? '' : '*'}
+              </FormLabel>
               {!simplified && (
                 <button 
                   type="button" 
                   className="text-sm text-primary hover:text-primary/80"
                   onClick={() => setShowExplanation(!showExplanation)}
                 >
-                  {showExplanation ? 'Ocultar explicação' : 'Como usar a ferramenta?'}
+                  {showExplanation ? 
+                    getTranslation('Hide explanation', 'Ocultar explicação') :
+                    getTranslation('How to use the tool?', 'Como usar a ferramenta?')
+                  }
                 </button>
               )}
             </div>
             
             {showExplanation && !simplified && <JsonToolsExplanation />}
             
-            <div className="flex flex-wrap gap-2 mb-2">
-              <ProcessJsonButton 
-                onProcessJson={onProcessJson} 
-                disabled={!isValidJson || isValidatingJson}
-                loading={isValidatingJson}
-              />
-              
-              <JsonCopyButton getJsonContent={getJsonContent} />
-              
-              {!isValidJson && jsonContent && (
-                <div className="flex items-center text-destructive gap-1 text-sm ml-2">
-                  <span>JSON inválido</span>
-                </div>
-              )}
-            </div>
+            <JsonActionsToolbar 
+              onProcessJson={onProcessJson} 
+              isValidJson={isValidJson}
+              isValidating={isValidatingJson}
+              getJsonContent={getJsonContent}
+              showElementorCopy={true}
+            />
             
             <FormControl>
               <Textarea 
@@ -131,7 +138,10 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
             />
             
             <FormDescription>
-              Cole o código JSON do Elementor para transformá-lo em Json Válido
+              {getTranslation(
+                'Paste the Elementor JSON code to transform it into a valid JSON',
+                'Cole o código JSON do Elementor para transformá-lo em Json Válido'
+              )}
             </FormDescription>
             <FormMessage />
           </FormItem>

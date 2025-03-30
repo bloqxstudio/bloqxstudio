@@ -1,6 +1,7 @@
 
 import { Component } from '@/lib/database.types';
 import { validateJson } from './validators';
+import { toast } from 'sonner';
 
 /**
  * Merges multiple JSON components into a single cohesive JSON
@@ -21,6 +22,9 @@ export const mergeComponentsJson = (components: Component[]): string => {
       
       if (!jsonCode || !validateJson(jsonCode)) {
         console.warn(`Invalid JSON found in component: ${component.title}`);
+        toast.error(`Cannot merge invalid JSON from component: ${component.title}`, {
+          duration: 3000,
+        });
         return elementsArray;
       }
 
@@ -40,9 +44,20 @@ export const mergeComponentsJson = (components: Component[]): string => {
           componentElements = parsed;
         }
         
+        // Add component title as a comment to help identify elements in the merged JSON
+        if (componentElements.length && component.title) {
+          const firstElement = componentElements[0];
+          if (firstElement && typeof firstElement === 'object') {
+            firstElement._component_source = component.title;
+          }
+        }
+        
         return [...elementsArray, ...componentElements];
       } catch (err) {
         console.error(`Error parsing JSON for component: ${component.title}`, err);
+        toast.error(`Error merging component: ${component.title}`, {
+          duration: 3000,
+        });
         return elementsArray;
       }
     }, []);
@@ -57,6 +72,26 @@ export const mergeComponentsJson = (components: Component[]): string => {
     return JSON.stringify(mergedJson, null, 2);
   } catch (err) {
     console.error("Error merging components JSON", err);
+    toast.error("Error merging components JSON", {
+      duration: 3000,
+    });
     return "";
   }
 };
+
+/**
+ * Formats an array of components as a human-readable list for display
+ * 
+ * @param components Array of components
+ * @returns Formatted string listing components
+ */
+export const formatComponentsListForExport = (components: Component[]): string => {
+  if (!components.length) return "No components selected";
+  
+  if (components.length === 1) {
+    return `1 component: ${components[0].title}`;
+  }
+  
+  return `${components.length} components: ${components.map(c => c.title).join(", ")}`;
+};
+
