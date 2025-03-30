@@ -1,4 +1,3 @@
-
 /**
  * JSON transformation utilities for Elementor components
  */
@@ -17,21 +16,17 @@ export const transformElementsToContainer = (elements: any[]): any[] => {
       
       // Ajustar configurações para container
       if (newElement.settings) {
-        // Configurações específicas de container
+        // Configurações específicas de container conforme solicitado
         newElement.settings = {
           ...newElement.settings,
-          content_width: newElement.settings.content_width || {
-            unit: "px",
-            size: 1140,
-            sizes: []
-          },
+          content_width: "boxed", // Configuração conforme solicitado: boxed
           flex_gap: newElement.settings.flex_gap || {
             unit: "px",
             size: 10,
             sizes: []
           },
-          flex_direction: newElement.settings.flex_direction || "row",
-          flex_wrap: newElement.settings.flex_wrap || "wrap",
+          flex_direction: "auto", // Configuração conforme solicitado: auto
+          flex_wrap: "disabled", // Configuração conforme solicitado: disabled
           content_position: newElement.settings.content_position || "center"
         };
       }

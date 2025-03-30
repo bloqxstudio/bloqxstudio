@@ -39,7 +39,7 @@ export const cleanElementorJson = (jsonString: string, removeStyles = false, wra
       }
     }
 
-    // Sempre transformar elementos para container
+    // Sempre transformar elementos para container com as novas configurações padrão
     elements = transformElementsToContainer(elements);
 
     // Formato básico
