@@ -102,8 +102,8 @@ const JsonTransformerActions: React.FC<JsonTransformerActionsProps> = ({
         <Button 
           variant="outline" 
           className="gap-1"
-          onClick={user ? handleDownload : () => setShowAuthDialog(true)}
-          disabled={!isValidJson && user}
+          onClick={() => user ? handleDownload() : setShowAuthDialog(true)}
+          disabled={!isValidJson && !!user}
         >
           <Download className="h-4 w-4" />
           {getTranslation('Download', 'Baixar')}
@@ -112,8 +112,8 @@ const JsonTransformerActions: React.FC<JsonTransformerActionsProps> = ({
         <Button 
           variant="default" 
           className="gap-1"
-          onClick={user ? onCreateComponent : () => setShowAuthDialog(true)}
-          disabled={!isValidJson && user}
+          onClick={() => user ? onCreateComponent() : setShowAuthDialog(true)}
+          disabled={!isValidJson && !!user}
         >
           {getTranslation('Create Component', 'Criar Componente')}
           <ArrowRight className="h-4 w-4" />

@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { ShoppingCart, Lock } from 'lucide-react';
+import { ShoppingCart } from 'lucide-react';
 import { useSelectedComponents } from '@/context/SelectedComponentsContext';
 import SelectedComponentsSidebar from './SelectedComponentsSidebar';
 import { useAuth } from '@/context/AuthContext';

@@ -148,8 +148,8 @@ const JsonActionsToolbar: React.FC<JsonActionsToolbarProps> = ({
           type="button"
           variant="outline"
           size="sm"
-          onClick={user ? handleDownload : () => setShowAuthDialog(true)}
-          disabled={!isValidJson && user}
+          onClick={() => user ? handleDownload() : setShowAuthDialog(true)}
+          disabled={!isValidJson && !!user}
           className="flex items-center gap-1"
         >
           <Download size={14} />
@@ -161,8 +161,8 @@ const JsonActionsToolbar: React.FC<JsonActionsToolbarProps> = ({
             type="button"
             variant="outline"
             size="sm"
-            onClick={user ? handleCopyForElementor : () => setShowAuthDialog(true)}
-            disabled={!isValidJson && user}
+            onClick={() => user ? handleCopyForElementor() : setShowAuthDialog(true)}
+            disabled={!isValidJson && !!user}
             className="flex items-center gap-1 border-blue-300 hover:bg-blue-50 hover:text-blue-700"
           >
             <Copy size={14} />
