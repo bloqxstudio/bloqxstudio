@@ -4,7 +4,7 @@
  */
 import { validateJson, validateElementorJson } from './validators';
 import { cleanElementorJson } from './cleaners';
-import { transformElementsToContainer, removeStyleProperties } from './transformers';
+import { transformElementsToContainer, removeStyleProperties, removeEmptyProperties } from './transformers';
 import { getTemplate } from './templates';
 import { mergeComponentsJson } from './mergeJson';
 
@@ -20,6 +20,7 @@ export {
   validateElementorJson,
   cleanElementorJson,
   transformElementsToContainer,
+  removeEmptyProperties,
   removeStyleProperties,
   mergeComponentsJson
 };

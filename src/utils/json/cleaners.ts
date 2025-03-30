@@ -3,7 +3,7 @@
  * Utilities for cleaning and formatting Elementor JSON
  */
 import { validateJson } from './validators';
-import { transformElementsToContainer } from './transformers';
+import { transformElementsToContainer, removeEmptyProperties } from './transformers';
 
 export const cleanElementorJson = (jsonString: string, removeStyles = false, wrapInContainer = true): string => {
   try {
@@ -45,12 +45,15 @@ export const cleanElementorJson = (jsonString: string, removeStyles = false, wra
     // Formato básico e compacto
     const cleaned = {
       type: "elementor",
-      siteurl: jsonObj.siteurl || "https://example.com/",
+      siteurl: jsonObj.siteurl || "https://bloqxstudio.com/", // Usar o site bloqxstudio.com como padrão
       elements: elements || []
     };
 
+    // Remover propriedades vazias para reduzir o tamanho
+    const optimizedCleaned = removeEmptyProperties(cleaned);
+
     // Usar uma serialização mais compacta para reduzir o tamanho do JSON
-    return JSON.stringify(cleaned);
+    return JSON.stringify(optimizedCleaned);
   } catch (e) {
     console.error("Erro ao limpar JSON:", e);
     return jsonString; // Retornar o original em caso de erro
