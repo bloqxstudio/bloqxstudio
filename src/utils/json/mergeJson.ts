@@ -47,7 +47,7 @@ export const mergeComponentsJson = (components: Component[]): string => {
       }
     }, []);
 
-    // Create the merged JSON structure
+    // Create the merged JSON structure with Elementor format
     const mergedJson = {
       type: "elementor",
       siteurl: "https://example.com/",

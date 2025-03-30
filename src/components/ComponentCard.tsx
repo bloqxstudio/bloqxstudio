@@ -5,7 +5,7 @@ import { Component } from '@/lib/database.types';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Copy, Eye, Tag, Lock, Plus, Check } from 'lucide-react';
+import { Copy, Download, Eye, Tag, Lock, Plus, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthContext';
 import { useSelectedComponents } from '@/context/SelectedComponentsContext';
@@ -34,6 +34,13 @@ const ComponentCard: React.FC<ComponentCardProps> = ({ component, className }) =
   } = useSelectedComponents();
 
   const isSelected = isComponentSelected(component.id);
+  
+  // Get language preference - this would come from a language context in a real implementation
+  const language = localStorage.getItem('language') || 'en';
+  
+  const getTranslation = (en: string, pt: string) => {
+    return language === 'pt' ? pt : en;
+  };
 
   const handleCopyCode = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -46,7 +53,38 @@ const ComponentCard: React.FC<ComponentCardProps> = ({ component, className }) =
     // Use json_code if available, otherwise fall back to code
     const codeContent = component.json_code || component.code;
     navigator.clipboard.writeText(codeContent);
-    toast.success('Código copiado para a área de transferência!');
+    toast.success(getTranslation(
+      'Code copied to clipboard!', 
+      'Código copiado para a área de transferência!'
+    ));
+  };
+  
+  const handleDownload = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!user) {
+      setShowAuthDialog(true);
+      return;
+    }
+    
+    const codeContent = component.json_code || component.code;
+    const filename = `${component.title.toLowerCase().replace(/\s+/g, '-')}.json`;
+    
+    // Create blob and download it
+    const blob = new Blob([codeContent], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast.success(getTranslation(
+      `Downloaded ${filename}`, 
+      `${filename} baixado com sucesso`
+    ));
   };
 
   const handleSelectToggle = (e: React.MouseEvent) => {
@@ -60,10 +98,16 @@ const ComponentCard: React.FC<ComponentCardProps> = ({ component, className }) =
 
     if (isSelected) {
       removeComponent(component.id);
-      toast.info(`Componente "${component.title}" removido da seleção`);
+      toast.info(getTranslation(
+        `Component "${component.title}" removed from selection`,
+        `Componente "${component.title}" removido da seleção`
+      ));
     } else {
       addComponent(component);
-      toast.success(`Componente "${component.title}" adicionado à seleção`);
+      toast.success(getTranslation(
+        `Component "${component.title}" added to selection`,
+        `Componente "${component.title}" adicionado à seleção`
+      ));
     }
   };
 
@@ -94,13 +138,13 @@ const ComponentCard: React.FC<ComponentCardProps> = ({ component, className }) =
             <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
               <Button variant="secondary" size="sm" className="gap-1">
                 <Eye className="h-4 w-4" />
-                Ver detalhes
+                {getTranslation('View details', 'Ver detalhes')}
               </Button>
             </div>
             {component.visibility === 'private' && (
               <div className="absolute top-2 right-2">
                 <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
-                  <Lock className="h-3 w-3 mr-1" /> Privado
+                  <Lock className="h-3 w-3 mr-1" /> {getTranslation('Private', 'Privado')}
                 </Badge>
               </div>
             )}
@@ -109,7 +153,7 @@ const ComponentCard: React.FC<ComponentCardProps> = ({ component, className }) =
             {isSelected && (
               <div className="absolute top-2 left-2">
                 <Badge className="bg-green-500 text-white">
-                  <Check className="h-3 w-3 mr-1" /> Selecionado
+                  <Check className="h-3 w-3 mr-1" /> {getTranslation('Selected', 'Selecionado')}
                 </Badge>
               </div>
             )}
@@ -121,7 +165,7 @@ const ComponentCard: React.FC<ComponentCardProps> = ({ component, className }) =
             </p>
           </CardContent>
         </Link>
-        <CardFooter className="p-4 pt-0 flex items-center justify-between gap-4">
+        <CardFooter className="p-4 pt-0 flex items-center justify-between gap-2">
           <div className="flex items-center gap-1 flex-wrap">
             <Tag className="h-3 w-3 text-muted-foreground" />
             {tags.slice(0, 2).map((tag, i) => (
@@ -135,28 +179,42 @@ const ComponentCard: React.FC<ComponentCardProps> = ({ component, className }) =
               </Badge>
             )}
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-1">
             <Button 
               size="sm" 
               variant="outline" 
-              className="hover-lift"
+              className="hover-lift p-1 h-8 w-8"
               onClick={handleCopyCode}
+              title={getTranslation('Copy to Elementor', 'Copiar para Elementor')}
             >
-              <Copy className="h-3 w-3 mr-1" />
-              Copiar
+              <Copy className="h-3.5 w-3.5" />
+            </Button>
+            <Button 
+              size="sm" 
+              variant="outline" 
+              className="hover-lift p-1 h-8 w-8"
+              onClick={handleDownload}
+              title={getTranslation('Download component', 'Baixar componente')}
+            >
+              <Download className="h-3.5 w-3.5" />
             </Button>
             <Button
               size="sm"
               variant={isSelected ? "default" : "outline"}
               className={`hover-lift ${isSelected ? "bg-green-600 hover:bg-green-700" : ""}`}
               onClick={handleSelectToggle}
+              title={isSelected ? 
+                getTranslation('Remove from selection', 'Remover da seleção') : 
+                getTranslation('Add to selection', 'Adicionar à seleção')}
             >
               {isSelected ? (
-                <Check className="h-3 w-3 mr-1" />
+                <Check className="h-3.5 w-3.5 mr-1" />
               ) : (
-                <Plus className="h-3 w-3 mr-1" />
+                <Plus className="h-3.5 w-3.5 mr-1" />
               )}
-              {isSelected ? 'Selecionado' : 'Selecionar'}
+              {isSelected ? 
+                getTranslation('Selected', 'Selecionado') : 
+                getTranslation('Select', 'Selecionar')}
             </Button>
           </div>
         </CardFooter>
@@ -165,25 +223,31 @@ const ComponentCard: React.FC<ComponentCardProps> = ({ component, className }) =
       <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Acesso restrito</DialogTitle>
+            <DialogTitle>{getTranslation('Restricted access', 'Acesso restrito')}</DialogTitle>
             <DialogDescription>
-              Você precisa estar logado para {isSelected ? 'remover' : 'adicionar'} este componente.
+              {getTranslation(
+                'You need to be logged in to add this component.',
+                'Você precisa estar logado para adicionar este componente.'
+              )}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <p className="text-center text-muted-foreground">
-              Crie sua conta gratuita para acessar este e muitos outros componentes Elementor.
+              {getTranslation(
+                'Create your free account to access this and many other Elementor components.',
+                'Crie sua conta gratuita para acessar este e muitos outros componentes Elementor.'
+              )}
             </p>
           </div>
           <DialogFooter className="sm:justify-center gap-2">
             <Button asChild variant="outline">
               <Link to="/login" onClick={() => setShowAuthDialog(false)}>
-                Entrar
+                {getTranslation('Login', 'Entrar')}
               </Link>
             </Button>
             <Button asChild>
               <Link to="/register" onClick={() => setShowAuthDialog(false)}>
-                Criar conta
+                {getTranslation('Register', 'Criar conta')}
               </Link>
             </Button>
           </DialogFooter>

@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Copy, Check } from 'lucide-react';
+import { Copy, Check, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/context/AuthContext';
 import { 
@@ -30,6 +30,13 @@ const CodeViewer: React.FC<CodeViewerProps> = ({
   const [copied, setCopied] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const { user } = useAuth();
+  
+  // Get language preference - this would come from a language context in a real implementation
+  const language = localStorage.getItem('language') || 'en';
+  
+  const getTranslation = (en: string, pt: string) => {
+    return language === 'pt' ? pt : en;
+  };
 
   const handleCopy = () => {
     if (restricted && !user) {
@@ -39,52 +46,95 @@ const CodeViewer: React.FC<CodeViewerProps> = ({
     
     navigator.clipboard.writeText(code);
     setCopied(true);
-    toast.success('Código copiado para a área de transferência! Você pode colar no Elementor para testar.');
+    toast.success(getTranslation(
+      'Code copied to clipboard! You can paste it in Elementor to test.',
+      'Código copiado para a área de transferência! Você pode colar no Elementor para testar.'
+    ));
     setTimeout(() => setCopied(false), 2000);
+  };
+  
+  const handleDownload = () => {
+    if (restricted && !user) {
+      setShowAuthDialog(true);
+      return;
+    }
+    
+    // Create blob and trigger download
+    const blob = new Blob([code], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast.success(getTranslation(
+      `Downloaded ${fileName}`,
+      `${fileName} baixado com sucesso`
+    ));
   };
 
   return (
     <>
-      <Button 
-        onClick={handleCopy}
-        size="sm"
-        className="flex items-center gap-2"
-      >
-        {copied ? (
-          <>
-            <Check className="h-4 w-4" />
-            Copiado!
-          </>
-        ) : (
-          <>
-            <Copy className="h-4 w-4" />
-            {title ? title : "Copiar para Elementor"}
-          </>
-        )}
-      </Button>
+      <div className="flex gap-2">
+        <Button 
+          onClick={handleCopy}
+          size="sm"
+          className="flex items-center gap-2"
+        >
+          {copied ? (
+            <>
+              <Check className="h-4 w-4" />
+              {getTranslation('Copied!', 'Copiado!')}
+            </>
+          ) : (
+            <>
+              <Copy className="h-4 w-4" />
+              {title ? title : getTranslation("Copy to Elementor", "Copiar para Elementor")}
+            </>
+          )}
+        </Button>
+        
+        <Button
+          onClick={handleDownload}
+          size="sm"
+          variant="outline"
+          className="flex items-center gap-2"
+        >
+          <Download className="h-4 w-4" />
+          {getTranslation('Download', 'Baixar')}
+        </Button>
+      </div>
 
       <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Acesso restrito</DialogTitle>
+            <DialogTitle>{getTranslation('Restricted access', 'Acesso restrito')}</DialogTitle>
             <DialogDescription>
-              Você precisa estar logado para acessar o código completo deste componente.
+              {getTranslation(
+                'You need to be logged in to access the complete code for this component.',
+                'Você precisa estar logado para acessar o código completo deste componente.'
+              )}
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <p className="text-center text-muted-foreground">
-              Crie sua conta gratuita para acessar este e muitos outros componentes Elementor.
+              {getTranslation(
+                'Create your free account to access this and many other Elementor components.',
+                'Crie sua conta gratuita para acessar este e muitos outros componentes Elementor.'
+              )}
             </p>
           </div>
           <DialogFooter className="sm:justify-center gap-2">
             <Button asChild variant="outline">
               <Link to="/login" onClick={() => setShowAuthDialog(false)}>
-                Entrar
+                {getTranslation('Login', 'Entrar')}
               </Link>
             </Button>
             <Button asChild>
               <Link to="/register" onClick={() => setShowAuthDialog(false)}>
-                Registrar
+                {getTranslation('Register', 'Registrar')}
               </Link>
             </Button>
           </DialogFooter>

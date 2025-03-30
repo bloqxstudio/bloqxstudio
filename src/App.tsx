@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'sonner';
@@ -25,15 +25,22 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 60 * 1000, // 1 minute
-      retry: 1, // Reduzir o número de tentativas para melhorar performance
+      retry: 1,
       refetchOnWindowFocus: false,
-      gcTime: 5 * 60 * 1000, // Aumentar o tempo de cache para 5 minutos (using gcTime instead of cacheTime)
+      gcTime: 5 * 60 * 1000, // 5 minutes cache time
     },
   },
 });
 
 // Create a function component for App
 const App: React.FC = () => {
+  // Set default language if not already set
+  useEffect(() => {
+    if (!localStorage.getItem('language')) {
+      localStorage.setItem('language', 'en');
+    }
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
@@ -44,10 +51,10 @@ const App: React.FC = () => {
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
-              {/* Componentes acessíveis sem login */}
+              {/* Components accessible without login */}
               <Route path="/components" element={<Components />} />
               <Route path="/component/:id" element={<ComponentDetail />} />
-              {/* Rotas protegidas */}
+              {/* Protected routes */}
               <Route path="/components/new" element={
                 <ProtectedRoute>
                   <ComponentCreate />

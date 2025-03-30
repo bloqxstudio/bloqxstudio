@@ -10,7 +10,7 @@ import {
   SheetTrigger 
 } from '@/components/ui/sheet';
 import { Button, Badge } from '@/components/ui';
-import { X, Move, Trash2, Download, ShoppingCart } from 'lucide-react';
+import { X, Move, Trash2, Download, Copy, ShoppingCart } from 'lucide-react';
 import { useSelectedComponents } from '@/context/SelectedComponentsContext';
 import { mergeComponentsJson } from '@/utils/json/mergeJson';
 import { toast } from 'sonner';
@@ -31,16 +31,54 @@ const SelectedComponentsSidebar: React.FC<SelectedComponentsSidebarProps> = ({ t
   const [isOpen, setIsOpen] = useState(false);
   const [draggingIndex, setDraggingIndex] = useState<number | null>(null);
   const [dropTargetIndex, setDropTargetIndex] = useState<number | null>(null);
+  
+  // Get language preference - this would come from a language context in a real implementation
+  const language = localStorage.getItem('language') || 'en';
+  
+  const getTranslation = (en: string, pt: string) => {
+    return language === 'pt' ? pt : en;
+  };
 
-  const handleExport = () => {
+  const handleCopyToElementor = () => {
     if (selectedComponents.length === 0) {
-      toast.error('Nenhum componente selecionado para exportar');
+      toast.error(getTranslation(
+        'No components selected',
+        'Nenhum componente selecionado'
+      ));
       return;
     }
     
     const mergedJson = mergeComponentsJson(selectedComponents);
     if (!mergedJson) {
-      toast.error('Erro ao mesclar JSONs dos componentes');
+      toast.error(getTranslation(
+        'Error merging component JSONs',
+        'Erro ao mesclar JSONs dos componentes'
+      ));
+      return;
+    }
+    
+    navigator.clipboard.writeText(mergedJson);
+    toast.success(getTranslation(
+      'JSONs copied to clipboard! Paste into Elementor to use.',
+      'JSONs copiados para a área de transferência! Cole no Elementor para usar.'
+    ));
+  };
+
+  const handleExport = () => {
+    if (selectedComponents.length === 0) {
+      toast.error(getTranslation(
+        'No components selected for export',
+        'Nenhum componente selecionado para exportar'
+      ));
+      return;
+    }
+    
+    const mergedJson = mergeComponentsJson(selectedComponents);
+    if (!mergedJson) {
+      toast.error(getTranslation(
+        'Error merging component JSONs',
+        'Erro ao mesclar JSONs dos componentes'
+      ));
       return;
     }
 
@@ -51,12 +89,15 @@ const SelectedComponentsSidebar: React.FC<SelectedComponentsSidebarProps> = ({ t
     // Create a download link and trigger it
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'componentes-mesclados.json';
+    link.download = getTranslation('merged-components.json', 'componentes-mesclados.json');
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     
-    toast.success('JSON mesclado exportado com sucesso!');
+    toast.success(getTranslation(
+      'Merged JSON exported successfully!',
+      'JSON mesclado exportado com sucesso!'
+    ));
   };
 
   // Drag and drop handlers
@@ -94,7 +135,7 @@ const SelectedComponentsSidebar: React.FC<SelectedComponentsSidebarProps> = ({ t
             onClick={() => setIsOpen(true)}
           >
             <ShoppingCart className="mr-1 h-4 w-4" />
-            Componentes
+            {getTranslation('Components', 'Componentes')}
             {totalSelected > 0 && (
               <Badge 
                 className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 bg-green-600" 
@@ -108,9 +149,17 @@ const SelectedComponentsSidebar: React.FC<SelectedComponentsSidebarProps> = ({ t
       </SheetTrigger>
       <SheetContent className="w-[400px] sm:max-w-md">
         <SheetHeader className="mb-4">
-          <SheetTitle>Componentes Selecionados ({totalSelected})</SheetTitle>
+          <SheetTitle>
+            {getTranslation(
+              `Selected Components (${totalSelected})`,
+              `Componentes Selecionados (${totalSelected})`
+            )}
+          </SheetTitle>
           <SheetDescription>
-            Reordene ou remova componentes selecionados antes de exportar.
+            {getTranslation(
+              'Reorder or remove selected components before exporting.',
+              'Reordene ou remova componentes selecionados antes de exportar.'
+            )}
           </SheetDescription>
         </SheetHeader>
         
@@ -118,9 +167,15 @@ const SelectedComponentsSidebar: React.FC<SelectedComponentsSidebarProps> = ({ t
           {selectedComponents.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <ShoppingCart className="mx-auto h-10 w-10 mb-2 opacity-30" />
-              <p>Nenhum componente selecionado</p>
+              <p>{getTranslation(
+                'No components selected',
+                'Nenhum componente selecionado'
+              )}</p>
               <p className="text-sm mt-2">
-                Selecione componentes na galeria para adicioná-los aqui.
+                {getTranslation(
+                  'Select components from the gallery to add them here.',
+                  'Selecione componentes na galeria para adicioná-los aqui.'
+                )}
               </p>
             </div>
           ) : (
@@ -142,7 +197,7 @@ const SelectedComponentsSidebar: React.FC<SelectedComponentsSidebarProps> = ({ t
                 <div className="flex items-center gap-3">
                   <div 
                     className="cursor-move p-1 rounded hover:bg-muted"
-                    title="Arrastar para reordenar"
+                    title={getTranslation('Drag to reorder', 'Arrastar para reordenar')}
                   >
                     <Move size={16} />
                   </div>
@@ -174,14 +229,24 @@ const SelectedComponentsSidebar: React.FC<SelectedComponentsSidebarProps> = ({ t
                 className="w-full sm:w-auto"
               >
                 <Trash2 size={16} className="mr-1" />
-                Limpar todos
+                {getTranslation('Clear all', 'Limpar todos')}
+              </Button>
+              <Button 
+                variant="outline"
+                size="sm"
+                onClick={handleCopyToElementor}
+                className="w-full sm:w-auto"
+              >
+                <Copy size={16} className="mr-1" />
+                {getTranslation('Copy for Elementor', 'Copiar para Elementor')}
               </Button>
               <Button 
                 onClick={handleExport}
+                size="sm"
                 className="w-full sm:w-auto"
               >
                 <Download size={16} className="mr-1" />
-                Exportar JSON
+                {getTranslation('Download JSON', 'Baixar JSON')}
               </Button>
             </>
           )}

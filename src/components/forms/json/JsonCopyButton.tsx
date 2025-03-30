@@ -11,12 +11,19 @@ interface JsonCopyButtonProps {
 const JsonCopyButton: React.FC<JsonCopyButtonProps> = ({ getJsonContent }) => {
   const [copied, setCopied] = useState(false);
   const [isCopying, setIsCopying] = useState(false);
+  
+  // Get language preference - this would come from a language context in a real implementation
+  const language = localStorage.getItem('language') || 'en';
+  
+  const getTranslation = (en: string, pt: string) => {
+    return language === 'pt' ? pt : en;
+  };
 
   const handleCopyToClipboard = async () => {
     const content = getJsonContent();
     
     if (!content) {
-      toast.warning('Nenhum código para copiar');
+      toast.warning(getTranslation('No code to copy', 'Nenhum código para copiar'));
       return;
     }
     
@@ -25,11 +32,17 @@ const JsonCopyButton: React.FC<JsonCopyButtonProps> = ({ getJsonContent }) => {
     try {
       await navigator.clipboard.writeText(content);
       setCopied(true);
-      toast.success('Código copiado para área de transferência! Cole no Elementor para testar.');
+      toast.success(getTranslation(
+        'Code copied to clipboard! Paste in Elementor to test.',
+        'Código copiado para área de transferência! Cole no Elementor para testar.'
+      ));
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
-      console.error('Erro ao copiar para área de transferência:', error);
-      toast.error('Erro ao copiar para área de transferência. Tente copiar manualmente.');
+      console.error('Error copying to clipboard:', error);
+      toast.error(getTranslation(
+        'Error copying to clipboard. Try copying manually.',
+        'Erro ao copiar para área de transferência. Tente copiar manualmente.'
+      ));
       
       // Fallback method for clipboard copy
       try {
@@ -44,11 +57,17 @@ const JsonCopyButton: React.FC<JsonCopyButtonProps> = ({ getJsonContent }) => {
         document.execCommand('copy');
         document.body.removeChild(textArea);
         setCopied(true);
-        toast.success('Código copiado usando método alternativo!');
+        toast.success(getTranslation(
+          'Code copied using alternative method!',
+          'Código copiado usando método alternativo!'
+        ));
         setTimeout(() => setCopied(false), 2000);
       } catch (fallbackError) {
-        console.error('Erro no método alternativo de cópia:', fallbackError);
-        toast.error('Não foi possível copiar o código. Por favor selecione o texto e copie manualmente.');
+        console.error('Error in fallback copy method:', fallbackError);
+        toast.error(getTranslation(
+          'Could not copy the code. Please select the text and copy manually.',
+          'Não foi possível copiar o código. Por favor selecione o texto e copie manualmente.'
+        ));
       }
     } finally {
       setIsCopying(false);
@@ -65,7 +84,13 @@ const JsonCopyButton: React.FC<JsonCopyButtonProps> = ({ getJsonContent }) => {
       className="flex items-center gap-1"
     >
       {copied ? <Check size={14} /> : isCopying ? <AlertCircle size={14} /> : <Copy size={14} />}
-      <span>{copied ? 'Copiado!' : isCopying ? 'Copiando...' : 'Copiar para Elementor'}</span>
+      <span>
+        {copied 
+          ? getTranslation('Copied!', 'Copiado!') 
+          : isCopying 
+            ? getTranslation('Copying...', 'Copiando...') 
+            : getTranslation('Copy to Elementor', 'Copiar para Elementor')}
+      </span>
     </Button>
   );
 };
