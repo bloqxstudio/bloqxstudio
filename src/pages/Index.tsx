@@ -100,7 +100,7 @@ const Index = () => {
                   <iframe
                       width="100%"
                       height="100%"
-                      src="https://www.youtube.com/embed/D8EaSEQK0zw?autoplay=1&controls=0&showinfo=0&modestbranding=1&rel=0&mute=1"
+                      src="https://www.youtube.com/embed/D8EaSEQK0zw?autoplay=1&controls=0&showinfo=0&modestbranding=1&rel=0&mute=1&loop=1&playlist=D8EaSEQK0zw"
                       title="YouTube video player"
                       frameborder="0"
                       allow="autoplay; encrypted-media"
