@@ -1,14 +1,11 @@
 
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Navbar from '@/components/Navbar';
 import { Button } from '@/components/ui';
 import { X } from 'lucide-react';
 import ComponentCreateForm from '@/components/forms/ComponentCreateForm';
-import JsonTransformer from '@/components/forms/JsonTransformer';
 import { useAuth } from '@/context/AuthContext';
 import { toast } from 'sonner';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui';
 import PageWrapper from '@/components/layout/PageWrapper';
 
 const ComponentCreate = () => {
@@ -37,9 +34,9 @@ const ComponentCreate = () => {
     <PageWrapper>
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tighter">Ferramenta para Componentes</h1>
+          <h1 className="text-3xl font-bold tracking-tighter">Criar Novo Componente</h1>
           <p className="text-muted-foreground mt-1">
-            Componentes curados pelo nosso time
+            Cole um JSON do Elementor para começar
           </p>
         </div>
         <Button variant="outline" size="sm" onClick={handleCancel}>
@@ -48,20 +45,7 @@ const ComponentCreate = () => {
         </Button>
       </div>
       
-      <Tabs defaultValue="create" className="mb-8">
-        <TabsList className="grid w-full grid-cols-2 max-w-md mb-6">
-          <TabsTrigger value="create">Criar Componente</TabsTrigger>
-          <TabsTrigger value="transform">Transformar JSON</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="create">
-          <ComponentCreateForm />
-        </TabsContent>
-        
-        <TabsContent value="transform">
-          <JsonTransformer />
-        </TabsContent>
-      </Tabs>
+      <ComponentCreateForm />
     </PageWrapper>
   );
 };

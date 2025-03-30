@@ -17,6 +17,7 @@ export const useComponentCreate = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [isProcessingJson, setIsProcessingJson] = useState(false);
+  const [jsonContent, setJsonContent] = useState<string>('');
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -79,6 +80,7 @@ export const useComponentCreate = () => {
       // Transformar em container
       const cleanedJson = cleanElementorJson(currentJson, false, true);
       form.setValue('jsonCode', cleanedJson);
+      setJsonContent(cleanedJson);
       toast.success('JSON validado e transformado em container!');
       
     } catch (e) {
@@ -87,6 +89,44 @@ export const useComponentCreate = () => {
     } finally {
       setIsProcessingJson(false);
     }
+  };
+
+  // New handler for JSON content changes
+  const handleJsonChange = (content: string) => {
+    setJsonContent(content);
+  };
+
+  // New handler for AI analysis success
+  const handleAnalyzeSuccess = (metadata: {
+    title?: string;
+    tags?: string;
+    alignment?: 'left' | 'center' | 'right' | 'full';
+    columns?: '1' | '2' | '3+';
+    elements?: string[];
+  }) => {
+    console.log('Received metadata from AI:', metadata);
+    
+    if (metadata.title) {
+      form.setValue('title', metadata.title);
+    }
+    
+    if (metadata.tags) {
+      form.setValue('tags', metadata.tags);
+    }
+    
+    if (metadata.alignment) {
+      form.setValue('alignment', metadata.alignment);
+    }
+    
+    if (metadata.columns) {
+      form.setValue('columns', metadata.columns);
+    }
+    
+    if (metadata.elements && Array.isArray(metadata.elements)) {
+      form.setValue('elements', metadata.elements);
+    }
+    
+    toast.success('Dados do componente extraídos com sucesso!');
   };
 
   const onSubmit = async (values: FormValues) => {
@@ -144,6 +184,7 @@ export const useComponentCreate = () => {
     const processedJson = sessionStorage.getItem('processedJson');
     if (processedJson) {
       form.setValue('jsonCode', processedJson);
+      setJsonContent(processedJson);
       // Limpar depois de carregar
       sessionStorage.removeItem('processedJson');
       toast.info('JSON carregado da transformação anterior');
@@ -160,6 +201,9 @@ export const useComponentCreate = () => {
     handleFileChange,
     handleProcessJson,
     onSubmit,
-    loadProcessedJson
+    loadProcessedJson,
+    handleJsonChange,
+    handleAnalyzeSuccess,
+    jsonContent
   };
 };

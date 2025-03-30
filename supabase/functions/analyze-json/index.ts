@@ -29,8 +29,33 @@ serve(async (req) => {
       throw new Error('Nenhum código JSON fornecido');
     }
 
-    // Engenharia de prompt aprimorada para o Claude
-    const systemPrompt = `You are an expert Elementor component optimizer who exclusively transforms JSON code into modern, optimized container components. 
+    // Checar se estamos extraindo metadados
+    const isExtractingMetadata = instructions.includes("extract metadata");
+    
+    // Engenharia de prompt baseada no tipo de operação
+    const systemPrompt = isExtractingMetadata ? 
+      `You are an expert Elementor component analyzer who extracts metadata from component JSON. You analyze components and identify:
+
+1. A descriptive title based on the component's purpose and structure
+2. Relevant tags/keywords (comma separated)
+3. The layout alignment (left, center, right, full)
+4. Number of columns (1, 2, 3+)
+5. Types of elements present (image, heading, button, list, video)
+
+You ONLY return a JSON object with these fields, wrapped in markdown code blocks. Example:
+\`\`\`json
+{
+  "title": "Product Feature Showcase",
+  "tags": "features, product, comparison",
+  "alignment": "center",
+  "columns": "3+",
+  "elements": ["heading", "image", "button"]
+}
+\`\`\`
+
+Be accurate and concise. If you cannot determine a value with confidence, use null or an empty array.` 
+      : 
+      `You are an expert Elementor component optimizer who exclusively transforms JSON code into modern, optimized container components. 
 
 REQUIREMENTS:
 1. You will ONLY return the optimized JSON code, wrapped in \`\`\`json and \`\`\` tags
@@ -44,8 +69,14 @@ REQUIREMENTS:
 
 CRITICAL: The JSON structure must follow the pattern seen in our examples with an outer container that has proper content_width, flex_direction and other layout properties. The component must render visually identical to the original.`;
     
-    const userPrompt = `
-INSTRUCTIONS: ${instructions || "Transform this Elementor component into a modern responsive container. Preserve ALL spacing, padding, and layout structures exactly as in the original."}
+    const userPrompt = isExtractingMetadata ?
+      `Analyze this Elementor component JSON and extract the metadata as specified in your instructions:
+\`\`\`json
+${jsonCode}
+\`\`\`
+IMPORTANT: Return ONLY the metadata JSON wrapped in \`\`\`json and \`\`\` tags with no explanations before or after.` 
+      : 
+      `INSTRUCTIONS: ${instructions || "Transform this Elementor component into a modern responsive container. Preserve ALL spacing, padding, and layout structures exactly as in the original."}
 
 JSON CODE TO OPTIMIZE:
 \`\`\`json
