@@ -94,4 +94,3 @@ export const formatComponentsListForExport = (components: Component[]): string =
   
   return `${components.length} components: ${components.map(c => c.title).join(", ")}`;
 };
-

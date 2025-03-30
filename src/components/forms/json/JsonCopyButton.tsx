@@ -3,6 +3,9 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Copy, Check, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAuth } from '@/context/AuthContext';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Link } from 'react-router-dom';
 
 interface JsonCopyButtonProps {
   getJsonContent: () => string;
@@ -11,8 +14,10 @@ interface JsonCopyButtonProps {
 const JsonCopyButton: React.FC<JsonCopyButtonProps> = ({ getJsonContent }) => {
   const [copied, setCopied] = useState(false);
   const [isCopying, setIsCopying] = useState(false);
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
+  const { user } = useAuth();
   
-  // Get language preference - this would come from a language context in a real implementation
+  // Get language preference
   const language = localStorage.getItem('language') || 'en';
   
   const getTranslation = (en: string, pt: string) => {
@@ -20,6 +25,11 @@ const JsonCopyButton: React.FC<JsonCopyButtonProps> = ({ getJsonContent }) => {
   };
 
   const handleCopyToClipboard = async () => {
+    if (!user) {
+      setShowAuthDialog(true);
+      return;
+    }
+    
     const content = getJsonContent();
     
     if (!content) {
@@ -75,23 +85,59 @@ const JsonCopyButton: React.FC<JsonCopyButtonProps> = ({ getJsonContent }) => {
   };
 
   return (
-    <Button
-      type="button"
-      variant="outline"
-      size="sm"
-      onClick={handleCopyToClipboard}
-      disabled={isCopying}
-      className="flex items-center gap-1"
-    >
-      {copied ? <Check size={14} /> : isCopying ? <AlertCircle size={14} /> : <Copy size={14} />}
-      <span>
-        {copied 
-          ? getTranslation('Copied!', 'Copiado!') 
-          : isCopying 
-            ? getTranslation('Copying...', 'Copiando...') 
-            : getTranslation('Copy to Elementor', 'Copiar para Elementor')}
-      </span>
-    </Button>
+    <>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={handleCopyToClipboard}
+        disabled={isCopying}
+        className="flex items-center gap-1"
+      >
+        {copied ? <Check size={14} /> : isCopying ? <AlertCircle size={14} /> : <Copy size={14} />}
+        <span>
+          {copied 
+            ? getTranslation('Copied!', 'Copiado!') 
+            : isCopying 
+              ? getTranslation('Copying...', 'Copiando...') 
+              : getTranslation('Copy to Elementor', 'Copiar para Elementor')}
+        </span>
+      </Button>
+
+      <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{getTranslation('Login Required', 'Login Necessário')}</DialogTitle>
+            <DialogDescription>
+              {getTranslation(
+                'You need to be logged in to copy this component.',
+                'Você precisa estar logado para copiar este componente.'
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <p className="text-center text-muted-foreground">
+              {getTranslation(
+                'Create your free account to access all features. Our platform is currently in BETA and 100% FREE.',
+                'Crie sua conta gratuita para acessar todos os recursos. Nossa plataforma está atualmente em BETA e é 100% GRATUITA.'
+              )}
+            </p>
+          </div>
+          <DialogFooter className="sm:justify-center gap-2">
+            <Button asChild variant="outline">
+              <Link to="/login" onClick={() => setShowAuthDialog(false)}>
+                {getTranslation('Login', 'Entrar')}
+              </Link>
+            </Button>
+            <Button asChild>
+              <Link to="/register" onClick={() => setShowAuthDialog(false)}>
+                {getTranslation('Create Free Account', 'Criar Conta Grátis')}
+              </Link>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
