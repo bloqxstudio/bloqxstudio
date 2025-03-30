@@ -3,7 +3,7 @@ import React from 'react';
 import { Component } from '@/lib/database.types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Filter, PlusCircle, Eye } from 'lucide-react';
+import { Filter, Eye } from 'lucide-react';
 import { Loader2 } from 'lucide-react';
 import ComponentCard from '@/components/ComponentCard';
 import { Link } from 'react-router-dom';
@@ -14,7 +14,6 @@ interface ComponentsGridProps {
   isLoading: boolean;
   error: unknown;
   handleRetry: () => void;
-  handleCreateClick: () => void;
   user: any;
 }
 
@@ -24,7 +23,6 @@ const ComponentsGrid: React.FC<ComponentsGridProps> = ({
   isLoading,
   error,
   handleRetry,
-  handleCreateClick,
   user
 }) => {
   if (isLoading) {
@@ -66,14 +64,8 @@ const ComponentsGrid: React.FC<ComponentsGridProps> = ({
           </div>
           <h3 className="text-lg font-semibold mb-2">Nenhum componente encontrado</h3>
           <p className="text-muted-foreground max-w-md mb-4">
-            Não encontramos nenhum componente com os filtros aplicados. Tente ajustar sua busca ou criar um novo componente.
+            Não encontramos nenhum componente com os filtros aplicados. Tente ajustar sua busca.
           </p>
-          {user && (
-            <Button onClick={handleCreateClick}>
-              <PlusCircle className="h-4 w-4 mr-1" />
-              Criar Componente
-            </Button>
-          )}
         </CardContent>
       </Card>
     );

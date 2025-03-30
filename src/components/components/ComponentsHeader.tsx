@@ -1,17 +1,13 @@
 
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { PlusCircle, Settings } from 'lucide-react';
+import { Settings } from 'lucide-react';
 import { Button } from '@/components/ui';
 import ComponentBreadcrumb from '@/components/ComponentBreadcrumb';
 import { useAuth } from '@/context/AuthContext';
 
-interface ComponentsHeaderProps {
-  handleCreateClick: () => void;
-}
-
-const ComponentsHeader: React.FC<ComponentsHeaderProps> = ({ handleCreateClick }) => {
-  const { user, isAdmin } = useAuth();
+const ComponentsHeader: React.FC = () => {
+  const { isAdmin } = useAuth();
   const navigate = useNavigate();
 
   return (
@@ -29,12 +25,6 @@ const ComponentsHeader: React.FC<ComponentsHeaderProps> = ({ handleCreateClick }
       </div>
       
       <div className="flex items-center gap-2">
-        {user && (
-          <Button onClick={handleCreateClick} className="hover-lift" size="sm">
-            <PlusCircle className="h-4 w-4 mr-1" />
-            Novo Componente
-          </Button>
-        )}
         {isAdmin && (
           <Button
             variant="outline"

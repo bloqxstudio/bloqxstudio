@@ -1,6 +1,5 @@
 
 import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import { useAuth } from '@/context/AuthContext';
 import { useQuery } from '@tanstack/react-query';
@@ -20,7 +19,6 @@ import SelectedComponentsSidebar from '@/components/selection/SelectedComponents
 
 const Components = () => {
   const { user } = useAuth();
-  const navigate = useNavigate();
   
   // Fetch components from Supabase
   const { data: components = [], isLoading, error, refetch } = useQuery({
@@ -65,11 +63,6 @@ const Components = () => {
     }
   }, [error, refetch]);
   
-  // Handle create button click
-  const handleCreateClick = () => {
-    navigate('/components/new');
-  };
-
   // Retry button handler
   const handleRetry = () => {
     toast.info('Recarregando componentes...');
@@ -83,7 +76,7 @@ const Components = () => {
         
         <main className="container mx-auto px-4 py-8">
           <div className="flex justify-between items-center mb-6">
-            <ComponentsHeader handleCreateClick={handleCreateClick} />
+            <ComponentsHeader />
             <div className="flex items-center gap-2">
               <SelectedComponentsSidebar />
             </div>
@@ -131,7 +124,6 @@ const Components = () => {
             isLoading={isLoading}
             error={error}
             handleRetry={handleRetry}
-            handleCreateClick={handleCreateClick}
             user={user}
           />
         </main>
