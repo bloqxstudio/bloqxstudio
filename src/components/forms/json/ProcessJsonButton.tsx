@@ -28,7 +28,7 @@ const ProcessJsonButton: React.FC<ProcessJsonButtonProps> = ({
       ) : (
         <Wand2 size={14} />
       )}
-      <span>{loading ? 'Processando...' : 'Transformar em Container'}</span>
+      <span>{loading ? 'Processando...' : 'Transformar em Json Válido'}</span>
     </Button>
   );
 };

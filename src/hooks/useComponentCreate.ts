@@ -81,7 +81,7 @@ export const useComponentCreate = () => {
       const cleanedJson = cleanElementorJson(currentJson, false, true);
       form.setValue('jsonCode', cleanedJson);
       setJsonContent(cleanedJson);
-      toast.success('JSON validado e transformado em container!');
+      toast.success('JSON validado e transformado!');
       
     } catch (e) {
       console.error('Erro ao processar JSON:', e);

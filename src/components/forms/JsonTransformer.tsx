@@ -8,7 +8,6 @@ import { cleanElementorJson, validateJson } from '@/utils/json';
 import { toast } from 'sonner';
 import JsonFileUploader from './json/JsonFileUploader';
 import ClaudeJsonAnalyzer from './ClaudeJsonAnalyzer';
-import TemplateGenerator from './json/TemplateGenerator';
 import JsonTransformerHeader from './json/JsonTransformerHeader';
 import JsonTransformerActions from './json/JsonTransformerActions';
 import JsonFormField from './json/JsonFormField';
@@ -40,7 +39,7 @@ const JsonTransformer = () => {
       const cleanedJson = cleanElementorJson(currentJson, false, true);
       form.setValue('jsonCode', cleanedJson);
       
-      toast.success('JSON transformado em container com sucesso!');
+      toast.success('JSON transformado com sucesso!');
     } catch (e) {
       console.error('Erro ao processar JSON:', e);
       toast.error('Erro ao processar o JSON. Verifique se é um código válido.');
@@ -121,8 +120,6 @@ const JsonTransformer = () => {
           isValidating={isValidating}
           isProcessing={isProcessing}
         />
-        
-        <TemplateGenerator onTemplateGenerated={handleTemplateGenerated} />
         
         <Form {...form}>
           <form>

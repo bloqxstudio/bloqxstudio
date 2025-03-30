@@ -9,7 +9,6 @@ import ProcessJsonButton from './json/ProcessJsonButton';
 import JsonCopyButton from './json/JsonCopyButton';
 import JsonValidityIndicator from './json/JsonValidityIndicator';
 import JsonFileUploader from './json/JsonFileUploader';
-import TemplateGenerator from './json/TemplateGenerator';
 
 interface JsonCodeSectionProps {
   form: UseFormReturn<any>;
@@ -64,12 +63,6 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
 
   const getJsonContent = () => form.getValues('jsonCode');
   
-  const handleTemplateGenerated = (template: string) => {
-    form.setValue('jsonCode', template);
-    setJsonContent(template);
-    validateJsonContent(template);
-  };
-
   const handleJsonFileUploaded = (jsonContent: string) => {
     form.setValue('jsonCode', jsonContent);
     setJsonContent(jsonContent);
@@ -79,13 +72,7 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
   return (
     <>
       {!simplified && (
-        <>
-          <JsonFileUploader onJsonLoaded={handleJsonFileUploaded} />
-
-          <div className="mt-6 mb-6">
-            <TemplateGenerator onTemplateGenerated={handleTemplateGenerated} />
-          </div>
-        </>
+        <JsonFileUploader onJsonLoaded={handleJsonFileUploaded} />
       )}
     
       <FormField
@@ -144,7 +131,7 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
             />
             
             <FormDescription>
-              Cole o código JSON do Elementor para transformá-lo em container
+              Cole o código JSON do Elementor para transformá-lo em Json Válido
             </FormDescription>
             <FormMessage />
           </FormItem>
