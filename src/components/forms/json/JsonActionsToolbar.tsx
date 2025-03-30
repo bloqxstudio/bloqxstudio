@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import ProcessJsonButton from './ProcessJsonButton';
 import JsonCopyButton from './JsonCopyButton';
@@ -66,40 +65,6 @@ const JsonActionsToolbar: React.FC<JsonActionsToolbarProps> = ({
     ));
   };
 
-  const handleCopyForElementor = () => {
-    if (!user) {
-      setShowAuthDialog(true);
-      return;
-    }
-    
-    const content = getJsonContent();
-    
-    if (!content || !isValidJson) {
-      toast.warning(getTranslation(
-        'Cannot copy invalid JSON', 
-        'Não é possível copiar JSON inválido'
-      ));
-      return;
-    }
-
-    try {
-      navigator.clipboard.writeText(content);
-      toast.success(getTranslation(
-        'Copied to clipboard! Paste directly into Elementor',
-        'Copiado para área de transferência! Cole diretamente no Elementor'
-      ), {
-        duration: 4000,
-        icon: <Copy className="h-4 w-4" />
-      });
-    } catch (err) {
-      console.error('Failed to copy:', err);
-      toast.error(getTranslation(
-        'Failed to copy to clipboard',
-        'Falha ao copiar para área de transferência'
-      ));
-    }
-  };
-
   const handleAction = (actionFn: () => void) => {
     if (!user) {
       setShowAuthDialog(true);
@@ -155,20 +120,6 @@ const JsonActionsToolbar: React.FC<JsonActionsToolbarProps> = ({
           <Download size={14} />
           <span>{getTranslation('Download', 'Baixar')}</span>
         </Button>
-
-        {showElementorCopy && (
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => user ? handleCopyForElementor() : setShowAuthDialog(true)}
-            disabled={!isValidJson && !!user}
-            className="flex items-center gap-1 border-blue-300 hover:bg-blue-50 hover:text-blue-700"
-          >
-            <Copy size={14} />
-            <span>{getTranslation('Copy for Elementor', 'Copiar para Elementor')}</span>
-          </Button>
-        )}
 
         {!isValidJson && getJsonContent() && (
           <div className="flex items-center text-destructive gap-1 text-sm ml-2">
