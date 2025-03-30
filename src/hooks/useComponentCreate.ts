@@ -123,7 +123,13 @@ export const useComponentCreate = () => {
     }
     
     if (metadata.elements && Array.isArray(metadata.elements)) {
-      form.setValue('elements', metadata.elements);
+      // Filter elements to ensure they match the required types
+      const validElementTypes: ("image" | "heading" | "button" | "list" | "video")[] = 
+        metadata.elements
+          .filter((el): el is "image" | "heading" | "button" | "list" | "video" => 
+            ["image", "heading", "button", "list", "video"].includes(el));
+      
+      form.setValue('elements', validElementTypes);
     }
     
     toast.success('Dados do componente extraídos com sucesso!');

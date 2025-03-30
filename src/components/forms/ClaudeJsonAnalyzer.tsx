@@ -21,7 +21,7 @@ import {
   AlertTitle,
   AlertDescription
 } from '@/components/ui';
-import { Bot, Sparkles, Loader2, Code, MagicWand } from 'lucide-react';
+import { Bot, Sparkles, Loader2, Code, Wand2 } from 'lucide-react';
 
 interface AnalyzerProps {
   jsonCode: string;
@@ -210,7 +210,7 @@ const ClaudeJsonAnalyzer: React.FC<AnalyzerProps> = ({
             </>
           ) : (
             <>
-              <MagicWand className="h-4 w-4" />
+              <Wand2 className="h-4 w-4" />
               Preencher Formulário Automaticamente
             </>
           )}
