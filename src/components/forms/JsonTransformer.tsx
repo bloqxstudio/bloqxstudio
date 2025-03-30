@@ -125,10 +125,12 @@ const JsonTransformer = () => {
         <TemplateGenerator onTemplateGenerated={handleTemplateGenerated} />
         
         <Form {...form}>
-          <JsonFormField 
-            form={form} 
-            onJsonChange={validateJsonContent} 
-          />
+          <form>
+            <JsonFormField 
+              form={form} 
+              onJsonChange={validateJsonContent} 
+            />
+          </form>
         </Form>
         
         {isValidJson && form.getValues('jsonCode') && (

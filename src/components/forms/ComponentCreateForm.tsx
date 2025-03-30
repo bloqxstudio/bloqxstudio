@@ -32,29 +32,30 @@ const ComponentCreateForm = () => {
   return (
     <Card>
       <CardContent className="pt-6">
-        {/* JSON Input Section - Always First */}
-        <JsonCodeSection
-          form={form}
-          onProcessJson={handleProcessJson}
-          simplified={false}
-          onContentChange={handleJsonChange}
-        />
-
-        {/* Claude AI Analyzer for Auto-extraction */}
-        {jsonContent && (
-          <ClaudeJsonAnalyzer
-            jsonCode={jsonContent}
-            onJsonUpdate={(updatedJson) => {
-              form.setValue('jsonCode', updatedJson);
-              handleJsonChange(updatedJson);
-            }}
-            onAnalysisSuccess={handleAnalyzeSuccess}
-          />
-        )}
-
-        {/* Form Fields Section */}
+        {/* Form wrapper around everything */}
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 mt-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            {/* JSON Input Section - Always First */}
+            <JsonCodeSection
+              form={form}
+              onProcessJson={handleProcessJson}
+              simplified={false}
+              onContentChange={handleJsonChange}
+            />
+
+            {/* Claude AI Analyzer for Auto-extraction */}
+            {jsonContent && (
+              <ClaudeJsonAnalyzer
+                jsonCode={jsonContent}
+                onJsonUpdate={(updatedJson) => {
+                  form.setValue('jsonCode', updatedJson);
+                  handleJsonChange(updatedJson);
+                }}
+                onAnalysisSuccess={handleAnalyzeSuccess}
+              />
+            )}
+
+            {/* Form Fields Section */}
             <ComponentFormFields 
               form={form} 
               selectedFile={selectedFile}
