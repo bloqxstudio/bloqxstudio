@@ -3,9 +3,9 @@
  * Utilities for cleaning and formatting Elementor JSON
  */
 import { validateJson } from './validators';
-import { transformElementsToContainer, removeEmptyProperties } from './transformers';
+import { transformElementsToContainer, removeEmptyProperties, applyStandardStructure } from './transformers';
 
-export const cleanElementorJson = (jsonString: string, removeStyles = false, wrapInContainer = true): string => {
+export const cleanElementorJson = (jsonString: string, removeStyles = false, wrapInContainer = true, applyStructure = false): string => {
   try {
     // Validar primeiro
     if (!validateJson(jsonString)) {
@@ -39,8 +39,14 @@ export const cleanElementorJson = (jsonString: string, removeStyles = false, wra
       }
     }
 
-    // Transformar elementos para container com as configurações especificadas
-    elements = transformElementsToContainer(elements);
+    // Aplicar a estrutura padrão ou apenas transformar elementos para container
+    if (applyStructure) {
+      // Aplicar a estrutura padrão com containers aninhados
+      elements = applyStandardStructure(elements);
+    } else {
+      // Transformar elementos para container com as configurações especificadas
+      elements = transformElementsToContainer(elements);
+    }
 
     // Formato básico e compacto
     const cleaned = {

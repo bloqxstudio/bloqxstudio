@@ -11,12 +11,15 @@ import ClaudeJsonAnalyzer from './ClaudeJsonAnalyzer';
 import JsonTransformerHeader from './json/JsonTransformerHeader';
 import JsonActionsToolbar from './json/JsonActionsToolbar';
 import JsonFormField from './json/JsonFormField';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 const JsonTransformer = () => {
   const navigate = useNavigate();
   const [isValidJson, setIsValidJson] = useState(true);
   const [isValidating, setIsValidating] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [applyStructure, setApplyStructure] = useState(false);
   
   // Get language preference
   const language = localStorage.getItem('language') || 'en';
@@ -45,14 +48,20 @@ const JsonTransformer = () => {
     setIsProcessing(true);
     
     try {
-      // Always transform to container, no wireframe option
-      const cleanedJson = cleanElementorJson(currentJson, false, true);
+      // Pass the applyStructure parameter to the cleanElementorJson function
+      const cleanedJson = cleanElementorJson(currentJson, false, true, applyStructure);
       form.setValue('jsonCode', cleanedJson);
       
-      toast.success(getTranslation(
-        'JSON transformed successfully!',
-        'JSON transformado com sucesso!'
-      ));
+      toast.success(applyStructure ? 
+        getTranslation(
+          'JSON structured and transformed successfully!',
+          'JSON estruturado e transformado com sucesso!'
+        ) : 
+        getTranslation(
+          'JSON transformed successfully!',
+          'JSON transformado com sucesso!'
+        )
+      );
     } catch (e) {
       console.error('Error processing JSON:', e);
       toast.error(getTranslation(
@@ -139,6 +148,32 @@ const JsonTransformer = () => {
         <div className="mb-6">
           <JsonFileUploader onJsonLoaded={handleJsonLoaded} />
         </div>
+        
+        {/* Structure toggle */}
+        <div className="flex items-center space-x-4 mb-4">
+          <Switch
+            id="apply-structure-toggle"
+            checked={applyStructure}
+            onCheckedChange={setApplyStructure}
+          />
+          <Label htmlFor="apply-structure-toggle" className="font-medium">
+            {getTranslation(
+              'Apply Standard Structure',
+              'Aplicar Estrutura Padrão'
+            )}
+          </Label>
+        </div>
+
+        {applyStructure && (
+          <div className="mb-4 p-3 border border-gray-200 rounded-md bg-gray-50">
+            <p className="text-sm text-gray-600">
+              {getTranslation(
+                'Standard structure will be applied: Section → Padding → Row → Column → Content Groups → Widgets',
+                'A estrutura padrão será aplicada: Seção → Padding → Linha → Coluna → Grupos de Conteúdo → Widgets'
+              )}
+            </p>
+          </div>
+        )}
         
         <JsonActionsToolbar 
           onProcessJson={handleProcessJson}

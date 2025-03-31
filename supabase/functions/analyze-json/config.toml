@@ -3,3 +3,5 @@ project_id = "amruhpzfiaqskvtssfqi"
 app_version = "1.0.0"
 # Add flag to preserve direct color values
 preserve_colors = true
+# Add flag for DM Sans font family
+default_font_family = "DMSANS"
