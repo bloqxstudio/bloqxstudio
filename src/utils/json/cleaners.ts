@@ -46,7 +46,9 @@ export const cleanElementorJson = (jsonString: string, removeStyles = false, wra
     const cleaned = {
       type: "elementor",
       siteurl: jsonObj.siteurl || "https://bloqxstudio.com/", // Usar o site bloqxstudio.com como padrão
-      elements: elements || []
+      elements: elements || [],
+      // Preservar cores globais do JSON original se existirem
+      globals: jsonObj.globals || {}
     };
 
     // Remover propriedades vazias para reduzir o tamanho

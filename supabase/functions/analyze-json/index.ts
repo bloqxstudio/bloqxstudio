@@ -66,6 +66,7 @@ REQUIREMENTS:
 6. You will ensure the component remains fully responsive by using relative units where appropriate
 7. You will optimize any custom CSS for modern browsers
 8. You will provide a clean, properly structured JSON output that works directly in Elementor
+9. CRITICAL: Preserve all direct color values in the original code - DO NOT convert to global color references. If a color is specified as a direct HEX or RGB value, keep exactly that same direct color value.
 
 CRITICAL: The JSON structure must follow the pattern seen in our examples with an outer container that has proper content_width, flex_direction and other layout properties. The component must render visually identical to the original.`;
     
@@ -76,14 +77,14 @@ ${jsonCode}
 \`\`\`
 IMPORTANT: Return ONLY the metadata JSON wrapped in \`\`\`json and \`\`\` tags with no explanations before or after.` 
       : 
-      `INSTRUCTIONS: ${instructions || "Transform this Elementor component into a modern responsive container. Preserve ALL spacing, padding, and layout structures exactly as in the original."}
+      `INSTRUCTIONS: ${instructions || "Transform this Elementor component into a modern responsive container. Preserve ALL spacing, padding, layout structures, and DIRECT COLOR VALUES exactly as in the original. Do not use global color references - keep all colors as direct hex/rgb values if they are specified directly in the original."} 
 
 JSON CODE TO OPTIMIZE:
 \`\`\`json
 ${jsonCode}
 \`\`\`
 
-IMPORTANT: Return ONLY the optimized JSON code wrapped in \`\`\`json and \`\`\` tags. Do not include any explanations or comments. Your response must be copy-pastable JSON that can immediately be used in Elementor.`;
+IMPORTANT: Return ONLY the optimized JSON code wrapped in \`\`\`json and \`\`\` tags. Do not include any explanations or comments. Your response must be copy-pastable JSON that can immediately be used in Elementor. PRESERVE ALL DIRECT COLOR VALUES from the original code.`;
 
     // Fazer a requisição para a API do Claude com o formato atualizado
     console.log("Enviando requisição para a API do Claude...");

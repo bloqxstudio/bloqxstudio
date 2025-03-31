@@ -1,3 +1,5 @@
 
 project_id = "amruhpzfiaqskvtssfqi"
 app_version = "1.0.0"
+# Add flag to preserve direct color values
+preserve_colors = true

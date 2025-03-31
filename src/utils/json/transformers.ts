@@ -36,8 +36,14 @@ export const transformElementsToContainer = (elements: any[]): any[] => {
           settings.flex_gap = { unit: "px", size: 10 };
         }
         
+        // Preservar cores diretas no elemento
+        preserveDirectColors(settings);
+        
         newElement.settings = settings;
       }
+    } else if (newElement.settings) {
+      // Para outros tipos de elementos, também preservar cores diretas
+      preserveDirectColors(newElement.settings);
     }
     
     // Processar elementos filhos recursivamente
@@ -46,6 +52,39 @@ export const transformElementsToContainer = (elements: any[]): any[] => {
     }
     
     return newElement;
+  });
+};
+
+// Nova função para preservar cores diretas nos elementos
+const preserveDirectColors = (settings: any) => {
+  if (!settings) return;
+  
+  // Substitui referências globais de cores pelos valores diretos
+  Object.keys(settings).forEach(key => {
+    // Procurar por propriedades __globals__ que afetam cores
+    const globalKey = `__globals__${key}`;
+    
+    if (settings[globalKey] && typeof settings[globalKey] === 'string') {
+      // Remove a referência global de cor, mantendo apenas o valor direto
+      delete settings[globalKey];
+      
+      // Se não houver um valor de cor direta definido, definir um valor padrão
+      // Isso é necessário apenas se a propriedade base de cor não estiver definida
+      if (key.includes('color') && !settings[key]) {
+        if (key.includes('background')) {
+          settings[key] = '#ffffff'; // Branco como valor padrão para fundos
+        } else {
+          settings[key] = '#333333'; // Cinza escuro como valor padrão para textos
+        }
+      }
+    }
+  });
+  
+  // Processar recursivamente objetos aninhados que podem conter cores
+  Object.keys(settings).forEach(key => {
+    if (settings[key] && typeof settings[key] === 'object' && !Array.isArray(settings[key])) {
+      preserveDirectColors(settings[key]);
+    }
   });
 };
 
@@ -63,8 +102,11 @@ export const removeEmptyProperties = (obj: any): any => {
   const result: Record<string, any> = {};
   
   Object.keys(obj).forEach(key => {
-    // Ignorar propriedades que começam com '__'
-    if (key.startsWith('__')) {
+    // Preservar propriedades de cores mesmo se parecerem vazias
+    const isColorProperty = key.includes('color') || key.includes('_color');
+    
+    // Ignorar propriedades que começam com '__', exceto __globals__ quando é necessário preservar cores
+    if (key.startsWith('__') && (!isColorProperty || !key.includes('__globals__'))) {
       return;
     }
     
@@ -104,6 +146,9 @@ export const removeEmptyProperties = (obj: any): any => {
     } else if (value !== '' && value !== null && value !== undefined) {
       // Manter valores primitivos não vazios
       result[key] = value;
+    } else if (isColorProperty) {
+      // Preservar propriedades de cores mesmo se o valor for vazio
+      result[key] = value;
     }
   });
   
@@ -139,10 +184,18 @@ export const removeStyleProperties = (elements: any[]): any[] => {
         'space', 'align', 'object-fit'
       ];
       
+      // Propriedades de cores a preservar sempre
+      const colorProps = [
+        'color', 'background_color', 'button_background_color', 
+        'title_color', 'button_text_color', 'heading_color',
+        'text_color', 'border_color'
+      ];
+      
       // Copiar apenas propriedades essenciais
       Object.keys(newElement.settings).forEach(key => {
         const isEssential = essentialProps.some(prop => key.includes(prop));
         const isLayout = layoutProps.some(prop => key.includes(prop));
+        const isColor = colorProps.some(prop => key.includes(prop));
         
         // Remover propriedades começando com '__globals__' e certos prefixos
         const isGlobal = key.startsWith('__globals__');
@@ -150,7 +203,7 @@ export const removeStyleProperties = (elements: any[]): any[] => {
           prefix => key.includes(prefix)
         );
         
-        if ((isEssential || isLayout) && !isGlobal && !isUnwanted) {
+        if ((isEssential || isLayout || isColor) && !isGlobal && !isUnwanted) {
           cleanSettings[key] = newElement.settings[key];
         }
       });
