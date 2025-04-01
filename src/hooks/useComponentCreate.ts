@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -18,6 +17,7 @@ export const useComponentCreate = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [isProcessingJson, setIsProcessingJson] = useState(false);
   const [jsonContent, setJsonContent] = useState<string>('');
+  const [applyStructure, setApplyStructure] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -32,7 +32,6 @@ export const useComponentCreate = () => {
     }
   });
 
-  // Mutation for creating component
   const createMutation = useMutation({
     mutationFn: createComponent,
     onSuccess: () => {
@@ -51,7 +50,6 @@ export const useComponentCreate = () => {
       const file = e.target.files[0];
       setSelectedFile(file);
       
-      // Create preview
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
@@ -71,17 +69,20 @@ export const useComponentCreate = () => {
     setIsProcessingJson(true);
     
     try {
-      // Validar e transformar o JSON
       if (!validateJson(currentJson)) {
         toast.error('O código não é um JSON válido. Verifique a sintaxe.');
         return;
       }
       
-      // Transformar em container
-      const cleanedJson = cleanElementorJson(currentJson, false, true);
+      const cleanedJson = cleanElementorJson(currentJson, false, true, applyStructure);
       form.setValue('jsonCode', cleanedJson);
       setJsonContent(cleanedJson);
-      toast.success('JSON validado e transformado!');
+
+      if (applyStructure) {
+        toast.success('JSON estruturado e transformado!');
+      } else {
+        toast.success('JSON validado e transformado!');
+      }
       
     } catch (e) {
       console.error('Erro ao processar JSON:', e);
@@ -91,12 +92,10 @@ export const useComponentCreate = () => {
     }
   };
 
-  // New handler for JSON content changes
   const handleJsonChange = (content: string) => {
     setJsonContent(content);
   };
 
-  // New handler for AI analysis success
   const handleAnalyzeSuccess = (metadata: {
     title?: string;
     tags?: string;
@@ -123,7 +122,6 @@ export const useComponentCreate = () => {
     }
     
     if (metadata.elements && Array.isArray(metadata.elements)) {
-      // Filter elements to ensure they match the required types
       const validElementTypes: ("image" | "heading" | "button" | "list" | "video")[] = 
         metadata.elements
           .filter((el): el is "image" | "heading" | "button" | "list" | "video" => 
@@ -137,19 +135,16 @@ export const useComponentCreate = () => {
 
   const onSubmit = async (values: FormValues) => {
     try {
-      // Validar se o campo JSON tem conteúdo
       if (!values.jsonCode) {
         toast.error('Por favor, insira o código JSON do componente.');
         return;
       }
 
-      // Iniciar processo de upload
       let imageUrl = null;
       
       if (selectedFile) {
         setIsUploading(true);
         try {
-          // Gerar um caminho único para a imagem
           const timestamp = new Date().getTime();
           const path = `${timestamp}-${selectedFile.name}`;
           imageUrl = await uploadComponentImage(selectedFile, path);
@@ -161,7 +156,6 @@ export const useComponentCreate = () => {
         }
       }
       
-      // Criar o componente com os campos simplificados
       const componentData = {
         title: values.title,
         description: '',
@@ -185,13 +179,11 @@ export const useComponentCreate = () => {
     }
   };
 
-  // Check for processed JSON in sessionStorage
   const loadProcessedJson = () => {
     const processedJson = sessionStorage.getItem('processedJson');
     if (processedJson) {
       form.setValue('jsonCode', processedJson);
       setJsonContent(processedJson);
-      // Limpar depois de carregar
       sessionStorage.removeItem('processedJson');
       toast.info('JSON carregado da transformação anterior');
     }
@@ -210,6 +202,8 @@ export const useComponentCreate = () => {
     loadProcessedJson,
     handleJsonChange,
     handleAnalyzeSuccess,
-    jsonContent
+    jsonContent,
+    applyStructure,
+    setApplyStructure
   };
 };

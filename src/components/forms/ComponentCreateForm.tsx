@@ -21,7 +21,9 @@ const ComponentCreateForm = () => {
     loadProcessedJson,
     handleJsonChange,
     handleAnalyzeSuccess,
-    jsonContent
+    jsonContent,
+    applyStructure,
+    setApplyStructure
   } = useComponentCreate();
 
   // Check for processed JSON in sessionStorage on component mount
@@ -41,6 +43,8 @@ const ComponentCreateForm = () => {
               onProcessJson={handleProcessJson}
               simplified={false}
               onContentChange={handleJsonChange}
+              applyStructure={applyStructure}
+              setApplyStructure={setApplyStructure}
             />
 
             {/* Claude AI Analyzer for Auto-extraction */}
