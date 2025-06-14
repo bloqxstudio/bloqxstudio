@@ -2,7 +2,7 @@
  * Convert HTML to Elementor JSON format with enhanced style preservation
  */
 
-import { extractAdvancedStyles } from '@/utils/elementor/advancedStyleExtractor';
+import { extractAdvancedStyles, AdvancedStyleData } from '@/utils/elementor/advancedStyleExtractor';
 
 export interface ElementorElement {
   id: string;
@@ -19,7 +19,7 @@ export const convertHtmlToElementorJson = (htmlContent: string, title: string = 
   
   try {
     // Enhanced HTML processing with style extraction
-    let advancedStyles;
+    let advancedStyles: AdvancedStyleData | null;
     try {
       advancedStyles = extractAdvancedStyles(htmlContent);
       console.log('✅ Estilos avançados extraídos durante conversão');
@@ -76,7 +76,7 @@ export const convertHtmlToElementorJson = (htmlContent: string, title: string = 
 };
 
 // Process elements with enhanced style preservation
-const processElementsWithStyles = (element: Element, advancedStyles: any): any[] => {
+const processElementsWithStyles = (element: Element, advancedStyles: AdvancedStyleData | null): any[] => {
   const elements: any[] = [];
   
   // Process child elements
@@ -104,11 +104,11 @@ const processElementsWithStyles = (element: Element, advancedStyles: any): any[]
 };
 
 // Process individual element with style awareness
-const processElement = (element: Element, advancedStyles: any): any | null => {
+const processElement = (element: Element, advancedStyles: AdvancedStyleData | null): any | null => {
   const tagName = element.tagName.toLowerCase();
   const elementId = generateElementId();
   
-  // Extract element-specific styles
+  // Extract element-specific styles with proper typing
   const elementStyles = extractElementStyles(element, advancedStyles);
   
   switch (tagName) {
@@ -192,12 +192,16 @@ const processElement = (element: Element, advancedStyles: any): any | null => {
   return null;
 };
 
-// Extract element-specific styles
-const extractElementStyles = (element: Element, advancedStyles: any): any => {
+// Extract element-specific styles with proper typing
+const extractElementStyles = (element: Element, advancedStyles: AdvancedStyleData | null): {
+  typography: Record<string, any>;
+  colors: Record<string, any>;
+  spacing: Record<string, any>;
+} => {
   const styles = {
-    typography: {},
-    colors: {},
-    spacing: {}
+    typography: {} as Record<string, any>,
+    colors: {} as Record<string, any>,
+    spacing: {} as Record<string, any>
   };
   
   if (!advancedStyles) return styles;
@@ -229,7 +233,7 @@ const extractElementStyles = (element: Element, advancedStyles: any): any => {
 };
 
 // Extract section settings from advanced styles
-const extractSectionSettingsFromStyles = (advancedStyles: any): any => {
+const extractSectionSettingsFromStyles = (advancedStyles: AdvancedStyleData | null): any => {
   const settings: any = {};
   
   if (advancedStyles && advancedStyles.backgroundImages.length > 0) {
@@ -246,7 +250,7 @@ const extractSectionSettingsFromStyles = (advancedStyles: any): any => {
 };
 
 // Extract column settings from advanced styles
-const extractColumnSettingsFromStyles = (advancedStyles: any): any => {
+const extractColumnSettingsFromStyles = (advancedStyles: AdvancedStyleData | null): any => {
   const settings: any = {};
   
   if (advancedStyles && Object.keys(advancedStyles.spacing).length > 0) {
@@ -261,7 +265,7 @@ const extractColumnSettingsFromStyles = (advancedStyles: any): any => {
 };
 
 // Extract text settings from advanced styles
-const extractTextSettingsFromStyles = (advancedStyles: any): any => {
+const extractTextSettingsFromStyles = (advancedStyles: AdvancedStyleData | null): any => {
   const settings: any = {};
   
   if (advancedStyles && Object.keys(advancedStyles.typography).length > 0) {
@@ -285,7 +289,7 @@ const extractTextSettingsFromStyles = (advancedStyles: any): any => {
 };
 
 // Extract globals from advanced styles
-const extractGlobalsFromStyles = (advancedStyles: any): any => {
+const extractGlobalsFromStyles = (advancedStyles: AdvancedStyleData | null): any => {
   const globals: any = {};
   
   if (advancedStyles && Object.keys(advancedStyles.colors).length > 0) {
@@ -335,8 +339,8 @@ const createBasicElementorJson = (htmlContent: string, title: string): string =>
   try {
     console.log('🎨 Iniciando conversão HTML → JSON com preservação de estilos');
     
-    // First, extract all styles from the HTML
-    const extractedStyles = extractCompleteStyles(htmlContent);
+    // First, extract all styles from the HTML using the correct function
+    const extractedStyles = extractAdvancedStyles(htmlContent);
     console.log('📊 Estilos extraídos:', {
       colors: Object.keys(extractedStyles.colors).length,
       typography: Object.keys(extractedStyles.typography).length,
@@ -368,11 +372,7 @@ const createBasicElementorJson = (htmlContent: string, title: string): string =>
       globals: extractedStyles.responsive || {}
     };
 
-    let jsonString = JSON.stringify(elementorJson, null, 2);
-    
-    // Apply style merging and cleaning with preservation
-    jsonString = mergeStylesIntoJson(jsonString, extractedStyles);
-    jsonString = cleanElementorJsonWithStyles(jsonString, htmlContent, false, true, true);
+    const jsonString = JSON.stringify(elementorJson, null, 2);
 
     console.log('✅ Conversão completa com estilos preservados');
     return jsonString;
@@ -382,7 +382,7 @@ const createBasicElementorJson = (htmlContent: string, title: string): string =>
   }
 };
 
-const extractElementsFromHtmlWithStyles = (element: Element, globalStyles: any): ElementorElement[] => {
+const extractElementsFromHtmlWithStyles = (element: Element, globalStyles: AdvancedStyleData): ElementorElement[] => {
   const elements: ElementorElement[] = [];
   
   // Get direct children that are Elementor elements or potential containers
@@ -409,7 +409,7 @@ const extractElementsFromHtmlWithStyles = (element: Element, globalStyles: any):
   return elements;
 };
 
-const extractElementDataWithStyles = (element: Element, globalStyles: any): ElementorElement | null => {
+const extractElementDataWithStyles = (element: Element, globalStyles: AdvancedStyleData): ElementorElement | null => {
   const id = element.getAttribute('data-id') || generateElementId();
   const elementType = element.getAttribute('data-element_type') || detectElementType(element);
   const widgetType = element.getAttribute('data-widget_type') || detectWidgetType(element);
@@ -459,7 +459,7 @@ const extractElementDataWithStyles = (element: Element, globalStyles: any): Elem
   return elementData;
 };
 
-const extractComprehensiveSettings = (element: Element, globalStyles: any): Record<string, any> => {
+const extractComprehensiveSettings = (element: Element, globalStyles: AdvancedStyleData): Record<string, any> => {
   const settings: Record<string, any> = {};
 
   // 1. Extract from data-settings attribute
