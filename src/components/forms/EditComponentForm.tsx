@@ -30,7 +30,9 @@ const EditComponentForm: React.FC<EditComponentFormProps> = ({ component }) => {
     resolver: zodResolver(formSchema),
     defaultValues: {
       title: component.title,
-      tags: component.tags?.join(', ') || '',
+      description: component.description,
+      category: component.category,
+      tags: component.tags || [],
       jsonCode: component.json_code || component.code,
       visibility: component.visibility,
       alignment: component.alignment || 'left',
@@ -66,7 +68,7 @@ const EditComponentForm: React.FC<EditComponentFormProps> = ({ component }) => {
     setJsonContent(content);
   };
 
-  const handleAnalyzeSuccess = (metadata: { title?: string; tags?: string; alignment?: 'left' | 'center' | 'right' | 'full'; columns?: '1' | '2' | '3+'; elements?: string[] }) => {
+  const handleAnalyzeSuccess = (metadata: { title?: string; tags?: string[]; alignment?: 'left' | 'center' | 'right' | 'full'; columns?: '1' | '2' | '3+'; elements?: string[] }) => {
     if (metadata.title) form.setValue('title', metadata.title);
     if (metadata.tags) form.setValue('tags', metadata.tags);
     if (metadata.alignment) form.setValue('alignment', metadata.alignment);
@@ -79,11 +81,13 @@ const EditComponentForm: React.FC<EditComponentFormProps> = ({ component }) => {
     try {
       const payload = {
         ...values,
-        tags: values.tags ? values.tags.split(',').map(tag => tag.trim()) : [],
+        tags: values.tags || [],
       };
 
       const formData = new FormData();
       formData.append('title', payload.title);
+      formData.append('description', payload.description);
+      formData.append('category', payload.category);
       formData.append('tags', JSON.stringify(payload.tags));
       formData.append('jsonCode', payload.jsonCode);
       formData.append('visibility', payload.visibility);
