@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -12,8 +11,8 @@ import ComponentFormFields from './ComponentFormFields';
 import JsonCodeSection from './JsonCodeSection';
 import ClaudeJsonAnalyzer from './ClaudeJsonAnalyzer';
 import FormSubmitButton from './FormSubmitButton';
-import { formSchema, type FormValues } from '@/features/components/types/componentFormSchema';
-import { Component } from '@/core/types/database';
+import { formSchema, type FormValues } from './componentFormSchema';
+import { Component } from '@/core/types';
 
 interface EditComponentFormProps {
   component: Component;

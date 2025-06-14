@@ -1,5 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
-import { Component, UpdateComponent, NewComponent } from '@/lib/database.types';
+import { Component, UpdateComponent, NewComponent } from '@/core/types';
 import { toast } from 'sonner';
 
 // Component CRUD operations

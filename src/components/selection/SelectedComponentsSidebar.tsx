@@ -1,67 +1,89 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import React, { useState } from 'react';
+import { X, Download, ChevronLeft, ChevronRight, Trash2, Copy, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { 
-  X, 
-  Download, 
-  Copy, 
-  Check, 
-  Trash2, 
-  Package, 
-  FileJson,
-  Eye,
-  EyeOff
-} from 'lucide-react';
 import { toast } from 'sonner';
+import { useAuth } from '@/features/auth';
 import { useSelectedComponents } from '@/shared/contexts/SelectedComponentsContext';
-import { Component } from '@/lib/database.types';
+import { Link } from 'react-router-dom';
+import { 
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter
+} from '@/components/ui/dialog';
+import { Component } from '@/core/types';
 
 interface SelectedComponentsSidebarProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const SelectedComponentsSidebar: React.FC<SelectedComponentsSidebarProps> = ({
-  isOpen,
-  onClose
-}) => {
-  const { 
-    selectedComponents, 
-    removeComponent, 
-    clearAllComponents,
-    isComponentVisible,
-    setComponentVisibility
-  } = useSelectedComponents();
-  const [isClearing, setIsClearing] = useState(false);
-  const [isDownloading, setIsDownloading] = useState(false);
-  const [isCopying, setIsCopying] = useState(false);
+const SelectedComponentsSidebar: React.FC<SelectedComponentsSidebarProps> = ({ isOpen, onClose }) => {
+  const { selectedComponents, removeComponent, clearSelectedComponents } = useSelectedComponents();
+  const { user } = useAuth();
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
   
-  // Get language preference
+  // Get language preference - this would come from a language context in a real implementation
   const language = localStorage.getItem('language') || 'en';
   
   const getTranslation = (en: string, pt: string) => {
     return language === 'pt' ? pt : en;
   };
 
-  useEffect(() => {
-    // Prevent scrolling when the sidebar is open
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'auto';
+  const handleCopyCode = (e: React.MouseEvent, component: Component) => {
+    e.preventDefault();
+    
+    if (!user) {
+      setShowAuthDialog(true);
+      return;
     }
-
-    // Cleanup when the component unmounts
-    return () => {
-      document.body.style.overflow = 'auto';
-    };
-  }, [isOpen]);
+    
+    // Use json_code if available, otherwise fall back to code
+    const codeContent = component.json_code || component.code;
+    navigator.clipboard.writeText(codeContent);
+    toast.success(getTranslation(
+      'Code copied to clipboard!', 
+      'Código copiado para a área de transferência!'
+    ));
+  };
+  
+  const handleDownload = (e: React.MouseEvent, component: Component) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    if (!user) {
+      setShowAuthDialog(true);
+      return;
+    }
+    
+    const codeContent = component.json_code || component.code;
+    const filename = `${component.title.toLowerCase().replace(/\s+/g, '-')}.json`;
+    
+    // Create blob and download it
+    const blob = new Blob([codeContent], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast.success(getTranslation(
+      `Downloaded ${filename}`, 
+      `${filename} baixado com sucesso`
+    ));
+  };
 
   const handleRemoveComponent = (e: React.MouseEvent, componentId: string) => {
-    e.stopPropagation();
     e.preventDefault();
+    e.stopPropagation();
     removeComponent(componentId);
     toast.info(getTranslation(
       'Component removed from selection',
@@ -69,215 +91,125 @@ const SelectedComponentsSidebar: React.FC<SelectedComponentsSidebarProps> = ({
     ));
   };
 
-  const handleClearAll = async () => {
-    setIsClearing(true);
-    // Simulate a delay for visual feedback
-    await new Promise(resolve => setTimeout(resolve, 500));
-    clearAllComponents();
-    setIsClearing(false);
-    toast.success(getTranslation(
-      'All components removed from selection',
-      'Todos os componentes removidos da seleção'
-    ));
-    onClose();
-  };
-  
-  const handleDownloadAll = async () => {
-    setIsDownloading(true);
-    
-    // Simulate a delay for visual feedback
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    // Create a zip file with all components
-    if (selectedComponents.length === 0) {
-      toast.error(getTranslation(
-        'No components selected',
-        'Nenhum componente selecionado'
-      ));
-      setIsDownloading(false);
-      return;
-    }
-    
-    // Convert selectedComponents to JSON
-    const componentsJson = JSON.stringify(selectedComponents, null, 2);
-
-    // Create a blob from the JSON
-    const blob = new Blob([componentsJson], { type: 'application/json' });
-
-    // Create a download link
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'elementor-components.json';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-
-    // Revoke the URL
-    URL.revokeObjectURL(url);
-    
-    setIsDownloading(false);
-    toast.success(getTranslation(
-      'Components downloaded successfully',
-      'Componentes baixados com sucesso'
-    ));
-  };
-  
-  const handleCopyAll = async () => {
-    setIsCopying(true);
-    
-    // Simulate a delay for visual feedback
-    await new Promise(resolve => setTimeout(resolve, 500));
-    
-    if (selectedComponents.length === 0) {
-      toast.error(getTranslation(
-        'No components selected',
-        'Nenhum componente selecionado'
-      ));
-      setIsCopying(false);
-      return;
-    }
-
-    // Convert selectedComponents to JSON
-    const componentsJson = JSON.stringify(selectedComponents, null, 2);
-
-    // Copy the JSON to the clipboard
-    navigator.clipboard.writeText(componentsJson);
-    
-    setIsCopying(false);
-    toast.success(getTranslation(
-      'Components copied to clipboard',
-      'Componentes copiados para a área de transferência'
+  const handleClearSelection = () => {
+    clearSelectedComponents();
+    toast.warn(getTranslation(
+      'Selection cleared',
+      'Seleção limpa'
     ));
   };
 
   return (
     <div
-      className={`fixed top-0 right-0 h-full w-full bg-black/20 z-50 transform transition-transform duration-300 ${
+      className={`fixed top-0 right-0 h-full w-80 bg-secondary border-l border-muted shadow-lg transform transition-transform duration-300 ease-in-out ${
         isOpen ? 'translate-x-0' : 'translate-x-full'
       }`}
-      style={{ backdropFilter: 'blur(5px)' }}
     >
-      <Card className="absolute top-0 right-0 h-full w-96 shadow-xl flex flex-col bg-background border-l border-border/40">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pl-6 pr-4">
-          <CardTitle className="text-lg font-medium">
-            <Package className="h-4 w-4 mr-2 inline-block align-middle" />
-            {getTranslation('Selected Components', 'Componentes Selecionados')}
-            <Badge variant="secondary" className="ml-2">{selectedComponents.length}</Badge>
-          </CardTitle>
-          <Button variant="ghost" size="icon" className="hover:bg-secondary/50" onClick={onClose}>
-            <X className="h-5 w-5" />
+      <Card className="h-full rounded-none shadow-none">
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 pt-4 pl-4 pr-4">
+          <CardTitle className="text-lg font-medium">{getTranslation('Selected Components', 'Componentes Selecionados')}</CardTitle>
+          <Button variant="ghost" size="icon" onClick={onClose}>
+            <X className="h-4 w-4" />
+            <span className="sr-only">{getTranslation('Close', 'Fechar')}</span>
           </Button>
         </CardHeader>
-        
-        <CardContent className="p-4 pt-0 flex-grow overflow-y-auto">
+        <CardContent className="p-4">
           {selectedComponents.length === 0 ? (
-            <div className="text-center text-muted-foreground mt-8">
+            <div className="text-center text-muted-foreground">
               {getTranslation('No components selected yet.', 'Nenhum componente selecionado ainda.')}
             </div>
           ) : (
-            <div className="space-y-4">
+            <ScrollArea className="h-[calc(100vh-150px)] pr-2">
               {selectedComponents.map((component) => (
-                <div key={component.id} className="border rounded-md p-3 relative">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="mr-2 hover:bg-secondary/50"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          e.preventDefault();
-                          setComponentVisibility(component.id, !isComponentVisible(component.id));
-                        }}
-                        title={isComponentVisible(component.id) ? 
-                          getTranslation('Hide component', 'Ocultar componente') : 
-                          getTranslation('Show component', 'Exibir componente')}
-                      >
-                        {isComponentVisible(component.id) ? (
-                          <Eye className="h-4 w-4" />
-                        ) : (
-                          <EyeOff className="h-4 w-4" />
-                        )}
-                      </Button>
-                      <h4 className="font-medium text-sm">{component.title}</h4>
-                    </div>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="text-red-500 hover:bg-red-500/20"
-                      onClick={(e) => handleRemoveComponent(e, component.id)}
-                      title={getTranslation('Remove component', 'Remover componente')}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+                <div key={component.id} className="mb-4">
+                  <Card className="bg-secondary-foreground/10">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium truncate">{component.title}</CardTitle>
+                      <Badge variant="secondary">{component.visibility}</Badge>
+                    </CardHeader>
+                    <CardContent className="grid gap-3 p-2">
+                      <div className="text-sm text-muted-foreground line-clamp-2 h-10">
+                        {component.description}
+                      </div>
+                      <div className="flex items-center justify-end space-x-2">
+                        <Button 
+                          size="icon" 
+                          variant="outline" 
+                          className="h-7 w-7 p-1 hover-lift"
+                          onClick={(e) => handleCopyCode(e, component)}
+                          title={getTranslation('Copy to Elementor', 'Copiar para Elementor')}
+                        >
+                          <Copy className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button 
+                          size="icon" 
+                          variant="outline" 
+                          className="h-7 w-7 p-1 hover-lift"
+                          onClick={(e) => handleDownload(e, component)}
+                          title={getTranslation('Download component', 'Baixar componente')}
+                        >
+                          <Download className="h-3.5 w-3.5" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="destructive"
+                          className="h-7 w-7 p-1 hover-lift"
+                          onClick={(e) => handleRemoveComponent(e, component.id)}
+                          title={getTranslation('Remove from selection', 'Remover da seleção')}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
               ))}
-            </div>
+            </ScrollArea>
           )}
         </CardContent>
-
-        <Separator />
-
-        <div className="p-4">
-          <div className="grid grid-cols-2 gap-2">
-            <Button 
-              variant="outline" 
-              className="justify-center hover-lift"
-              onClick={handleCopyAll}
-              disabled={isCopying}
-            >
-              {isCopying ? (
-                <>
-                  <Check className="h-4 w-4 mr-2" />
-                  {getTranslation('Copied!', 'Copiado!')}
-                </>
-              ) : (
-                <>
-                  <Copy className="h-4 w-4 mr-2" />
-                  {getTranslation('Copy All', 'Copiar Tudo')}
-                </>
-              )}
-            </Button>
-            <Button 
-              className="justify-center hover-lift"
-              onClick={handleDownloadAll}
-              disabled={isDownloading}
-            >
-              {isDownloading ? (
-                <>
-                  <Check className="h-4 w-4 mr-2" />
-                  {getTranslation('Downloaded!', 'Baixado!')}
-                </>
-              ) : (
-                <>
-                  <FileJson className="h-4 w-4 mr-2" />
-                  {getTranslation('Download All', 'Baixar Tudo')}
-                </>
-              )}
+        {selectedComponents.length > 0 && (
+          <div className="p-4">
+            <Separator />
+            <Button variant="destructive" className="w-full mt-4" onClick={handleClearSelection}>
+              {getTranslation('Clear Selection', 'Limpar Seleção')}
             </Button>
           </div>
-          <Button 
-            variant="destructive" 
-            className="w-full mt-2 justify-center hover-lift"
-            onClick={handleClearAll}
-            disabled={isClearing}
-          >
-            {isClearing ? (
-              <>
-                <Check className="h-4 w-4 mr-2" />
-                {getTranslation('Cleared!', 'Limpo!')}
-              </>
-            ) : (
-              <>
-                <Trash2 className="h-4 w-4 mr-2" />
-                {getTranslation('Clear All', 'Limpar Tudo')}
-              </>
-            )}
-          </Button>
-        </div>
+        )}
       </Card>
+
+      <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{getTranslation('Create a Free Account', 'Crie uma Conta Grátis')}</DialogTitle>
+            <DialogDescription>
+              {getTranslation(
+                'You need to be logged in to use this component.',
+                'Você precisa estar logado para utilizar este componente.'
+              )}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <p className="text-center text-muted-foreground">
+              {getTranslation(
+                'Our platform is currently in BETA and 100% FREE. Create your account to access all Elementor components.',
+                'Nossa plataforma está atualmente em BETA e é 100% GRATUITA. Crie sua conta para acessar todos os componentes Elementor.'
+              )}
+            </p>
+          </div>
+          <DialogFooter className="sm:justify-center gap-2">
+            <Button asChild variant="outline">
+              <Link to="/login" onClick={() => setShowAuthDialog(false)}>
+                {getTranslation('Login', 'Entrar')}
+              </Link>
+            </Button>
+            <Button asChild>
+              <Link to="/register" onClick={() => setShowAuthDialog(false)}>
+                {getTranslation('Register Now', 'Registrar Agora')}
+              </Link>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

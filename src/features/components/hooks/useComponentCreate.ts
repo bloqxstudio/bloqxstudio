@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -8,7 +7,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createComponent, uploadComponentImage } from '@/core/api/components';
 import { supabase } from '@/integrations/supabase/client';
 import { validateJson, cleanElementorJson } from '@/core/utils/jsonUtils';
-import { formSchema, type FormValues } from '@/features/components/types/componentFormSchema';
+import { componentFormSchema as formSchema, type ComponentFormValues as FormValues } from '@/core/types/forms';
 
 export const useComponentCreate = () => {
   const navigate = useNavigate();

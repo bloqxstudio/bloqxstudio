@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { Component } from '@/lib/database.types';
+import { Component } from '@/core/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Filter, Eye } from 'lucide-react';

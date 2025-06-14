@@ -1,6 +1,6 @@
 
 // Auth feature specific types
-export { User, NewUser, UpdateUser } from '@/core/types/database';
+export type { User, NewUser, UpdateUser } from '@/core/types/database';
 
 export interface AuthContextType {
   user: User | null;

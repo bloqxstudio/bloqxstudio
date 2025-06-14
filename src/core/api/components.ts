@@ -99,8 +99,8 @@ export const updateComponent = async (id: string, componentData: FormData): Prom
     code: jsonCode,
     json_code: jsonCode,
     visibility,
-    alignment,
-    columns,
+    alignment: alignment as 'left' | 'center' | 'right' | 'full' | undefined,
+    columns: columns as '1' | '2' | '3+' | undefined,
     elements,
   };
 

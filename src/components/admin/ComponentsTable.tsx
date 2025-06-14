@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Component, Category } from '@/lib/database.types';
+import { Component, Category } from '@/core/types';
 import {
   Table,
   TableBody,

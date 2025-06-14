@@ -1,5 +1,4 @@
-
-import { Component } from '@/lib/database.types';
+import { Component } from '@/core/types';
 import { validateJson } from './validators';
 import { toast } from 'sonner';
 

@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { Component, Category } from '@/lib/database.types';
+import { Component, Category } from '@/core/types';
 import {
   Card,
   CardContent,
