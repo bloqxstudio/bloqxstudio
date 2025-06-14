@@ -1,98 +1,98 @@
 
-import React, { useEffect } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Toaster } from 'sonner';
-import { AuthProvider } from '@/features/auth';
-import { SelectedComponentsProvider } from '@/shared/contexts/SelectedComponentsContext';
-import ProtectedRoute from '@/features/auth/components/ProtectedRoute';
-import SelectionFloatingButton from '@/components/selection/SelectionFloatingButton';
-import Index from '@/pages/Index';
-import Login from '@/pages/Login';
-import Register from '@/pages/Register';
-import Components from '@/pages/Components';
-import ComponentCreate from '@/pages/ComponentCreate';
-import ComponentDetail from '@/pages/ComponentDetail';
-import ComponentEdit from '@/pages/ComponentEdit';
-import UserComponentEdit from '@/pages/UserComponentEdit';
-import AdminPanel from '@/pages/AdminPanel';
-import UserManagement from '@/pages/UserManagement';
-import UserProfile from '@/pages/UserProfile';
-import NotFound from '@/pages/NotFound';
+import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "@/features/auth";
+import { SelectedComponentsProvider } from "@/shared/contexts/SelectedComponentsContext";
+import Index from "@/pages/Index";
+import Login from "@/pages/Login";
+import Register from "@/pages/Register";
+import Components from "@/pages/Components";
+import ComponentDetail from "@/pages/ComponentDetail";
+import ComponentCreate from "@/pages/ComponentCreate";
+import ComponentEdit from "@/pages/ComponentEdit";
+import UserComponentEdit from "@/pages/UserComponentEdit";
+import UserProfile from "@/pages/UserProfile";
+import UserManagement from "@/pages/UserManagement";
+import AdminPanel from "@/pages/AdminPanel";
+import WordPressIntegration from "@/pages/WordPressIntegration";
+import NotFound from "@/pages/NotFound";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
-// Create a QueryClient instance with improved performance settings
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      staleTime: 60 * 1000, // 1 minute
-      retry: 1,
-      refetchOnWindowFocus: false,
-      gcTime: 5 * 60 * 1000, // 5 minutes cache time
-    },
-  },
-});
+const queryClient = new QueryClient();
 
-// Create a function component for App
-const App: React.FC = () => {
-  // Set default language if not already set
-  useEffect(() => {
-    if (!localStorage.getItem('language')) {
-      localStorage.setItem('language', 'en');
-    }
-  }, []);
-
+function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
+      <TooltipProvider>
         <AuthProvider>
           <SelectedComponentsProvider>
-            <Toaster position="bottom-right" />
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              {/* Components accessible without login */}
-              <Route path="/components" element={<Components />} />
-              <Route path="/component/:id" element={<ComponentDetail />} />
-              {/* Protected routes */}
-              <Route path="/components/new" element={
-                <ProtectedRoute>
-                  <ComponentCreate />
-                </ProtectedRoute>
-              } />
-              <Route path="/component/edit/:id" element={
-                <ProtectedRoute adminOnly>
-                  <ComponentEdit />
-                </ProtectedRoute>
-              } />
-              <Route path="/my-component/edit/:id" element={
-                <ProtectedRoute ownerOnly>
-                  <UserComponentEdit />
-                </ProtectedRoute>
-              } />
-              <Route path="/profile" element={
-                <ProtectedRoute>
-                  <UserProfile />
-                </ProtectedRoute>
-              } />
-              <Route path="/admin" element={
-                <ProtectedRoute adminOnly>
-                  <AdminPanel />
-                </ProtectedRoute>
-              } />
-              <Route path="/admin/users" element={
-                <ProtectedRoute adminOnly>
-                  <UserManagement />
-                </ProtectedRoute>
-              } />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-            <SelectionFloatingButton />
+            <Toaster />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/components" element={<Components />} />
+                <Route path="/components/:id" element={<ComponentDetail />} />
+                <Route path="/wordpress" element={<WordPressIntegration />} />
+                <Route
+                  path="/create"
+                  element={
+                    <ProtectedRoute>
+                      <ComponentCreate />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/components/:id/edit"
+                  element={
+                    <ProtectedRoute requiredRole="admin">
+                      <ComponentEdit />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/components/:id/edit"
+                  element={
+                    <ProtectedRoute>
+                      <UserComponentEdit />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/profile"
+                  element={
+                    <ProtectedRoute>
+                      <UserProfile />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin/users"
+                  element={
+                    <ProtectedRoute requiredRole="admin">
+                      <UserManagement />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/admin"
+                  element={
+                    <ProtectedRoute requiredRole="admin">
+                      <AdminPanel />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
           </SelectedComponentsProvider>
         </AuthProvider>
-      </BrowserRouter>
+      </TooltipProvider>
     </QueryClientProvider>
   );
-};
+}
 
 export default App;

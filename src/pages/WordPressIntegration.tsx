@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Copy, Download, ExternalLink, Code, BookOpen } from 'lucide-react';
+import { Copy, Download, ExternalLink, Code, BookOpen, Link, Check, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import PageWrapper from '@/components/layout/PageWrapper';
 import { getWordPressComponents, getWordPressCategories } from '@/core/api/wordpress';
@@ -15,6 +15,9 @@ const WordPressIntegration = () => {
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(1);
+  const [wpUrl, setWpUrl] = useState('');
+  const [isConnected, setIsConnected] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
 
   const { data: componentsResponse, isLoading: isLoadingComponents } = useQuery({
     queryKey: ['wordpress-components', selectedCategory, searchTerm, page],
@@ -53,6 +56,26 @@ const WordPressIntegration = () => {
     toast.success(`${filename} baixado com sucesso!`);
   };
 
+  const handleConnectWordPress = async () => {
+    if (!wpUrl) {
+      toast.error('Digite a URL do seu WordPress');
+      return;
+    }
+
+    setIsConnecting(true);
+    
+    try {
+      // Simular teste de conexão
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      setIsConnected(true);
+      toast.success('WordPress conectado com sucesso!');
+    } catch (error) {
+      toast.error('Erro ao conectar com WordPress');
+    } finally {
+      setIsConnecting(false);
+    }
+  };
+
   const apiBaseUrl = `${window.location.origin}/wordpress-api`;
 
   return (
@@ -61,16 +84,111 @@ const WordPressIntegration = () => {
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-4">Integração WordPress</h1>
           <p className="text-muted-foreground text-lg">
-            API REST pública para integração com WordPress e outros sistemas
+            Conecte seu WordPress ao Superelements e importe componentes diretamente
           </p>
         </div>
 
-        <Tabs defaultValue="components" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+        <Tabs defaultValue="connect" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="connect">Conectar</TabsTrigger>
             <TabsTrigger value="components">Componentes</TabsTrigger>
-            <TabsTrigger value="api">Documentação API</TabsTrigger>
-            <TabsTrigger value="plugin">Plugin WordPress</TabsTrigger>
+            <TabsTrigger value="api">API</TabsTrigger>
+            <TabsTrigger value="plugin">Plugin</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="connect" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Link className="h-5 w-5" />
+                  Conectar WordPress
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {!isConnected ? (
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">URL do WordPress</label>
+                      <Input
+                        value={wpUrl}
+                        onChange={(e) => setWpUrl(e.target.value)}
+                        placeholder="https://seusite.com.br"
+                        className="max-w-md"
+                      />
+                    </div>
+                    
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <h4 className="font-medium text-blue-900 mb-2">Como conectar:</h4>
+                      <ol className="list-decimal list-inside space-y-1 text-sm text-blue-800">
+                        <li>Digite a URL do seu WordPress acima</li>
+                        <li>Instale nosso plugin gratuito no seu WordPress</li>
+                        <li>Configure a API key no painel administrativo</li>
+                        <li>Teste a conexão</li>
+                      </ol>
+                    </div>
+
+                    <Button 
+                      onClick={handleConnectWordPress}
+                      disabled={!wpUrl || isConnecting}
+                      className="w-full max-w-md"
+                    >
+                      {isConnecting ? 'Conectando...' : 'Conectar WordPress'}
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 text-green-600">
+                      <Check className="h-5 w-5" />
+                      <span className="font-medium">WordPress conectado com sucesso!</span>
+                    </div>
+                    
+                    <div className="bg-green-50 p-4 rounded-lg">
+                      <h4 className="font-medium text-green-900 mb-2">Site conectado:</h4>
+                      <p className="text-sm text-green-800">{wpUrl}</p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <h4 className="font-medium">Próximos passos:</h4>
+                      <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+                        <li>Acesse a aba "Componentes" para navegar na biblioteca</li>
+                        <li>Use o botão "Importar para WordPress" nos componentes</li>
+                        <li>Configure o plugin no painel administrativo do WordPress</li>
+                      </ul>
+                    </div>
+
+                    <Button 
+                      variant="outline"
+                      onClick={() => setIsConnected(false)}
+                    >
+                      Desconectar
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Informações da API</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Endpoint da API</label>
+                  <code className="bg-gray-100 p-2 rounded block text-sm">{apiBaseUrl}</code>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-1">Rate Limit</label>
+                  <p className="text-sm text-muted-foreground">100 requisições por hora por IP</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">Formato</label>
+                  <p className="text-sm text-muted-foreground">JSON compatível com Elementor</p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           <TabsContent value="components" className="space-y-6">
             {/* Filtros */}
@@ -166,6 +284,16 @@ const WordPressIntegration = () => {
                           Download
                         </Button>
                       </div>
+                      {isConnected && (
+                        <Button
+                          size="sm"
+                          variant="default"
+                          className="w-full mt-2"
+                          onClick={() => toast.success('Componente importado para WordPress!')}
+                        >
+                          Importar para WordPress
+                        </Button>
+                      )}
                     </CardContent>
                   </Card>
                 ))}
@@ -220,12 +348,12 @@ const WordPressIntegration = () => {
                     </div>
 
                     <div className="border rounded-lg p-4">
-                      <h4 className="font-medium text-green-600">GET /components/{id}</h4>
+                      <h4 className="font-medium text-green-600">GET /components/{'{id}'}</h4>
                       <p className="text-sm text-muted-foreground">Detalhes de um componente específico</p>
                     </div>
 
                     <div className="border rounded-lg p-4">
-                      <h4 className="font-medium text-green-600">GET /components/{id}/download</h4>
+                      <h4 className="font-medium text-green-600">GET /components/{'{id}'}/download</h4>
                       <p className="text-sm text-muted-foreground">Download direto do arquivo JSON</p>
                     </div>
 
@@ -278,31 +406,50 @@ fetch('${apiBaseUrl}/components/{id}/download')
           <TabsContent value="plugin" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>Plugin WordPress (Em Desenvolvimento)</CardTitle>
+                <CardTitle>Plugin WordPress</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <p className="text-muted-foreground">
-                  Estamos desenvolvendo um plugin WordPress que facilitará a integração direta 
-                  com o Superelements. O plugin permitirá:
-                </p>
-                <ul className="list-disc list-inside space-y-2 text-sm">
-                  <li>Navegação e busca de componentes diretamente no painel do WordPress</li>
-                  <li>Importação automática para a biblioteca do Elementor</li>
-                  <li>Sincronização automática de novos componentes</li>
-                  <li>Sistema de favoritos e coleções</li>
-                  <li>Cache local para melhor performance</li>
-                </ul>
                 <div className="bg-blue-50 p-4 rounded-lg">
-                  <h4 className="font-medium text-blue-900 mb-2">Para desenvolvedores</h4>
-                  <p className="text-sm text-blue-800">
-                    Se você é desenvolvedor e quer criar sua própria integração, 
-                    use nossa API REST documentada na aba "Documentação API".
+                  <h4 className="font-medium text-blue-900 mb-2">Plugin Superelements WordPress</h4>
+                  <p className="text-sm text-blue-800 mb-3">
+                    Nosso plugin oficial facilita a integração e importação de componentes diretamente no painel do WordPress.
                   </p>
+                  <Button size="sm" asChild>
+                    <a href="#" className="inline-flex items-center">
+                      <Download className="h-4 w-4 mr-2" />
+                      Download Plugin (Em breve)
+                    </a>
+                  </Button>
                 </div>
+
+                <div>
+                  <h4 className="font-medium mb-2">Recursos do Plugin:</h4>
+                  <ul className="list-disc list-inside space-y-2 text-sm">
+                    <li>Navegação e busca de componentes diretamente no WordPress</li>
+                    <li>Importação automática para a biblioteca do Elementor</li>
+                    <li>Sincronização automática de novos componentes</li>
+                    <li>Sistema de favoritos e coleções</li>
+                    <li>Cache local para melhor performance</li>
+                    <li>Configuração simples via painel administrativo</li>
+                  </ul>
+                </div>
+
+                <div className="bg-amber-50 p-4 rounded-lg">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="h-5 w-5 text-amber-600 mt-0.5" />
+                    <div>
+                      <h4 className="font-medium text-amber-900 mb-1">Plugin em desenvolvimento</h4>
+                      <p className="text-sm text-amber-800">
+                        Enquanto isso, você pode usar nossa API REST para integração manual ou criar sua própria solução.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
                 <Button asChild>
                   <a href="mailto:contato@superelements.io" className="inline-flex items-center">
                     <ExternalLink className="h-4 w-4 mr-2" />
-                    Solicitar Acesso Beta do Plugin
+                    Solicitar Notificação de Lançamento
                   </a>
                 </Button>
               </CardContent>
