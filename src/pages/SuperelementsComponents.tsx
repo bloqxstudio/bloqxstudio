@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
@@ -96,31 +95,31 @@ const getFeaturedImageUrl = async (mediaId: number): Promise<string | null> => {
   return null;
 };
 
-// Função otimizada para buscar componentes do Elementor
+// Função otimizada para buscar componentes do Elementor com diagnóstico avançado
 const getElementorComponents = async (search?: string): Promise<ElementorComponent[]> => {
-  console.log('🔍 Buscando componentes do Elementor com _elementor_data exposto...');
+  console.log('🔍 Iniciando busca de componentes com nova configuração da API...');
   
-  // Estratégias otimizadas para usar _elementor_data exposto
+  // Estratégias específicas para testar a nova configuração
   const strategies = [
     {
-      name: 'Elementor Library with Context Edit (Priority 1)',
-      url: 'https://superelements.io/wp-json/wp/v2/elementor_library',
-      params: 'per_page=50&orderby=date&order=desc&context=edit&_embed=1'
-    },
-    {
-      name: 'Elementor Library Standard with Meta (Priority 2)', 
-      url: 'https://superelements.io/wp-json/wp/v2/elementor_library',
-      params: 'per_page=50&orderby=date&order=desc&_embed=1'
-    },
-    {
-      name: 'Posts Type Elementor Library (Priority 3)',
+      name: 'REST API V2 com Context Edit e Meta Completo',
       url: 'https://superelements.io/wp-json/wp/v2/posts',
-      params: 'post_type=elementor_library&per_page=50&orderby=date&order=desc&_embed=1'
+      params: 'context=edit&per_page=20&orderby=date&order=desc&_embed=1&meta_key=_elementor_data'
     },
     {
-      name: 'All Posts with Elementor Meta Key (Fallback)',
+      name: 'Elementor Library com Context Edit',
+      url: 'https://superelements.io/wp-json/wp/v2/elementor_library',
+      params: 'context=edit&per_page=20&orderby=date&order=desc&_embed=1'
+    },
+    {
+      name: 'Posts com Meta Fields Específicos',
       url: 'https://superelements.io/wp-json/wp/v2/posts',
-      params: 'per_page=100&orderby=date&order=desc&_embed=1&meta_key=_elementor_data'
+      params: 'per_page=20&orderby=date&order=desc&_fields=id,title,content,meta,date,modified,link,type&meta_key=_elementor_data'
+    },
+    {
+      name: 'Posts Simples com Todos os Meta',
+      url: 'https://superelements.io/wp-json/wp/v2/posts',
+      params: 'per_page=20&orderby=date&order=desc&_embed=1'
     }
   ];
   
@@ -135,8 +134,8 @@ const getElementorComponents = async (search?: string): Promise<ElementorCompone
         url += `&search=${encodeURIComponent(search)}`;
       }
 
-      console.log(`📡 Estratégia ${strategy.name}:`);
-      console.log(`🌐 URL: ${url}`);
+      console.log(`\n🚀 TESTANDO: ${strategy.name}`);
+      console.log(`📡 URL completa: ${url}`);
       
       const response = await fetch(url, {
         method: 'GET',
@@ -147,43 +146,68 @@ const getElementorComponents = async (search?: string): Promise<ElementorCompone
         mode: 'cors',
       });
 
-      console.log(`📊 Status: ${response.status} - ${strategy.name}`);
+      console.log(`📊 Status da resposta: ${response.status}`);
+      console.log(`📋 Headers da resposta:`, Object.fromEntries(response.headers.entries()));
 
       if (response.ok) {
         const data = await response.json();
         console.log(`✅ Dados recebidos (${strategy.name}):`, data.length, 'items');
         
         if (Array.isArray(data) && data.length > 0) {
-          // Log detalhado do primeiro item para debug
-          if (data[0]) {
-            console.log(`🔍 Primeiro item - ID: ${data[0].id}`);
-            console.log(`📋 Meta disponíveis:`, Object.keys(data[0].meta || {}));
-            console.log(`🎯 _elementor_data presente:`, !!data[0].meta?._elementor_data);
-            if (data[0].meta?._elementor_data) {
-              console.log(`📏 Tamanho _elementor_data:`, data[0].meta._elementor_data.length, 'caracteres');
-              console.log(`🎨 Preview _elementor_data:`, data[0].meta._elementor_data.substring(0, 200) + '...');
+          // Análise detalhada do primeiro item
+          const firstItem = data[0];
+          console.log(`\n🔍 ANÁLISE DETALHADA DO PRIMEIRO ITEM:`);
+          console.log(`ID: ${firstItem.id}`);
+          console.log(`Título: ${firstItem.title?.rendered || 'N/A'}`);
+          console.log(`Tipo: ${firstItem.type || 'N/A'}`);
+          console.log(`Meta existe?`, !!firstItem.meta);
+          
+          if (firstItem.meta) {
+            console.log(`📋 Chaves dos metadados:`, Object.keys(firstItem.meta));
+            console.log(`🎯 _elementor_data existe?`, !!firstItem.meta._elementor_data);
+            
+            if (firstItem.meta._elementor_data) {
+              console.log(`📏 Tamanho do _elementor_data:`, firstItem.meta._elementor_data.length, 'caracteres');
+              console.log(`🎨 Preview dos dados:`, firstItem.meta._elementor_data.substring(0, 200) + '...');
+              
+              // Tentar parsear como JSON para validar
+              try {
+                const parsedData = JSON.parse(firstItem.meta._elementor_data);
+                console.log(`✅ JSON válido! Estrutura:`, typeof parsedData, Array.isArray(parsedData) ? `Array com ${parsedData.length} items` : 'Objeto');
+              } catch (parseError) {
+                console.warn(`⚠️ Erro ao parsear JSON:`, parseError);
+              }
+            } else {
+              console.log(`❌ _elementor_data não encontrado em meta`);
+              
+              // Verificar se existe com outros nomes
+              const elementorKeys = Object.keys(firstItem.meta).filter(key => 
+                key.includes('elementor') || key.includes('_elementor')
+              );
+              console.log(`🔍 Chaves relacionadas ao Elementor:`, elementorKeys);
+            }
+          } else {
+            console.log(`❌ Nenhum metadado encontrado no item`);
+          }
+          
+          // Análise do conteúdo HTML
+          if (firstItem.content?.rendered) {
+            const htmlContent = firstItem.content.rendered;
+            const hasElementorHTML = htmlContent.includes('data-elementor') || 
+                                   htmlContent.includes('elementor-element');
+            console.log(`📄 Conteúdo HTML tem marcações Elementor?`, hasElementorHTML);
+            
+            if (hasElementorHTML) {
+              const elementorMatches = htmlContent.match(/data-elementor-[^=]*="[^"]*"/g);
+              console.log(`🎯 Atributos Elementor encontrados:`, elementorMatches?.length || 0);
             }
           }
           
-          // Processar cada item
+          // Processar todos os itens
           const processedComponents = await Promise.all(data.map(async (item) => {
-            // Buscar _elementor_data diretamente dos metadados
-            const elementorMetaData = item.meta?._elementor_data || 
-                                    item.meta?.elementor_data || 
-                                    item._elementor_data || 
-                                    null;
-            
-            if (elementorMetaData) {
-              console.log(`🎯 _elementor_data encontrado para post ${item.id} (${elementorMetaData.length} chars)`);
-            } else {
-              console.log(`❌ Nenhum _elementor_data para post ${item.id}`);
-              console.log(`📋 Meta disponíveis para ${item.id}:`, Object.keys(item.meta || {}));
-            }
-            
-            // Extrair dados do HTML como complemento
+            const elementorMetaData = item.meta?._elementor_data || null;
             const elementorData = extractElementorData(item.content?.rendered || '');
             
-            // Buscar imagem destacada se disponível
             let featuredImageUrl = null;
             if (item.featured_media && item.featured_media > 0) {
               featuredImageUrl = await getFeaturedImageUrl(item.featured_media);
@@ -199,24 +223,30 @@ const getElementorComponents = async (search?: string): Promise<ElementorCompone
             } as ElementorComponent;
           }));
           
-          // Filtrar apenas componentes com conteúdo Elementor
           const filteredComponents = processedComponents.filter(comp => 
             comp.has_elementor_content || comp.elementor_meta_data
           );
           
-          console.log(`🎯 Encontrados ${filteredComponents.length} componentes com Elementor`);
-          console.log(`📊 Com _elementor_data completo: ${filteredComponents.filter(c => c.elementor_meta_data).length}`);
-          console.log(`📊 Apenas com HTML: ${filteredComponents.filter(c => !c.elementor_meta_data && c.has_elementor_content).length}`);
+          console.log(`\n📊 RESULTADO DA ESTRATÉGIA "${strategy.name}":`);
+          console.log(`- Total de posts: ${data.length}`);
+          console.log(`- Com conteúdo Elementor: ${filteredComponents.length}`);
+          console.log(`- Com _elementor_data completo: ${filteredComponents.filter(c => c.elementor_meta_data).length}`);
+          console.log(`- Apenas com HTML: ${filteredComponents.filter(c => !c.elementor_meta_data && c.has_elementor_content).length}`);
           
           if (filteredComponents.length > 0) {
-            allComponents = filteredComponents;
-            
-            // Log de resumo dos dados encontrados
             const withCompleteData = filteredComponents.filter(c => c.elementor_meta_data);
+            
             if (withCompleteData.length > 0) {
-              console.log(`🚀 SUCESSO! Estratégia "${strategy.name}" retornou ${withCompleteData.length} componentes com dados completos`);
+              console.log(`\n🎉 SUCESSO! Encontrados ${withCompleteData.length} componentes com dados completos!`);
+              console.log(`🚀 Estratégia bem-sucedida: "${strategy.name}"`);
+              
+              // Log dos componentes com dados completos
+              withCompleteData.forEach((comp, i) => {
+                console.log(`${i + 1}. ${comp.title?.rendered} (ID: ${comp.id}) - ${comp.elementor_meta_data?.length} chars`);
+              });
             }
             
+            allComponents = filteredComponents;
             break;
           }
         }
@@ -229,6 +259,27 @@ const getElementorComponents = async (search?: string): Promise<ElementorCompone
       console.error(`💥 Erro na estratégia ${strategy.name}:`, error);
       lastError = error;
     }
+  }
+  
+  // Diagnóstico final
+  console.log(`\n🔍 DIAGNÓSTICO FINAL:`);
+  console.log(`- Total de componentes encontrados: ${allComponents.length}`);
+  console.log(`- Com _elementor_data: ${allComponents.filter(c => c.elementor_meta_data).length}`);
+  console.log(`- Apenas HTML: ${allComponents.filter(c => !c.elementor_meta_data && c.has_elementor_content).length}`);
+  
+  if (allComponents.filter(c => c.elementor_meta_data).length === 0) {
+    console.warn(`\n⚠️ DIAGNÓSTICO: Nenhum _elementor_data encontrado!`);
+    console.warn(`Possíveis causas:`);
+    console.warn(`1. O código WordPress ainda não foi aplicado corretamente`);
+    console.warn(`2. É necessário fazer logout/login no WordPress`);
+    console.warn(`3. Cache do WordPress pode estar interferindo`);
+    console.warn(`4. Permissões do usuário podem não ser suficientes`);
+    console.warn(`5. O hook 'init' pode não estar executando`);
+    
+    console.warn(`\nSugestões:`);
+    console.warn(`1. Verificar se o código foi adicionado ao functions.php`);
+    console.warn(`2. Tentar acessar: https://superelements.io/wp-json/wp/v2/posts?_fields=meta&per_page=1`);
+    console.warn(`3. Verificar logs de erro do WordPress`);
   }
   
   if (allComponents.length === 0) {
@@ -324,6 +375,41 @@ const SuperelementsComponents = () => {
             Biblioteca de componentes Elementor do WordPress Superelements
           </p>
         </div>
+
+        {/* Alerta de diagnóstico */}
+        {!isLoading && components.length > 0 && (
+          <Alert className="mb-6" variant={components.filter(c => c.elementor_meta_data).length > 0 ? "default" : "destructive"}>
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              <div className="space-y-2">
+                {components.filter(c => c.elementor_meta_data).length > 0 ? (
+                  <>
+                    <p><strong>✅ Conexão bem-sucedida!</strong></p>
+                    <p className="text-sm">
+                      Encontrados {components.filter(c => c.elementor_meta_data).length} componentes com dados completos do Elementor (_elementor_data).
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p><strong>⚠️ Configuração da API ainda não ativa</strong></p>
+                    <p className="text-sm">
+                      O código WordPress foi adicionado mas os metadados _elementor_data ainda não estão sendo expostos na API.
+                    </p>
+                    <div className="mt-3 text-xs space-y-1">
+                      <p><strong>Verifique:</strong></p>
+                      <ul className="list-disc list-inside pl-2">
+                        <li>Se o código foi adicionado no functions.php</li>
+                        <li>Se você fez logout/login no WordPress Admin</li>
+                        <li>Limpe qualquer cache ativo</li>
+                        <li>Se o usuário tem permissão 'edit_posts'</li>
+                      </ul>
+                    </div>
+                  </>
+                )}
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
 
         {/* Alerta de erro */}
         {error && (
@@ -611,30 +697,58 @@ const SuperelementsComponents = () => {
           </CardContent>
         </Card>
 
-        {/* Informações de Debug */}
+        {/* Informações de Debug Avançado */}
         {process.env.NODE_ENV === 'development' && (
           <Card className="mt-6">
             <CardHeader>
-              <CardTitle className="text-sm">Informações de Debug</CardTitle>
+              <CardTitle className="text-sm">Diagnóstico Avançado da API</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-xs space-y-2">
-                <p><strong>Estratégias otimizadas testadas:</strong></p>
-                <ul className="list-disc list-inside pl-2 space-y-1">
-                  <li>/wp-json/wp/v2/elementor_library?context=edit&_embed=1 (prioridade máxima)</li>
-                  <li>/wp-json/wp/v2/elementor_library?_embed=1 (padrão com meta)</li>
-                  <li>/wp-json/wp/v2/posts?post_type=elementor_library&_embed=1</li>
-                  <li>/wp-json/wp/v2/posts?meta_key=_elementor_data&_embed=1 (fallback)</li>
-                </ul>
-                <p><strong>Total encontrados:</strong> {components.length}</p>
-                <p><strong>Com conteúdo Elementor:</strong> {components.filter(c => c.has_elementor_content).length}</p>
-                <p><strong>Com dados completos (_elementor_data):</strong> <span className="text-purple-600 font-bold">{components.filter(c => c.elementor_meta_data).length}</span></p>
-                <p><strong>Com imagens:</strong> {components.filter(c => c.featured_image_url).length}</p>
-                <p><strong>Status:</strong> {isLoading ? 'Carregando...' : error ? 'Erro' : 'Sucesso'}</p>
-                {components.length > 0 && (
-                  <p className="text-green-600 font-medium">
-                    🎯 API WordPress configurada corretamente! _elementor_data sendo retornado via REST API.
-                  </p>
+              <div className="text-xs space-y-3">
+                <div>
+                  <p><strong>Estratégias testadas (em ordem de prioridade):</strong></p>
+                  <ol className="list-decimal list-inside pl-2 space-y-1">
+                    <li>REST API V2 com context=edit + meta_key=_elementor_data</li>
+                    <li>Elementor Library com context=edit + _embed</li>
+                    <li>Posts com _fields específicos</li>
+                    <li>Posts padrão com _embed</li>
+                  </ol>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p><strong>Componentes encontrados:</strong></p>
+                    <ul className="list-disc list-inside pl-2">
+                      <li>Total: {components.length}</li>
+                      <li>Com Elementor HTML: {components.filter(c => c.has_elementor_content).length}</li>
+                      <li className="text-green-600 font-bold">Com _elementor_data: {components.filter(c => c.elementor_meta_data).length}</li>
+                      <li>Com imagens: {components.filter(c => c.featured_image_url).length}</li>
+                    </ul>
+                  </div>
+                  
+                  <div>
+                    <p><strong>Status da configuração:</strong></p>
+                    <ul className="list-disc list-inside pl-2">
+                      <li className={isLoading ? 'text-yellow-600' : error ? 'text-red-600' : 'text-green-600'}>
+                        API: {isLoading ? 'Carregando...' : error ? 'Erro' : 'Conectada'}
+                      </li>
+                      <li className={components.filter(c => c.elementor_meta_data).length > 0 ? 'text-green-600' : 'text-orange-600'}>
+                        _elementor_data: {components.filter(c => c.elementor_meta_data).length > 0 ? 'Funcionando' : 'Não configurado'}
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+
+                {components.filter(c => c.elementor_meta_data).length === 0 && (
+                  <div className="bg-yellow-50 p-3 rounded border-yellow-200 border">
+                    <p className="font-medium text-yellow-900">Para ativar os dados completos:</p>
+                    <ol className="list-decimal list-inside text-yellow-800 text-xs mt-1">
+                      <li>Adicione o código no functions.php do tema ativo</li>
+                      <li>Faça logout e login no WordPress Admin</li>
+                      <li>Limpe qualquer cache ativo</li>
+                      <li>Recarregue esta página</li>
+                    </ol>
+                  </div>
                 )}
               </div>
             </CardContent>
