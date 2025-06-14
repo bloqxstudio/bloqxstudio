@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { X, Download, ChevronLeft, ChevronRight, Trash2, Copy, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -17,7 +18,7 @@ import {
   DialogDescription,
   DialogFooter
 } from '@/components/ui/dialog';
-import { Component } from '@/core/types';
+import type { Component } from '@/core/types';
 
 interface SelectedComponentsSidebarProps {
   isOpen: boolean;
@@ -93,7 +94,7 @@ const SelectedComponentsSidebar: React.FC<SelectedComponentsSidebarProps> = ({ i
 
   const handleClearSelection = () => {
     clearSelectedComponents();
-    toast.warn(getTranslation(
+    toast.error(getTranslation(
       'Selection cleared',
       'Seleção limpa'
     ));
@@ -129,7 +130,7 @@ const SelectedComponentsSidebar: React.FC<SelectedComponentsSidebarProps> = ({ i
                     </CardHeader>
                     <CardContent className="grid gap-3 p-2">
                       <div className="text-sm text-muted-foreground line-clamp-2 h-10">
-                        {component.description}
+                        {component.description || 'No description available'}
                       </div>
                       <div className="flex items-center justify-end space-x-2">
                         <Button 

@@ -1,36 +1,24 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
+import type { Component } from '@/core/types';
 
-interface Component {
-  id: string;
-  title: string;
-  description?: string;
-  category: string;
-  code: string;
-  json_code?: string;
-  preview_image?: string;
-  tags?: string[];
-  type?: string;
-  visibility: 'public' | 'private';
-  created_at: string;
-  updated_at: string;
-  created_by: string;
-  alignment?: string;
-  columns?: string;
-  elements?: string[];
-}
-
-export interface SelectedComponentsContextType {
+interface SelectedComponentsContextType {
   selectedComponents: Component[];
   addComponent: (component: Component) => void;
   removeComponent: (componentId: string) => void;
-  clearAllComponents: () => void;
-  isComponentVisible: (componentId: string) => boolean;
-  setComponentVisibility: (componentId: string, visible: boolean) => void;
+  clearSelectedComponents: () => void;
   isComponentSelected: (componentId: string) => boolean;
 }
 
 const SelectedComponentsContext = createContext<SelectedComponentsContextType | undefined>(undefined);
+
+export const useSelectedComponents = () => {
+  const context = useContext(SelectedComponentsContext);
+  if (!context) {
+    throw new Error('useSelectedComponents must be used within a SelectedComponentsProvider');
+  }
+  return context;
+};
 
 interface SelectedComponentsProviderProps {
   children: ReactNode;
@@ -38,11 +26,10 @@ interface SelectedComponentsProviderProps {
 
 export const SelectedComponentsProvider: React.FC<SelectedComponentsProviderProps> = ({ children }) => {
   const [selectedComponents, setSelectedComponents] = useState<Component[]>([]);
-  const [componentVisibility, setComponentVisibilityState] = useState<Record<string, boolean>>({});
 
   const addComponent = (component: Component) => {
     setSelectedComponents(prev => {
-      const exists = prev.find(c => c.id === component.id);
+      const exists = prev.some(c => c.id === component.id);
       if (exists) return prev;
       return [...prev, component];
     });
@@ -52,20 +39,8 @@ export const SelectedComponentsProvider: React.FC<SelectedComponentsProviderProp
     setSelectedComponents(prev => prev.filter(c => c.id !== componentId));
   };
 
-  const clearAllComponents = () => {
+  const clearSelectedComponents = () => {
     setSelectedComponents([]);
-    setComponentVisibilityState({});
-  };
-
-  const isComponentVisible = (componentId: string) => {
-    return componentVisibility[componentId] ?? true;
-  };
-
-  const setComponentVisibility = (componentId: string, visible: boolean) => {
-    setComponentVisibilityState(prev => ({
-      ...prev,
-      [componentId]: visible
-    }));
   };
 
   const isComponentSelected = (componentId: string) => {
@@ -76,10 +51,8 @@ export const SelectedComponentsProvider: React.FC<SelectedComponentsProviderProp
     selectedComponents,
     addComponent,
     removeComponent,
-    clearAllComponents,
-    isComponentVisible,
-    setComponentVisibility,
-    isComponentSelected
+    clearSelectedComponents,
+    isComponentSelected,
   };
 
   return (
@@ -87,12 +60,4 @@ export const SelectedComponentsProvider: React.FC<SelectedComponentsProviderProp
       {children}
     </SelectedComponentsContext.Provider>
   );
-};
-
-export const useSelectedComponents = (): SelectedComponentsContextType => {
-  const context = useContext(SelectedComponentsContext);
-  if (context === undefined) {
-    throw new Error('useSelectedComponents must be used within a SelectedComponentsProvider');
-  }
-  return context;
 };
