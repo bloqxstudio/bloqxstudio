@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
+
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getComponents, getCategories } from '@/core/api';
 import { useComponentFilters } from '@/hooks/useComponentFilters';
 import { useSelectedComponents } from '@/shared/contexts/SelectedComponentsContext';
-import { useAuth } from '@/features/auth';
 import PageWrapper from '@/components/layout/PageWrapper';
 import ComponentsHeader from '@/components/components/ComponentsHeader';
 import ComponentsGrid from '@/components/components/ComponentsGrid';
@@ -15,7 +15,6 @@ import type { AlignmentType, ColumnsType, ElementType } from '@/components/Compo
 const Components = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { selectedComponents } = useSelectedComponents();
-  const { user } = useAuth();
 
   const { data: components = [], isLoading: isLoadingComponents, error, refetch } = useQuery({
     queryKey: ['components'],
@@ -99,7 +98,7 @@ const Components = () => {
         isLoading={isLoadingComponents}
         error={error}
         handleRetry={handleRetry}
-        user={user}
+        user={null}
       />
 
       {selectedComponents.length > 0 && (

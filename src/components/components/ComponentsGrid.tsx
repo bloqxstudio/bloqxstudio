@@ -3,10 +3,9 @@ import React from 'react';
 import { Component } from '@/core/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Filter, Eye } from 'lucide-react';
+import { Filter } from 'lucide-react';
 import { Loader2 } from 'lucide-react';
 import ComponentCard from '@/components/ComponentCard';
-import { Link } from 'react-router-dom';
 
 interface ComponentsGridProps {
   components: Component[];
@@ -14,7 +13,7 @@ interface ComponentsGridProps {
   isLoading: boolean;
   error: unknown;
   handleRetry: () => void;
-  user: any;
+  user?: any; // Optional now
 }
 
 const ComponentsGrid: React.FC<ComponentsGridProps> = ({
@@ -22,8 +21,7 @@ const ComponentsGrid: React.FC<ComponentsGridProps> = ({
   filteredComponents,
   isLoading,
   error,
-  handleRetry,
-  user
+  handleRetry
 }) => {
   // Log para debug
   console.log('🎯 ComponentsGrid renderizando:', {
@@ -46,7 +44,7 @@ const ComponentsGrid: React.FC<ComponentsGridProps> = ({
       <div className="flex justify-center py-12">
         <div className="flex flex-col items-center">
           <Loader2 className="h-12 w-12 animate-spin text-primary" />
-          <p className="mt-4 text-muted-foreground">Carregando componentes...</p>
+          <p className="mt-4 text-muted-foreground">Carregando componentes Superelements...</p>
         </div>
       </div>
     );
@@ -62,7 +60,7 @@ const ComponentsGrid: React.FC<ComponentsGridProps> = ({
           </div>
           <h3 className="text-lg font-semibold mb-2">Erro ao carregar componentes</h3>
           <p className="text-muted-foreground max-w-md mb-4">
-            Ocorreu um problema ao buscar os componentes. Verifique sua conexão e tente novamente.
+            Ocorreu um problema ao buscar os componentes do Superelements. Verifique sua conexão e tente novamente.
           </p>
           <Button onClick={handleRetry} variant="outline">
             Tentar novamente
@@ -82,7 +80,7 @@ const ComponentsGrid: React.FC<ComponentsGridProps> = ({
           </div>
           <h3 className="text-lg font-semibold mb-2">Nenhum componente encontrado</h3>
           <p className="text-muted-foreground max-w-md mb-4">
-            Não encontramos nenhum componente com os filtros aplicados. Tente ajustar sua busca.
+            Não encontramos nenhum componente Superelements com os filtros aplicados. Tente ajustar sua busca.
           </p>
         </CardContent>
       </Card>
