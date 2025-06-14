@@ -48,7 +48,7 @@ function App() {
                 <Route
                   path="/admin/components/:id/edit"
                   element={
-                    <ProtectedRoute requiredRole="admin">
+                    <ProtectedRoute adminOnly>
                       <ComponentEdit />
                     </ProtectedRoute>
                   }
@@ -72,7 +72,7 @@ function App() {
                 <Route
                   path="/admin/users"
                   element={
-                    <ProtectedRoute requiredRole="admin">
+                    <ProtectedRoute adminOnly>
                       <UserManagement />
                     </ProtectedRoute>
                   }
@@ -80,7 +80,7 @@ function App() {
                 <Route
                   path="/admin"
                   element={
-                    <ProtectedRoute requiredRole="admin">
+                    <ProtectedRoute adminOnly>
                       <AdminPanel />
                     </ProtectedRoute>
                   }
