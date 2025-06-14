@@ -1,8 +1,11 @@
+
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Link, BookOpen, Code, Settings } from 'lucide-react';
+import { Link, BookOpen, Code, Settings, Download, ExternalLink, AlertCircle } from 'lucide-react';
 import PageWrapper from '@/components/layout/PageWrapper';
 import WordPressSiteManager from '@/components/wordpress/WordPressSiteManager';
 import WordPressComponentGrid from '@/components/wordpress/WordPressComponentGrid';
