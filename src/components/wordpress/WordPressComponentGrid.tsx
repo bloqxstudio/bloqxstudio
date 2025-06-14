@@ -64,7 +64,7 @@ const WordPressComponentGrid: React.FC<WordPressComponentGridProps> = ({
       if (jsonToCopy) {
         const cleanedJson = cleanElementorJsonWithStyles(
           jsonToCopy,
-          component.content, // Pass HTML content for style extraction
+          component.content || component.code, // Use code as fallback if content not available
           false, // Don't remove styles
           true,  // Wrap in container
           applyStructure // Apply standard structure if enabled
@@ -96,7 +96,7 @@ const WordPressComponentGrid: React.FC<WordPressComponentGridProps> = ({
       if (jsonToDownload) {
         const cleanedJson = cleanElementorJsonWithStyles(
           jsonToDownload,
-          component.content,
+          component.content || component.code, // Use code as fallback
           false,
           true,
           applyStructure

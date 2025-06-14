@@ -8,6 +8,7 @@ export interface Component {
   category: string;
   code: string;
   json_code?: string;
+  content?: string; // HTML content for style extraction
   preview_image?: string;
   tags?: string[];
   type?: string;

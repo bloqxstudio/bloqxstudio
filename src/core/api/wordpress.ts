@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Component, Category } from '@/core/types';
 import { extractCompleteStyles } from '@/utils/elementor/styleExtractor';
@@ -103,9 +104,10 @@ export const getWordPressComponents = async (filters: WordPressFilters = {}): Pr
       let enhancedJsonCode = component.json_code || component.code;
       
       // Extract and merge styles if HTML content is available
-      if (component.content && enhancedJsonCode) {
+      const htmlContent = component.content || component.code;
+      if (htmlContent && enhancedJsonCode) {
         try {
-          const styleData = extractCompleteStyles(component.content);
+          const styleData = extractCompleteStyles(htmlContent);
           
           // If we extracted meaningful style data, enhance the JSON
           if (Object.keys(styleData.colors).length > 0 || 
@@ -175,9 +177,10 @@ export const getWordPressComponent = async (id: string): Promise<WordPressApiRes
     let enhancedJsonCode = data.json_code || data.code;
     
     // Extract and merge styles if HTML content is available
-    if (data.content && enhancedJsonCode) {
+    const htmlContent = data.content || data.code;
+    if (htmlContent && enhancedJsonCode) {
       try {
-        const styleData = extractCompleteStyles(data.content);
+        const styleData = extractCompleteStyles(htmlContent);
         
         if (Object.keys(styleData.colors).length > 0 || 
             Object.keys(styleData.typography).length > 0 || 
