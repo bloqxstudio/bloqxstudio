@@ -64,7 +64,7 @@ const ComponentCreateForm = () => {
               form={form} 
               selectedFile={selectedFile}
               imagePreview={imagePreview}
-              onFileChange={handleFileChange}
+              onFileChange={(e) => handleFileChange(e.target.files?.[0] || null)}
             />
             
             <FormSubmitButton isLoading={isUploading || createMutation.isPending} />
