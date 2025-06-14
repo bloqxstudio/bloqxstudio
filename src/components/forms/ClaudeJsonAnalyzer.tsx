@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { supabase } from '@/integrations/supabase/client';
@@ -28,7 +27,7 @@ interface AnalyzerProps {
   onJsonUpdate?: (updatedJson: string) => void;
   onAnalysisSuccess?: (metadata: {
     title?: string;
-    tags?: string;
+    tags?: string[];
     alignment?: 'left' | 'center' | 'right' | 'full';
     columns?: '1' | '2' | '3+';
     elements?: string[];
@@ -118,9 +117,19 @@ const ClaudeJsonAnalyzer: React.FC<AnalyzerProps> = ({
             console.log("Extracted metadata:", metadata);
             
             if (onAnalysisSuccess) {
+              // Convert tags from comma-separated string to array if needed
+              let tagsArray: string[] = [];
+              if (metadata.tags) {
+                if (typeof metadata.tags === 'string') {
+                  tagsArray = metadata.tags.split(',').map((tag: string) => tag.trim()).filter((tag: string) => tag.length > 0);
+                } else if (Array.isArray(metadata.tags)) {
+                  tagsArray = metadata.tags;
+                }
+              }
+              
               onAnalysisSuccess({
                 title: metadata.title || '',
-                tags: metadata.tags || '',
+                tags: tagsArray,
                 alignment: metadata.alignment || undefined,
                 columns: metadata.columns || undefined,
                 elements: metadata.elements || []
