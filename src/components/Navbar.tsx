@@ -4,7 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { PlusCircle, Home, Grid, Search, Shield } from 'lucide-react';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/features/auth';
 import AuthButtons from '@/components/AuthButtons';
 import UserMenu from '@/components/UserMenu';
 

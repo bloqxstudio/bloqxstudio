@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Copy, Check, Download } from 'lucide-react';
 import { toast } from 'sonner';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/features/auth';
 import { 
   Dialog,
   DialogContent,

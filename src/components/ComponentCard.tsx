@@ -7,8 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Copy, Download, Eye, Tag, Lock, Plus, Check } from 'lucide-react';
 import { toast } from 'sonner';
-import { useAuth } from '@/context/AuthContext';
-import { useSelectedComponents } from '@/context/SelectedComponentsContext';
+import { useAuth } from '@/features/auth';
+import { useSelectedComponents } from '@/shared/contexts/SelectedComponentsContext';
 import {
   Dialog,
   DialogContent,

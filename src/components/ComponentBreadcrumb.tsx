@@ -10,7 +10,8 @@ import {
   BreadcrumbPage,
 } from '@/components/ui/breadcrumb';
 import { useQuery } from '@tanstack/react-query';
-import { getCategories } from '@/lib/api';
+import { getCategories } from '@/core/api';
+import { Category } from '@/core/types/database';
 
 interface ComponentBreadcrumbProps {
   category?: string;
@@ -27,7 +28,7 @@ const ComponentBreadcrumb: React.FC<ComponentBreadcrumbProps> = ({ category, tit
   });
 
   const categoryName = category 
-    ? categories.find(c => c.id === category)?.name || category
+    ? (categories as Category[]).find(c => c.id === category)?.name || category
     : undefined;
 
   return (

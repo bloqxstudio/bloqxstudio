@@ -1,6 +1,6 @@
 
 import { useEffect, useState } from 'react';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/features/auth';
 import { supabase } from '@/integrations/supabase/client';
 import { checkAndMigrateComponents } from '@/scripts/migrateComponentsToSupabase';
 

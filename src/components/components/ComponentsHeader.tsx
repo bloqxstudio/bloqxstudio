@@ -1,39 +1,45 @@
-
 import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Settings } from 'lucide-react';
-import { Button } from '@/components/ui';
-import ComponentBreadcrumb from '@/components/ComponentBreadcrumb';
-import { useAuth } from '@/context/AuthContext';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { PlusCircle, Settings2 } from 'lucide-react';
+import { useAuth } from '@/features/auth';
 
-const ComponentsHeader: React.FC = () => {
-  const { isAdmin } = useAuth();
-  const navigate = useNavigate();
+interface ComponentsHeaderProps {
+  filteredCount: number;
+  totalCount: number;
+}
+
+const ComponentsHeader: React.FC<ComponentsHeaderProps> = ({
+  filteredCount,
+  totalCount
+}) => {
+  const { user, isAdmin } = useAuth();
 
   return (
-    <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
+    <div className="flex justify-between items-center mb-4">
       <div>
-        <ComponentBreadcrumb
-          title="All Components"
-        />
-        <h1 className="text-3xl font-bold tracking-tighter">
-          Components
+        <h1 className="text-2xl font-semibold tracking-tight">
+          Componentes ({filteredCount}/{totalCount})
         </h1>
-        <p className="text-muted-foreground mt-1">
-          Explore nosso catálogo de blocos e componentes para seus projetos
+        <p className="text-muted-foreground text-sm">
+          Explore os componentes disponíveis para Elementor
         </p>
       </div>
-      
-      <div className="flex items-center gap-2">
+      <div className="flex items-center space-x-2">
         {isAdmin && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate('/admin')}
-            className="gap-1"
-          >
-            <Settings className="h-4 w-4" />
-            Painel de Controle
+          <Button asChild variant="secondary" size="sm">
+            <Link to="/admin/components" className="flex items-center">
+              <Settings2 className="mr-2 h-4 w-4" />
+              Gerenciar
+            </Link>
+          </Button>
+        )}
+        {user && (
+          <Button asChild size="sm">
+            <Link to="/components/new" className="flex items-center">
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Novo Componente
+            </Link>
           </Button>
         )}
       </div>

@@ -1,8 +1,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '@/context/AuthContext';
-import { getUserProfile } from '@/lib/api';
+import { useAuth } from '@/features/auth';
+import { getUserProfile } from '@/core/api';
 import { toast } from 'sonner';
 import {
   DropdownMenu,

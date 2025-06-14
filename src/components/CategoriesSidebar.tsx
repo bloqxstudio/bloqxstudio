@@ -2,8 +2,9 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { useQuery } from '@tanstack/react-query';
-import { getCategories } from '@/lib/api';
+import { getCategories } from '@/core/api';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Category } from '@/core/types/database';
 
 interface CategoriesSidebarProps {
   selectedCategory: string | null;
@@ -51,7 +52,7 @@ const CategoriesSidebar: React.FC<CategoriesSidebarProps> = ({
             <Skeleton key={i} className="h-9 w-full" />
           ))
         ) : (
-          categories.map((category) => (
+          (categories as Category[]).map((category) => (
             <button
               key={category.id}
               onClick={() => onCategoryChange(category.id)}
