@@ -23,8 +23,6 @@ import UserManagement from '@/pages/UserManagement';
 import WordPressIntegration from '@/pages/WordPressIntegration';
 import NotFound from '@/pages/NotFound';
 
-import './App.css';
-
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -74,17 +72,17 @@ function App() {
                 
                 {/* Admin Routes */}
                 <Route path="/admin" element={
-                  <ProtectedRoute requireAdmin>
+                  <ProtectedRoute adminOnly>
                     <AdminPanel />
                   </ProtectedRoute>
                 } />
                 <Route path="/admin/users" element={
-                  <ProtectedRoute requireAdmin>
+                  <ProtectedRoute adminOnly>
                     <UserManagement />
                   </ProtectedRoute>
                 } />
                 <Route path="/admin/components/:id/edit" element={
-                  <ProtectedRoute requireAdmin>
+                  <ProtectedRoute adminOnly>
                     <ComponentEdit />
                   </ProtectedRoute>
                 } />
