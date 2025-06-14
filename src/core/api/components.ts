@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Component, NewComponent, UpdateComponent } from '@/core/types';
 import { getWordPressComponents } from './wordpress';
@@ -31,8 +32,7 @@ export const getComponents = async (): Promise<Component[]> => {
       
       console.log('📊 Resposta WordPress recebida:', {
         success: wpResponse.success,
-        dataLength: wpResponse.data?.length || 0,
-        error: wpResponse.error
+        dataLength: wpResponse.data?.length || 0
       });
       
       if (wpResponse.success && wpResponse.data) {
@@ -79,7 +79,7 @@ export const getComponents = async (): Promise<Component[]> => {
           });
         });
       } else {
-        console.warn('⚠️ Resposta WordPress não foi bem-sucedida:', wpResponse);
+        console.warn('⚠️ Resposta WordPress não foi bem-sucedida ou sem dados');
       }
 
     } catch (wpError) {
