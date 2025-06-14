@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Component, Category } from '@/core/types';
 import { extractCompleteStyles } from '@/utils/elementor/styleExtractor';
@@ -101,10 +100,12 @@ export const getWordPressComponents = async (filters: WordPressFilters = {}): Pr
 
     // Transform components for WordPress format with enhanced style extraction
     const wordpressComponents: WordPressComponent[] = await Promise.all((data || []).map(async component => {
-      let enhancedJsonCode = component.json_code || component.code;
+      // Cast to include optional content property
+      const componentWithContent = component as Component;
+      let enhancedJsonCode = componentWithContent.json_code || componentWithContent.code;
       
       // Extract and merge styles if HTML content is available
-      const htmlContent = component.content || component.code;
+      const htmlContent = componentWithContent.content || componentWithContent.code;
       if (htmlContent && enhancedJsonCode) {
         try {
           const styleData = extractCompleteStyles(htmlContent);
@@ -118,19 +119,19 @@ export const getWordPressComponents = async (filters: WordPressFilters = {}): Pr
             enhancedJsonCode = mergeStylesIntoJson(enhancedJsonCode, styleData);
           }
         } catch (styleError) {
-          console.warn('Error extracting styles for component:', component.id, styleError);
+          console.warn('Error extracting styles for component:', componentWithContent.id, styleError);
           // Continue with original JSON if style extraction fails
         }
       }
 
       return {
-        ...component,
-        visibility: component.visibility as 'public' | 'private',
-        alignment: component.alignment as 'left' | 'center' | 'right' | 'full' | undefined,
-        columns: component.columns as '1' | '2' | '3+' | undefined,
-        elements: component.elements as ('button' | 'video' | 'image' | 'list' | 'heading')[] | undefined,
+        ...componentWithContent,
+        visibility: componentWithContent.visibility as 'public' | 'private',
+        alignment: componentWithContent.alignment as 'left' | 'center' | 'right' | 'full' | undefined,
+        columns: componentWithContent.columns as '1' | '2' | '3+' | undefined,
+        elements: componentWithContent.elements as ('button' | 'video' | 'image' | 'list' | 'heading')[] | undefined,
         elementor_json: enhancedJsonCode, // Use enhanced JSON with styles
-        download_url: `/wordpress-api/components/${component.id}/download`,
+        download_url: `/wordpress-api/components/${componentWithContent.id}/download`,
         copy_code: enhancedJsonCode, // Use enhanced JSON for copying
         wordpress_compatible: true,
       };
@@ -174,10 +175,12 @@ export const getWordPressComponent = async (id: string): Promise<WordPressApiRes
       throw error;
     }
 
-    let enhancedJsonCode = data.json_code || data.code;
+    // Cast to include optional content property
+    const componentWithContent = data as Component;
+    let enhancedJsonCode = componentWithContent.json_code || componentWithContent.code;
     
     // Extract and merge styles if HTML content is available
-    const htmlContent = data.content || data.code;
+    const htmlContent = componentWithContent.content || componentWithContent.code;
     if (htmlContent && enhancedJsonCode) {
       try {
         const styleData = extractCompleteStyles(htmlContent);
@@ -190,18 +193,18 @@ export const getWordPressComponent = async (id: string): Promise<WordPressApiRes
           enhancedJsonCode = mergeStylesIntoJson(enhancedJsonCode, styleData);
         }
       } catch (styleError) {
-        console.warn('Error extracting styles for component:', data.id, styleError);
+        console.warn('Error extracting styles for component:', componentWithContent.id, styleError);
       }
     }
 
     const wordpressComponent: WordPressComponent = {
-      ...data,
-      visibility: data.visibility as 'public' | 'private',
-      alignment: data.alignment as 'left' | 'center' | 'right' | 'full' | undefined,
-      columns: data.columns as '1' | '2' | '3+' | undefined,
-      elements: data.elements as ('button' | 'video' | 'image' | 'list' | 'heading')[] | undefined,
+      ...componentWithContent,
+      visibility: componentWithContent.visibility as 'public' | 'private',
+      alignment: componentWithContent.alignment as 'left' | 'center' | 'right' | 'full' | undefined,
+      columns: componentWithContent.columns as '1' | '2' | '3+' | undefined,
+      elements: componentWithContent.elements as ('button' | 'video' | 'image' | 'list' | 'heading')[] | undefined,
       elementor_json: enhancedJsonCode,
-      download_url: `/wordpress-api/components/${data.id}/download`,
+      download_url: `/wordpress-api/components/${componentWithContent.id}/download`,
       copy_code: enhancedJsonCode,
       wordpress_compatible: true,
     };
