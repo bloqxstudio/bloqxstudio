@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -9,12 +8,13 @@ import { useAuth } from '@/features/auth';
 import { updateUserProfile, getUserProfile } from '@/core/api';
 import { toast } from 'sonner';
 import Navbar from '@/components/Navbar';
+import { User } from '@/core/types';
 
 const UserProfile = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [profileData, setProfileData] = useState<any>(null);
+  const [profileData, setProfileData] = useState<User | null>(null);
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',

@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { Component } from '@/core/types/database';
+import { Component, NewComponent, UpdateComponent } from '@/core/types';
 
 export const getComponents = async (): Promise<Component[]> => {
   const { data, error } = await supabase
@@ -53,7 +53,7 @@ export const createComponent = async (componentData: any): Promise<Component> =>
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('User not authenticated');
 
-  const componentPayload = {
+  const componentPayload: NewComponent = {
     title: componentData.title,
     description: componentData.description || '',
     category: componentData.category || 'general',
@@ -93,7 +93,7 @@ export const updateComponent = async (id: string, componentData: FormData): Prom
   const columns = componentData.get('columns') as string;
   const elements = JSON.parse(componentData.get('elements') as string || '[]');
 
-  const componentPayload = {
+  const componentPayload: UpdateComponent = {
     title,
     tags,
     code: jsonCode,

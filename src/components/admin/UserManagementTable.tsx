@@ -11,17 +11,11 @@ import {
 } from '@/components/ui';
 import { UserCog } from 'lucide-react';
 import UserRoleBadge from './UserRoleBadge';
-
-interface UserData {
-  id: string;
-  email: string;
-  created_at: string;
-  role: string;
-}
+import { User } from '@/core/types';
 
 interface UserManagementTableProps {
-  users: UserData[];
-  onRoleUpdate: (userId: string, newRole: string) => void;
+  users: User[];
+  onRoleUpdate: (userId: string, newRole: 'admin' | 'user') => void;
   isUpdatingRole: boolean;
 }
 

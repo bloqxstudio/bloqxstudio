@@ -1,5 +1,6 @@
 
 import { supabase } from './client';
+import { User, UpdateUser } from '@/core/types';
 import { toast } from 'sonner';
 
 // User management operations
@@ -24,22 +25,18 @@ export const updateUserRole = async (userId: string, role: 'admin' | 'user') => 
   return true;
 };
 
-export const getUsers = async () => {
+export const getUsers = async (): Promise<User[]> => {
   const { data, error } = await supabase
     .from('profiles')
     .select('*')
     .order('created_at', { ascending: false });
 
   if (error) throw error;
-  return data;
+  return data || [];
 };
 
 // Função para atualizar perfil do usuário
-export const updateUserProfile = async (userId: string, updates: {
-  first_name?: string;
-  last_name?: string;
-  avatar_url?: string;
-}) => {
+export const updateUserProfile = async (userId: string, updates: UpdateUser): Promise<User> => {
   try {
     const { data, error } = await supabase
       .from('profiles')
@@ -57,7 +54,7 @@ export const updateUserProfile = async (userId: string, updates: {
 };
 
 // Função para obter o perfil do usuário
-export const getUserProfile = async (userId: string) => {
+export const getUserProfile = async (userId: string): Promise<User | null> => {
   try {
     const { data, error } = await supabase
       .from('profiles')

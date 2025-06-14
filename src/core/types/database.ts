@@ -1,8 +1,10 @@
 
+// Unified database types - Single source of truth
+
 export interface Component {
   id: string;
   title: string;
-  description: string; // Made required instead of optional
+  description: string; // Required field
   category: string;
   code: string;
   json_code?: string;
@@ -26,8 +28,6 @@ export interface Category {
   created_at: string;
 }
 
-export type NewCategory = Omit<Category, 'id' | 'created_at'>;
-
 export interface User {
   id: string;
   email: string;
@@ -39,23 +39,32 @@ export interface User {
   updated_at: string;
 }
 
+// Database operation types
+export type NewComponent = Omit<Component, 'id' | 'created_at' | 'updated_at'>;
+export type UpdateComponent = Partial<Omit<Component, 'id' | 'created_at' | 'updated_at'>>;
+export type NewCategory = Omit<Category, 'id' | 'created_at'>;
+export type UpdateCategory = Partial<Omit<Category, 'id' | 'created_at'>>;
+export type NewUser = Omit<User, 'created_at' | 'updated_at'>;
+export type UpdateUser = Partial<Omit<User, 'id' | 'created_at' | 'updated_at'>>;
+
+// Supabase database schema type
 export type Database = {
   public: {
     Tables: {
       components: {
         Row: Component;
-        Insert: Omit<Component, 'id' | 'created_at' | 'updated_at'>;
-        Update: Partial<Omit<Component, 'id' | 'created_at' | 'updated_at'>>;
+        Insert: NewComponent;
+        Update: UpdateComponent;
       };
       categories: {
         Row: Category;
-        Insert: Omit<Category, 'id' | 'created_at'>;
-        Update: Partial<Omit<Category, 'id' | 'created_at'>>;
+        Insert: NewCategory;
+        Update: UpdateCategory;
       };
       profiles: {
         Row: User;
-        Insert: Omit<User, 'created_at' | 'updated_at'>;
-        Update: Partial<Omit<User, 'id' | 'created_at' | 'updated_at'>>;
+        Insert: NewUser;
+        Update: UpdateUser;
       };
     };
   };

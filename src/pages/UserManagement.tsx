@@ -6,6 +6,7 @@ import { useAuth } from '@/features/auth';
 import { getUsers, updateUserRole } from '@/core/api';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { User } from '@/core/types';
 
 // Import refactored components
 import UserManagementHeader from '@/components/admin/UserManagementHeader';
@@ -18,7 +19,7 @@ const UserManagement = () => {
   const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [filter, setFilter] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Redirect if not admin
   useEffect(() => {
@@ -49,17 +50,17 @@ const UserManagement = () => {
   });
 
   // Handle role update
-  const handleRoleUpdate = (userId: string, newRole: string) => {
+  const handleRoleUpdate = (userId: string, newRole: 'admin' | 'user') => {
     if (window.confirm(`Tem certeza que deseja alterar a função deste usuário para ${newRole}?`)) {
-      updateRoleMutation.mutate({ userId, role: newRole as 'admin' | 'user' });
+      updateRoleMutation.mutate({ userId, role: newRole });
     }
   };
 
   // Filter users based on search term
-  const filteredUsers = users.filter(user => 
-    user.email?.toLowerCase().includes(filter.toLowerCase()) ||
-    user.first_name?.toLowerCase().includes(filter.toLowerCase()) ||
-    user.last_name?.toLowerCase().includes(filter.toLowerCase())
+  const filteredUsers = users.filter((user: User) => 
+    user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.last_name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -68,7 +69,7 @@ const UserManagement = () => {
       
       <main className="flex-grow container mx-auto px-4 py-8">
         <UserManagementHeader onRefresh={refetch} />
-        <UserSearch filter={filter} setFilter={setFilter} />
+        <UserSearch searchTerm={searchTerm} onSearchChange={setSearchTerm} />
         
         <div className="bg-white rounded-lg shadow">
           <div className="px-6 py-4 border-b border-gray-200">
