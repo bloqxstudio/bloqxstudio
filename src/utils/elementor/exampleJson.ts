@@ -6,13 +6,14 @@
 export const getFormattedElementorJson = (rawHtml: string, title: string): string => {
   // This is the properly formatted JSON for the c1370 component
   const elementorJson = {
-    "version": "3.0.0",
-    "title": title,
-    "type": "page",
+    "type": "elementor",
+    "siteurl": "https://superelements.io/wp-json/",
     "elements": [
       {
         "id": "74f08d77",
         "elType": "container",
+        "isInner": false,
+        "isLocked": false,
         "settings": {
           "background_background": "classic",
           "content_width": "boxed",
@@ -22,6 +23,8 @@ export const getFormattedElementorJson = (rawHtml: string, title: string): strin
           {
             "id": "4791ffa1",
             "elType": "container",
+            "isInner": true,
+            "isLocked": false,
             "settings": {
               "content_width": "boxed",
               "flex_direction": "row"
@@ -30,6 +33,8 @@ export const getFormattedElementorJson = (rawHtml: string, title: string): strin
               {
                 "id": "565e3e18",
                 "elType": "widget",
+                "isInner": false,
+                "isLocked": false,
                 "widgetType": "image",
                 "settings": {
                   "_animation": "fadeIn",
@@ -45,6 +50,8 @@ export const getFormattedElementorJson = (rawHtml: string, title: string): strin
           {
             "id": "54b2e808",
             "elType": "container",
+            "isInner": true,
+            "isLocked": false,
             "settings": {
               "content_width": "full",
               "flex_direction": "column"
@@ -53,6 +60,8 @@ export const getFormattedElementorJson = (rawHtml: string, title: string): strin
               {
                 "id": "c56059c",
                 "elType": "container",
+                "isInner": true,
+                "isLocked": false,
                 "settings": {
                   "background_background": "classic",
                   "animation": "slideInUp",
@@ -64,6 +73,8 @@ export const getFormattedElementorJson = (rawHtml: string, title: string): strin
                   {
                     "id": "25ff645c",
                     "elType": "widget",
+                    "isInner": false,
+                    "isLocked": false,
                     "widgetType": "heading",
                     "settings": {
                       "title": "Para quem não aceita o \"mais ou menos\".",
@@ -75,6 +86,8 @@ export const getFormattedElementorJson = (rawHtml: string, title: string): strin
                   {
                     "id": "17f55c30",
                     "elType": "widget",
+                    "isInner": false,
+                    "isLocked": false,
                     "widgetType": "text-editor",
                     "settings": {
                       "editor": "<p>Você não está aqui só pra montar páginas — você está construindo algo grande. <br><br>Por isso, cada componente do SuperElements foi projetado pra te dar vantagem a hora de desenvolver com Elementor.&nbsp;</p>"

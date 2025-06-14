@@ -222,96 +222,16 @@ const SuperelementsComponents = () => {
 
   const handleCopyElementorJson = async (component: ElementorComponent) => {
     try {
-      // Create properly formatted Elementor JSON
-      const elementorJson = {
-        "version": "3.0.0",
-        "title": component.title?.rendered || `Componente ${component.id}`,
-        "type": "page",
-        "elements": [
-          {
-            "id": `container_${component.id}`,
-            "elType": "container",
-            "settings": {
-              "content_width": "boxed",
-              "flex_direction": "column"
-            },
-            "elements": []
-          }
-        ]
-      };
+      // Import the conversion utility
+      const { convertHtmlToElementorJson } = await import('@/utils/elementor/htmlToJson');
+      
+      // Convert HTML content to proper Elementor JSON format
+      const elementorJson = convertHtmlToElementorJson(
+        component.content?.rendered || '',
+        component.title?.rendered || `Componente ${component.id}`
+      );
 
-      // If we have HTML content, try to parse it for better structure
-      if (component.content?.rendered) {
-        try {
-          const parser = new DOMParser();
-          const doc = parser.parseFromString(component.content.rendered, 'text/html');
-          
-          // Look for existing Elementor structure
-          const elementorElements = doc.querySelectorAll('[data-element_type]');
-          if (elementorElements.length > 0) {
-            const elements: any[] = [];
-            
-            elementorElements.forEach((element, index) => {
-              const id = element.getAttribute('data-id') || `element_${index}`;
-              const elementType = element.getAttribute('data-element_type');
-              const widgetType = element.getAttribute('data-widget_type');
-              
-              let elementData: any = {
-                id,
-                elType: elementType === 'container' ? 'container' : 'widget',
-                settings: {}
-              };
-
-              // Extract settings from data-settings
-              const settingsAttr = element.getAttribute('data-settings');
-              if (settingsAttr) {
-                try {
-                  elementData.settings = JSON.parse(settingsAttr.replace(/&quot;/g, '"'));
-                } catch (e) {
-                  elementData.settings = {};
-                }
-              }
-
-              // Add widget type for widgets
-              if (widgetType) {
-                elementData.widgetType = widgetType.replace('.default', '');
-                
-                // Extract widget-specific content
-                if (widgetType.includes('heading')) {
-                  const heading = element.querySelector('.elementor-heading-title');
-                  if (heading) {
-                    elementData.settings.title = heading.textContent || '';
-                    elementData.settings.header_size = heading.tagName.toLowerCase();
-                  }
-                } else if (widgetType.includes('text-editor')) {
-                  const textContent = element.querySelector('.elementor-widget-container');
-                  if (textContent) {
-                    elementData.settings.editor = textContent.innerHTML || '';
-                  }
-                } else if (widgetType.includes('image')) {
-                  const img = element.querySelector('img');
-                  if (img) {
-                    elementData.settings.image = {
-                      url: img.getAttribute('src') || '',
-                      alt: img.getAttribute('alt') || ''
-                    };
-                  }
-                }
-              }
-
-              elements.push(elementData);
-            });
-
-            if (elements.length > 0) {
-              elementorJson.elements = elements;
-            }
-          }
-        } catch (parseError) {
-          console.warn('Could not parse HTML structure, using basic format');
-        }
-      }
-
-      await navigator.clipboard.writeText(JSON.stringify(elementorJson, null, 2));
+      await navigator.clipboard.writeText(elementorJson);
       setCopiedId(component.id);
       toast.success(`JSON do Elementor copiado! Agora você pode colar diretamente no Elementor.`);
       

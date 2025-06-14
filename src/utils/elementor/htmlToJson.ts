@@ -7,6 +7,7 @@ export interface ElementorElement {
   id: string;
   elType: string;
   isInner?: boolean;
+  isLocked?: boolean;
   settings?: Record<string, any>;
   elements?: ElementorElement[];
   widgetType?: string;
@@ -28,9 +29,8 @@ export const convertHtmlToElementorJson = (htmlContent: string, title: string = 
     
     // Create the final JSON structure compatible with Elementor
     const elementorJson = {
-      version: "3.0.0",
-      title: title || "Imported Component",
-      type: "page",
+      type: "elementor",
+      siteurl: "https://superelements.io/wp-json/",
       elements: elements
     };
 
@@ -69,6 +69,8 @@ const extractElementData = (element: Element): ElementorElement | null => {
   const elementData: ElementorElement = {
     id,
     elType: elementType === 'container' ? 'container' : 'widget',
+    isInner: element.classList.contains('e-child'),
+    isLocked: false,
   };
 
   // Extract settings from data-settings attribute
@@ -93,8 +95,8 @@ const extractElementData = (element: Element): ElementorElement | null => {
     // Set default container settings
     elementData.settings = {
       ...elementData.settings,
-      content_width: 'boxed',
-      flex_direction: 'row',
+      content_width: elementData.settings.content_width || 'boxed',
+      flex_direction: elementData.settings.flex_direction || 'row',
     };
 
     // Extract child elements
