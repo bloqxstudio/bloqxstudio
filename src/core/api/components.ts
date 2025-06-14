@@ -1,84 +1,124 @@
 
-import { supabase } from './client';
-import { Component, NewComponent } from '@/core/types/database';
+import { supabase } from '@/integrations/supabase/client';
+import { Component } from '@/core/types/database';
 
-// Component operations
-export const getComponents = async () => {
+export const getComponents = async (): Promise<Component[]> => {
   const { data, error } = await supabase
     .from('components')
     .select('*')
     .order('created_at', { ascending: false });
-  
-  if (error) throw error;
-  return data as Component[];
+
+  if (error) {
+    console.error('Error fetching components:', error);
+    throw error;
+  }
+
+  return data || [];
 };
 
-export const getComponentById = async (id: string) => {
+export const getComponentById = async (id: string): Promise<Component | null> => {
   const { data, error } = await supabase
     .from('components')
     .select('*')
     .eq('id', id)
     .single();
-  
-  if (error) throw error;
-  return data as Component;
+
+  if (error) {
+    console.error('Error fetching component:', error);
+    throw error;
+  }
+
+  return data;
 };
 
-export const createComponent = async (component: NewComponent) => {
+export const createComponent = async (componentData: FormData): Promise<Component> => {
+  // Extract form data
+  const title = componentData.get('title') as string;
+  const tags = JSON.parse(componentData.get('tags') as string || '[]');
+  const jsonCode = componentData.get('jsonCode') as string;
+  const visibility = componentData.get('visibility') as 'public' | 'private';
+  const alignment = componentData.get('alignment') as string;
+  const columns = componentData.get('columns') as string;
+  const elements = JSON.parse(componentData.get('elements') as string || '[]');
+  const category = componentData.get('category') as string || 'general';
+  const description = componentData.get('description') as string || '';
+
+  // Get current user
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
+
+  const componentPayload = {
+    title,
+    tags,
+    code: jsonCode,
+    json_code: jsonCode,
+    visibility,
+    alignment,
+    columns,
+    elements,
+    category,
+    description,
+    created_by: user.id,
+  };
+
   const { data, error } = await supabase
     .from('components')
-    .insert([component])
+    .insert(componentPayload)
     .select()
     .single();
-  
-  if (error) throw error;
-  return data as Component;
+
+  if (error) {
+    console.error('Error creating component:', error);
+    throw error;
+  }
+
+  return data;
 };
 
-export const updateComponent = async (id: string, updates: Partial<NewComponent>) => {
+export const updateComponent = async (id: string, componentData: FormData): Promise<Component> => {
+  // Extract form data
+  const title = componentData.get('title') as string;
+  const tags = JSON.parse(componentData.get('tags') as string || '[]');
+  const jsonCode = componentData.get('jsonCode') as string;
+  const visibility = componentData.get('visibility') as 'public' | 'private';
+  const alignment = componentData.get('alignment') as string;
+  const columns = componentData.get('columns') as string;
+  const elements = JSON.parse(componentData.get('elements') as string || '[]');
+
+  const componentPayload = {
+    title,
+    tags,
+    code: jsonCode,
+    json_code: jsonCode,
+    visibility,
+    alignment,
+    columns,
+    elements,
+  };
+
   const { data, error } = await supabase
     .from('components')
-    .update(updates)
+    .update(componentPayload)
     .eq('id', id)
     .select()
     .single();
-  
-  if (error) throw error;
-  return data as Component;
+
+  if (error) {
+    console.error('Error updating component:', error);
+    throw error;
+  }
+
+  return data;
 };
 
-export const deleteComponent = async (id: string) => {
+export const deleteComponent = async (id: string): Promise<void> => {
   const { error } = await supabase
     .from('components')
     .delete()
     .eq('id', id);
-  
-  if (error) throw error;
-  return true;
-};
-
-// Upload preview image
-export const uploadComponentImage = async (file: File, path: string) => {
-  console.log('Enviando imagem:', file.name, 'para o caminho:', path);
-  
-  const { data, error } = await supabase.storage
-    .from('component-images')
-    .upload(path, file, {
-      cacheControl: '3600',
-      upsert: true
-    });
 
   if (error) {
-    console.error('Erro ao enviar imagem:', error);
+    console.error('Error deleting component:', error);
     throw error;
   }
-  
-  console.log('Envio bem-sucedido:', data);
-  
-  const { data: { publicUrl } } = supabase.storage
-    .from('component-images')
-    .getPublicUrl(path);
-  
-  console.log('URL pública:', publicUrl);  
-  return publicUrl;
 };

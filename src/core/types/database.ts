@@ -1,234 +1,60 @@
 
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[]
+export interface Component {
+  id: string;
+  title: string;
+  description?: string;
+  category: string;
+  code: string;
+  json_code?: string;
+  preview_image?: string;
+  tags?: string[];
+  type?: string;
+  visibility: 'public' | 'private';
+  created_at: string;
+  updated_at: string;
+  created_by: string;
+  alignment?: 'left' | 'center' | 'right' | 'full';
+  columns?: '1' | '2' | '3+';
+  elements?: ('button' | 'video' | 'image' | 'list' | 'heading')[];
+}
+
+export interface Category {
+  id: string;
+  name: string;
+  description: string;
+  slug: string;
+  created_at: string;
+}
+
+export interface User {
+  id: string;
+  email: string;
+  first_name?: string;
+  last_name?: string;
+  avatar_url?: string;
+  role: 'user' | 'admin';
+  created_at: string;
+  updated_at: string;
+}
 
 export type Database = {
   public: {
     Tables: {
-      categories: {
-        Row: {
-          created_at: string
-          description: string | null
-          id: string
-          name: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          name: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          description?: string | null
-          id?: string
-          name?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       components: {
-        Row: {
-          alignment: string | null
-          category: string
-          code: string
-          columns: string | null
-          created_at: string
-          created_by: string
-          description: string
-          elements: string[] | null
-          id: string
-          json_code: string | null
-          preview_image: string | null
-          tags: string[]
-          title: string
-          type: string
-          updated_at: string
-          visibility: string
-        }
-        Insert: {
-          alignment?: string | null
-          category?: string
-          code: string
-          columns?: string | null
-          created_at?: string
-          created_by: string
-          description?: string
-          elements?: string[] | null
-          id?: string
-          json_code?: string | null
-          preview_image?: string | null
-          tags?: string[]
-          title: string
-          type?: string
-          updated_at?: string
-          visibility?: string
-        }
-        Update: {
-          alignment?: string | null
-          category?: string
-          code?: string
-          columns?: string | null
-          created_at?: string
-          created_by?: string
-          description?: string
-          elements?: string[] | null
-          id?: string
-          json_code?: string | null
-          preview_image?: string | null
-          tags?: string[]
-          title?: string
-          type?: string
-          updated_at?: string
-          visibility?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "components_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
+        Row: Component;
+        Insert: Omit<Component, 'id' | 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<Component, 'id' | 'created_at' | 'updated_at'>>;
+      };
+      categories: {
+        Row: Category;
+        Insert: Omit<Category, 'id' | 'created_at'>;
+        Update: Partial<Omit<Category, 'id' | 'created_at'>>;
+      };
       profiles: {
-        Row: {
-          avatar_url: string | null
-          created_at: string
-          first_name: string | null
-          id: string
-          last_name: string | null
-          role: string
-          updated_at: string
-        }
-        Insert: {
-          avatar_url?: string | null
-          created_at?: string
-          first_name?: string | null
-          id: string
-          last_name?: string | null
-          role?: string
-          updated_at?: string
-        }
-        Update: {
-          avatar_url?: string | null
-          created_at?: string
-          first_name?: string | null
-          id?: string
-          last_name?: string | null
-          role?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
-    }
-    Views: {
-      [_ in never]: never
-    }
-    Functions: {
-      [_ in never]: never
-    }
-    Enums: {
-      [_ in never]: never
-    }
-    CompositeTypes: {
-      [_ in never]: never
-    }
-  }
-}
-
-type PublicSchema = Database[Extract<keyof Database, "public">]
-
-export type Tables<
-  PublicTableNameOrOptions extends
-    | keyof (PublicSchema["Tables"] & PublicSchema["Views"])
-    | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
-        Database[PublicTableNameOrOptions["schema"]]["Views"])
-    : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
-      Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
-      Row: infer R
-    }
-    ? R
-    : never
-  : PublicTableNameOrOptions extends keyof (PublicSchema["Tables"] &
-        PublicSchema["Views"])
-    ? (PublicSchema["Tables"] &
-        PublicSchema["Views"])[PublicTableNameOrOptions] extends {
-        Row: infer R
-      }
-      ? R
-      : never
-    : never
-
-export type TablesInsert<
-  PublicTableNameOrOptions extends
-    | keyof PublicSchema["Tables"]
-    | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Insert: infer I
-    }
-    ? I
-    : never
-  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
-    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
-        Insert: infer I
-      }
-      ? I
-      : never
-    : never
-
-export type TablesUpdate<
-  PublicTableNameOrOptions extends
-    | keyof PublicSchema["Tables"]
-    | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Update: infer U
-    }
-    ? U
-    : never
-  : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
-    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
-        Update: infer U
-      }
-      ? U
-      : never
-    : never
-
-export type Enums<
-  PublicEnumNameOrOptions extends
-    | keyof PublicSchema["Enums"]
-    | { schema: keyof Database },
-  EnumName extends PublicEnumNameOrOptions extends { schema: keyof Database }
-    ? keyof Database[PublicEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
-> = PublicEnumNameOrOptions extends { schema: keyof Database }
-  ? Database[PublicEnumNameOrOptions["schema"]]["Enums"][EnumName]
-  : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
-    ? PublicSchema["Enums"][PublicEnumNameOrOptions]
-    : never
-
-export type Component = Tables<'components'>;
-export type NewComponent = TablesInsert<'components'>;
-export type Category = Tables<'categories'>;
-export type NewCategory = TablesInsert<'categories'>;
-export type Profile = Tables<'profiles'>;
+        Row: User;
+        Insert: Omit<User, 'created_at' | 'updated_at'>;
+        Update: Partial<Omit<User, 'id' | 'created_at' | 'updated_at'>>;
+      };
+    };
+  };
+};

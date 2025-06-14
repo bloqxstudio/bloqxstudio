@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -12,7 +13,7 @@ import JsonCodeSection from './JsonCodeSection';
 import ClaudeJsonAnalyzer from './ClaudeJsonAnalyzer';
 import FormSubmitButton from './FormSubmitButton';
 import { formSchema, type FormValues } from '@/features/components/types/componentFormSchema';
-import { Component } from '@/lib/database.types';
+import { Component } from '@/core/types/database';
 
 interface EditComponentFormProps {
   component: Component;
@@ -35,7 +36,7 @@ const EditComponentForm: React.FC<EditComponentFormProps> = ({ component }) => {
       visibility: component.visibility,
       alignment: component.alignment || 'left',
       columns: component.columns || '1',
-      elements: component.elements || []
+      elements: (component.elements || []) as ('button' | 'video' | 'image' | 'list' | 'heading')[]
     },
     mode: 'onChange',
   });
@@ -44,8 +45,6 @@ const EditComponentForm: React.FC<EditComponentFormProps> = ({ component }) => {
     // Set initial JSON content for ClaudeJsonAnalyzer
     setJsonContent(component.json_code || component.code || '');
   }, [component]);
-
-  const updateMutation = updateComponent;
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -68,9 +67,12 @@ const EditComponentForm: React.FC<EditComponentFormProps> = ({ component }) => {
     setJsonContent(content);
   };
 
-  const handleAnalyzeSuccess = (updatedJson: string) => {
-    form.setValue('jsonCode', updatedJson);
-    setJsonContent(updatedJson);
+  const handleAnalyzeSuccess = (metadata: { title?: string; tags?: string; alignment?: 'left' | 'center' | 'right' | 'full'; columns?: '1' | '2' | '3+'; elements?: string[] }) => {
+    if (metadata.title) form.setValue('title', metadata.title);
+    if (metadata.tags) form.setValue('tags', metadata.tags);
+    if (metadata.alignment) form.setValue('alignment', metadata.alignment);
+    if (metadata.columns) form.setValue('columns', metadata.columns);
+    if (metadata.elements) form.setValue('elements', metadata.elements as ('button' | 'video' | 'image' | 'list' | 'heading')[]);
   };
 
   const onSubmit = async (values: FormValues) => {
@@ -95,13 +97,13 @@ const EditComponentForm: React.FC<EditComponentFormProps> = ({ component }) => {
         formData.append('preview_image', selectedFile);
       }
 
-      const result = await updateMutation(formData);
+      const result = await updateComponent(component.id, formData);
 
-      if (result.success) {
+      if (result) {
         toast.success('Componente atualizado com sucesso!');
         navigate(`/component/${component.id}`);
       } else {
-        toast.error(`Erro ao atualizar componente: ${result.error}`);
+        toast.error('Erro ao atualizar componente');
       }
     } catch (error: any) {
       toast.error(`Erro ao atualizar componente: ${error.message}`);

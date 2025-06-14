@@ -1,7 +1,7 @@
 
 import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/ui';
+import { Button } from '@/components/ui/button';
 import { X } from 'lucide-react';
 import ComponentCreateForm from '@/components/forms/ComponentCreateForm';
 import { useAuth } from '@/features/auth';

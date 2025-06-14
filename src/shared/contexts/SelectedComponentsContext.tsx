@@ -1,68 +1,83 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { Component } from '@/core/types/database';
 
-type SelectedComponentsContextType = {
+interface Component {
+  id: string;
+  title: string;
+  description?: string;
+  category: string;
+  code: string;
+  json_code?: string;
+  preview_image?: string;
+  tags?: string[];
+  type?: string;
+  visibility: 'public' | 'private';
+  created_at: string;
+  updated_at: string;
+  created_by: string;
+  alignment?: string;
+  columns?: string;
+  elements?: string[];
+}
+
+export interface SelectedComponentsContextType {
   selectedComponents: Component[];
-  isComponentSelected: (id: string) => boolean;
   addComponent: (component: Component) => void;
-  removeComponent: (id: string) => void;
-  clearComponents: () => void;
-  moveComponent: (fromIndex: number, toIndex: number) => void;
-  totalSelected: number;
-};
+  removeComponent: (componentId: string) => void;
+  clearAllComponents: () => void;
+  isComponentVisible: (componentId: string) => boolean;
+  setComponentVisibility: (componentId: string, visible: boolean) => void;
+}
 
 const SelectedComponentsContext = createContext<SelectedComponentsContextType | undefined>(undefined);
 
-export const SelectedComponentsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [selectedComponents, setSelectedComponents] = useState<Component[]>([]);
+interface SelectedComponentsProviderProps {
+  children: ReactNode;
+}
 
-  const isComponentSelected = (id: string) => {
-    return selectedComponents.some(component => component.id === id);
-  };
+export const SelectedComponentsProvider: React.FC<SelectedComponentsProviderProps> = ({ children }) => {
+  const [selectedComponents, setSelectedComponents] = useState<Component[]>([]);
+  const [componentVisibility, setComponentVisibilityState] = useState<Record<string, boolean>>({});
 
   const addComponent = (component: Component) => {
-    if (!isComponentSelected(component.id)) {
-      setSelectedComponents(prev => [...prev, component]);
-    }
+    setSelectedComponents(prev => {
+      const exists = prev.find(c => c.id === component.id);
+      if (exists) return prev;
+      return [...prev, component];
+    });
   };
 
-  const removeComponent = (id: string) => {
-    setSelectedComponents(prev => prev.filter(component => component.id !== id));
+  const removeComponent = (componentId: string) => {
+    setSelectedComponents(prev => prev.filter(c => c.id !== componentId));
   };
 
-  const clearComponents = () => {
+  const clearAllComponents = () => {
     setSelectedComponents([]);
+    setComponentVisibilityState({});
   };
 
-  const moveComponent = (fromIndex: number, toIndex: number) => {
-    if (
-      fromIndex < 0 || 
-      toIndex < 0 || 
-      fromIndex >= selectedComponents.length || 
-      toIndex >= selectedComponents.length
-    ) {
-      return;
-    }
+  const isComponentVisible = (componentId: string) => {
+    return componentVisibility[componentId] ?? true;
+  };
 
-    const updatedComponents = [...selectedComponents];
-    const [movedItem] = updatedComponents.splice(fromIndex, 1);
-    updatedComponents.splice(toIndex, 0, movedItem);
-    setSelectedComponents(updatedComponents);
+  const setComponentVisibility = (componentId: string, visible: boolean) => {
+    setComponentVisibilityState(prev => ({
+      ...prev,
+      [componentId]: visible
+    }));
+  };
+
+  const value: SelectedComponentsContextType = {
+    selectedComponents,
+    addComponent,
+    removeComponent,
+    clearAllComponents,
+    isComponentVisible,
+    setComponentVisibility
   };
 
   return (
-    <SelectedComponentsContext.Provider
-      value={{
-        selectedComponents,
-        isComponentSelected,
-        addComponent,
-        removeComponent,
-        clearComponents,
-        moveComponent,
-        totalSelected: selectedComponents.length
-      }}
-    >
+    <SelectedComponentsContext.Provider value={value}>
       {children}
     </SelectedComponentsContext.Provider>
   );
