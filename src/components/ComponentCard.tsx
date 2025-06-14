@@ -33,9 +33,8 @@ const ComponentCard: React.FC<ComponentCardProps> = ({ component, className }) =
   } = useSelectedComponents();
 
   const isSelected = isComponentSelected(component.id);
-  const isWordPressComponent = component.source === 'wordpress';
   
-  // Get language preference - this would come from a language context in a real implementation
+  // Get language preference
   const language = localStorage.getItem('language') || 'en';
   
   const getTranslation = (en: string, pt: string) => {
@@ -50,7 +49,6 @@ const ComponentCard: React.FC<ComponentCardProps> = ({ component, className }) =
       return;
     }
     
-    // Use json_code if available, otherwise fall back to code
     const codeContent = component.json_code || component.code;
     navigator.clipboard.writeText(codeContent);
     toast.success(getTranslation(
@@ -71,7 +69,6 @@ const ComponentCard: React.FC<ComponentCardProps> = ({ component, className }) =
     const codeContent = component.json_code || component.code;
     const filename = `${component.title.toLowerCase().replace(/\s+/g, '-')}.json`;
     
-    // Create blob and download it
     const blob = new Blob([codeContent], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -111,10 +108,7 @@ const ComponentCard: React.FC<ComponentCardProps> = ({ component, className }) =
     }
   };
 
-  // Determine image source with fallback
   const imageSrc = component.preview_image || '/placeholder.svg';
-
-  // Get tags as array, ensuring backward compatibility
   const tags = component.tags || [];
 
   return (
@@ -142,13 +136,11 @@ const ComponentCard: React.FC<ComponentCardProps> = ({ component, className }) =
               </Button>
             </div>
             
-            {/* Source indicator */}
+            {/* Superelements badge */}
             <div className="absolute top-2 left-2 flex gap-1">
-              {isWordPressComponent && (
-                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                  <ExternalLink className="h-3 w-3 mr-1" /> Superelements
-                </Badge>
-              )}
+              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                <ExternalLink className="h-3 w-3 mr-1" /> Superelements
+              </Badge>
               {component.visibility === 'private' && (
                 <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
                   <Lock className="h-3 w-3 mr-1" /> {getTranslation('Private', 'Privado')}

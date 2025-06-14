@@ -1,27 +1,13 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Component, NewComponent, UpdateComponent } from '@/core/types';
 import { getWordPressComponents } from './wordpress';
 
 export const getComponents = async (): Promise<Component[]> => {
-  console.log('🔍 Iniciando carregamento de componentes...');
+  console.log('🔍 Carregando componentes Superelements...');
   
   try {
-    // Buscar componentes locais do Supabase
-    console.log('📂 Buscando componentes locais...');
-    const { data: localComponents, error: localError } = await supabase
-      .from('components')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (localError) {
-      console.error('❌ Erro ao buscar componentes locais:', localError);
-    } else {
-      console.log(`✅ ${localComponents?.length || 0} componentes locais encontrados`);
-    }
-
-    // Buscar componentes do WordPress
-    console.log('🌐 Buscando componentes do WordPress...');
+    // Buscar apenas componentes do WordPress/Superelements
+    console.log('🌐 Buscando componentes Superelements...');
     let wordpressComponents: Component[] = [];
     
     try {
@@ -30,7 +16,7 @@ export const getComponents = async (): Promise<Component[]> => {
         page: 1 
       });
       
-      console.log('📊 Resposta WordPress recebida:', {
+      console.log('📊 Resposta Superelements recebida:', {
         success: wpResponse.success,
         dataLength: wpResponse.data?.length || 0
       });
@@ -38,7 +24,7 @@ export const getComponents = async (): Promise<Component[]> => {
       if (wpResponse.success && wpResponse.data) {
         // Converter componentes WordPress para o formato Component
         wordpressComponents = wpResponse.data.map((wpComponent, index) => {
-          console.log(`🔄 Processando componente WP ${index + 1}:`, {
+          console.log(`🔄 Processando componente Superelements ${index + 1}:`, {
             id: wpComponent.id,
             title: wpComponent.title,
             has_preview_image: !!wpComponent.preview_image,
@@ -66,11 +52,11 @@ export const getComponents = async (): Promise<Component[]> => {
           };
         });
 
-        console.log(`✅ ${wordpressComponents.length} componentes WordPress processados`);
+        console.log(`✅ ${wordpressComponents.length} componentes Superelements processados`);
         
         // Log detalhado dos primeiros 3 componentes
         wordpressComponents.slice(0, 3).forEach((comp, i) => {
-          console.log(`📝 Componente WP ${i + 1} processado:`, {
+          console.log(`📝 Componente Superelements ${i + 1} processado:`, {
             id: comp.id,
             title: comp.title,
             source: comp.source,
@@ -79,66 +65,20 @@ export const getComponents = async (): Promise<Component[]> => {
           });
         });
       } else {
-        console.warn('⚠️ Resposta WordPress não foi bem-sucedida ou sem dados');
+        console.warn('⚠️ Resposta Superelements não foi bem-sucedida ou sem dados');
       }
 
     } catch (wpError) {
-      console.warn('⚠️ Erro ao carregar componentes WordPress:', wpError);
+      console.warn('⚠️ Erro ao carregar componentes Superelements:', wpError);
     }
 
-    // Combinar e retornar todos os componentes
-    const localMapped = (localComponents || []).map(item => ({
-      ...item,
-      visibility: item.visibility as 'public' | 'private',
-      alignment: item.alignment as 'left' | 'center' | 'right' | 'full' | undefined,
-      columns: item.columns as '1' | '2' | '3+' | undefined,
-      elements: item.elements as ('button' | 'video' | 'image' | 'list' | 'heading')[] | undefined,
-      source: 'local' as const
-    }));
-
-    console.log(`📊 Componentes locais mapeados: ${localMapped.length}`);
-
-    const allComponents = [...localMapped, ...wordpressComponents];
+    console.log(`🎯 RESULTADO FINAL: ${wordpressComponents.length} componentes Superelements carregados`);
     
-    console.log(`🎯 RESULTADO FINAL:`);
-    console.log(`  - Total: ${allComponents.length} componentes`);
-    console.log(`  - Locais: ${localMapped.length}`);
-    console.log(`  - WordPress: ${wordpressComponents.length}`);
-    
-    // Log dos tipos de source
-    const sourceCounts = allComponents.reduce((acc, comp) => {
-      acc[comp.source || 'unknown'] = (acc[comp.source || 'unknown'] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
-    console.log(`📈 Distribuição por source:`, sourceCounts);
-    
-    return allComponents;
+    return wordpressComponents;
 
   } catch (error) {
     console.error('💥 Erro geral em getComponents:', error);
-    
-    // Em caso de erro, tentar retornar pelo menos os componentes locais
-    try {
-      const { data: localComponents } = await supabase
-        .from('components')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      const fallbackComponents = (localComponents || []).map(item => ({
-        ...item,
-        visibility: item.visibility as 'public' | 'private',
-        alignment: item.alignment as 'left' | 'center' | 'right' | 'full' | undefined,
-        columns: item.columns as '1' | '2' | '3+' | undefined,
-        elements: item.elements as ('button' | 'video' | 'image' | 'list' | 'heading')[] | undefined,
-        source: 'local' as const
-      }));
-      
-      console.log(`🔄 Fallback: retornando ${fallbackComponents.length} componentes locais`);
-      return fallbackComponents;
-    } catch (fallbackError) {
-      console.error('💥 Erro no fallback:', fallbackError);
-      return [];
-    }
+    return [];
   }
 };
 
