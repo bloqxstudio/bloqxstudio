@@ -222,10 +222,12 @@ const SuperelementsComponents = () => {
 
   const handleCopyElementorJson = async (component: ElementorComponent) => {
     try {
-      // Import the conversion utility
+      console.log('🎨 Iniciando cópia com preservação completa de estilos...');
+      
+      // Import the enhanced conversion utility
       const { convertHtmlToElementorJson } = await import('@/utils/elementor/htmlToJson');
       
-      // Convert HTML content to proper Elementor JSON format
+      // Convert HTML content to proper Elementor JSON format with enhanced style preservation
       const elementorJson = convertHtmlToElementorJson(
         component.content?.rendered || '',
         component.title?.rendered || `Componente ${component.id}`
@@ -233,12 +235,12 @@ const SuperelementsComponents = () => {
 
       await navigator.clipboard.writeText(elementorJson);
       setCopiedId(component.id);
-      toast.success(`JSON do Elementor copiado! Agora você pode colar diretamente no Elementor.`);
+      toast.success(`JSON do Elementor copiado com estilos preservados! 🎨\nAgora você pode colar diretamente no Elementor com todas as cores, fontes e espaçamentos mantidos.`);
       
-      // Reset copied state after 2 seconds
-      setTimeout(() => setCopiedId(null), 2000);
+      // Reset copied state after 3 seconds
+      setTimeout(() => setCopiedId(null), 3000);
     } catch (error) {
-      console.error('Erro ao copiar JSON:', error);
+      console.error('❌ Erro ao copiar JSON com estilos:', error);
       toast.error('Erro ao copiar JSON. Tente novamente.');
     }
   };
