@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
@@ -223,22 +222,100 @@ const SuperelementsComponents = () => {
 
   const handleCopyElementorJson = async (component: ElementorComponent) => {
     try {
-      // Criar JSON do Elementor a partir dos dados extraídos
+      // Create properly formatted Elementor JSON
       const elementorJson = {
-        version: "3.0.0",
-        title: component.title?.rendered || `Componente ${component.id}`,
-        type: component.elementor_data?.elementorType || "page",
-        content: component.content?.rendered || '',
-        widgets: component.widget_types || [],
-        elements: component.elementor_data?.totalElements || 0,
-        raw_html: component.content?.rendered || ''
+        "version": "3.0.0",
+        "title": component.title?.rendered || `Componente ${component.id}`,
+        "type": "page",
+        "elements": [
+          {
+            "id": `container_${component.id}`,
+            "elType": "container",
+            "settings": {
+              "content_width": "boxed",
+              "flex_direction": "column"
+            },
+            "elements": []
+          }
+        ]
       };
+
+      // If we have HTML content, try to parse it for better structure
+      if (component.content?.rendered) {
+        try {
+          const parser = new DOMParser();
+          const doc = parser.parseFromString(component.content.rendered, 'text/html');
+          
+          // Look for existing Elementor structure
+          const elementorElements = doc.querySelectorAll('[data-element_type]');
+          if (elementorElements.length > 0) {
+            const elements: any[] = [];
+            
+            elementorElements.forEach((element, index) => {
+              const id = element.getAttribute('data-id') || `element_${index}`;
+              const elementType = element.getAttribute('data-element_type');
+              const widgetType = element.getAttribute('data-widget_type');
+              
+              let elementData: any = {
+                id,
+                elType: elementType === 'container' ? 'container' : 'widget',
+                settings: {}
+              };
+
+              // Extract settings from data-settings
+              const settingsAttr = element.getAttribute('data-settings');
+              if (settingsAttr) {
+                try {
+                  elementData.settings = JSON.parse(settingsAttr.replace(/&quot;/g, '"'));
+                } catch (e) {
+                  elementData.settings = {};
+                }
+              }
+
+              // Add widget type for widgets
+              if (widgetType) {
+                elementData.widgetType = widgetType.replace('.default', '');
+                
+                // Extract widget-specific content
+                if (widgetType.includes('heading')) {
+                  const heading = element.querySelector('.elementor-heading-title');
+                  if (heading) {
+                    elementData.settings.title = heading.textContent || '';
+                    elementData.settings.header_size = heading.tagName.toLowerCase();
+                  }
+                } else if (widgetType.includes('text-editor')) {
+                  const textContent = element.querySelector('.elementor-widget-container');
+                  if (textContent) {
+                    elementData.settings.editor = textContent.innerHTML || '';
+                  }
+                } else if (widgetType.includes('image')) {
+                  const img = element.querySelector('img');
+                  if (img) {
+                    elementData.settings.image = {
+                      url: img.getAttribute('src') || '',
+                      alt: img.getAttribute('alt') || ''
+                    };
+                  }
+                }
+              }
+
+              elements.push(elementData);
+            });
+
+            if (elements.length > 0) {
+              elementorJson.elements = elements;
+            }
+          }
+        } catch (parseError) {
+          console.warn('Could not parse HTML structure, using basic format');
+        }
+      }
 
       await navigator.clipboard.writeText(JSON.stringify(elementorJson, null, 2));
       setCopiedId(component.id);
-      toast.success(`JSON do Elementor copiado para a área de transferência!`);
+      toast.success(`JSON do Elementor copiado! Agora você pode colar diretamente no Elementor.`);
       
-      // Resetar estado de copiado após 2 segundos
+      // Reset copied state after 2 seconds
       setTimeout(() => setCopiedId(null), 2000);
     } catch (error) {
       console.error('Erro ao copiar JSON:', error);
@@ -439,6 +516,7 @@ const SuperelementsComponents = () => {
                                 size="sm"
                                 onClick={() => handleCopyElementorJson(component)}
                                 disabled={copiedId === component.id}
+                                className="bg-green-50 border-green-200 hover:bg-green-100"
                               >
                                 {copiedId === component.id ? (
                                   <>
