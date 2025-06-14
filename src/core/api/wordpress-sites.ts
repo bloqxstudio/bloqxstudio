@@ -19,6 +19,7 @@ export interface WordPressSiteCreateRequest {
   site_url: string;
   api_key: string;
   site_name?: string;
+  username?: string;
 }
 
 export interface WordPressSiteValidationResponse {
@@ -28,47 +29,155 @@ export interface WordPressSiteValidationResponse {
   elementor_active?: boolean;
   rest_api_enabled?: boolean;
   error?: string;
+  auth_method?: string;
 }
 
-// Validate WordPress site connection
+// Helper function to encode credentials for Basic Auth
+const encodeBasicAuth = (username: string, password: string): string => {
+  return btoa(`${username}:${password}`);
+};
+
+// Helper function to test REST API availability
+const testRestApiAvailability = async (site_url: string): Promise<boolean> => {
+  try {
+    const cleanUrl = site_url.replace(/\/$/, '');
+    const response = await fetch(`${cleanUrl}/wp-json/wp/v2/`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+    return response.ok;
+  } catch (error) {
+    console.error('REST API test failed:', error);
+    return false;
+  }
+};
+
+// Validate WordPress site connection with multiple auth methods
 export const validateWordPressSite = async (
   site_url: string, 
-  api_key: string
+  api_key: string,
+  username?: string
 ): Promise<WordPressSiteValidationResponse> => {
   try {
     // Clean and format URL
     const cleanUrl = site_url.replace(/\/$/, '');
-    const restApiUrl = `${cleanUrl}/wp-json/wp/v2/users/me`;
     
-    const response = await fetch(restApiUrl, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${api_key}`,
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    // First, test if REST API is available
+    const restApiAvailable = await testRestApiAvailability(cleanUrl);
+    if (!restApiAvailable) {
+      return {
+        is_valid: false,
+        error: 'WordPress REST API não está disponível ou está desabilitada',
+      };
     }
 
-    // Check if WordPress REST API is accessible
+    // Get basic site info (public endpoint)
     const siteInfoResponse = await fetch(`${cleanUrl}/wp-json/wp/v2/`);
+    if (!siteInfoResponse.ok) {
+      return {
+        is_valid: false,
+        error: 'Não foi possível acessar as informações do site WordPress',
+      };
+    }
     const siteInfo = await siteInfoResponse.json();
 
-    // Check if Elementor is active
-    const pluginsResponse = await fetch(`${cleanUrl}/wp-json/wp/v2/plugins`, {
-      headers: {
-        'Authorization': `Bearer ${api_key}`,
-      },
-    });
+    // Try different authentication methods
+    let authSuccess = false;
+    let authMethod = '';
+    let userResponse;
 
+    // Method 1: Basic Auth with username:password (Application Password)
+    if (username && api_key) {
+      try {
+        const basicAuthToken = encodeBasicAuth(username, api_key);
+        userResponse = await fetch(`${cleanUrl}/wp-json/wp/v2/users/me`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Basic ${basicAuthToken}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        if (userResponse.ok) {
+          authSuccess = true;
+          authMethod = 'Basic Auth (Application Password)';
+        }
+      } catch (error) {
+        console.error('Basic Auth failed:', error);
+      }
+    }
+
+    // Method 2: Try Bearer token (in case it's a JWT or custom token)
+    if (!authSuccess) {
+      try {
+        userResponse = await fetch(`${cleanUrl}/wp-json/wp/v2/users/me`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Bearer ${api_key}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        if (userResponse.ok) {
+          authSuccess = true;
+          authMethod = 'Bearer Token';
+        }
+      } catch (error) {
+        console.error('Bearer token failed:', error);
+      }
+    }
+
+    // Method 3: Try as Application Password without username (some setups)
+    if (!authSuccess && !username) {
+      try {
+        // Try to extract username from email format or use 'admin' as fallback
+        const fallbackUsername = 'admin';
+        const basicAuthToken = encodeBasicAuth(fallbackUsername, api_key);
+        userResponse = await fetch(`${cleanUrl}/wp-json/wp/v2/users/me`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `Basic ${basicAuthToken}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        if (userResponse.ok) {
+          authSuccess = true;
+          authMethod = 'Basic Auth (fallback username)';
+        }
+      } catch (error) {
+        console.error('Fallback auth failed:', error);
+      }
+    }
+
+    if (!authSuccess) {
+      return {
+        is_valid: false,
+        error: 'Falha na autenticação. Verifique se a Application Password está correta e se o usuário tem permissões adequadas.',
+        rest_api_enabled: true,
+      };
+    }
+
+    // Check if Elementor is active (requires authentication)
     let elementor_active = false;
-    if (pluginsResponse.ok) {
-      const plugins = await pluginsResponse.json();
-      elementor_active = plugins.some((plugin: any) => 
-        plugin.plugin && plugin.plugin.includes('elementor') && plugin.status === 'active'
-      );
+    try {
+      const pluginsResponse = await fetch(`${cleanUrl}/wp-json/wp/v2/plugins`, {
+        headers: userResponse.headers.get('Authorization') ? 
+          { 'Authorization': userResponse.headers.get('Authorization')! } :
+          { 'Authorization': `Basic ${encodeBasicAuth(username || 'admin', api_key)}` },
+      });
+
+      if (pluginsResponse.ok) {
+        const plugins = await pluginsResponse.json();
+        elementor_active = plugins.some((plugin: any) => 
+          plugin.plugin && plugin.plugin.includes('elementor') && plugin.status === 'active'
+        );
+      }
+    } catch (error) {
+      console.error('Plugin check failed:', error);
+      // Not critical, continue without this info
     }
 
     return {
@@ -77,13 +186,14 @@ export const validateWordPressSite = async (
       wordpress_version: siteInfo.version,
       elementor_active,
       rest_api_enabled: true,
+      auth_method,
     };
 
   } catch (error) {
     console.error('WordPress validation error:', error);
     return {
       is_valid: false,
-      error: error instanceof Error ? error.message : 'Conexão falhou',
+      error: error instanceof Error ? error.message : 'Erro de conexão. Verifique a URL e tente novamente.',
     };
   }
 };
@@ -97,10 +207,20 @@ export const createWordPressSite = async (
     if (!user) throw new Error('User not authenticated');
 
     // First validate the site
-    const validation = await validateWordPressSite(siteData.site_url, siteData.api_key);
+    const validation = await validateWordPressSite(
+      siteData.site_url, 
+      siteData.api_key,
+      siteData.username
+    );
+    
     if (!validation.is_valid) {
       throw new Error(validation.error || 'Site validation failed');
     }
+
+    // Store the complete auth info (username:password for Basic Auth)
+    const authInfo = siteData.username ? 
+      `${siteData.username}:${siteData.api_key}` : 
+      siteData.api_key;
 
     const { data, error } = await supabase
       .from('wordpress_sites')
@@ -108,7 +228,7 @@ export const createWordPressSite = async (
         user_id: user.id,
         site_url: siteData.site_url.replace(/\/$/, ''),
         site_name: siteData.site_name || validation.site_name,
-        api_key: siteData.api_key,
+        api_key: authInfo,
         wordpress_version: validation.wordpress_version,
         elementor_active: validation.elementor_active,
       })
@@ -187,7 +307,15 @@ export const testWordPressSiteConnection = async (id: string): Promise<WordPress
 
     if (error || !site) throw new Error('Site not found');
 
-    return await validateWordPressSite(site.site_url, site.api_key);
+    // Parse stored auth info
+    let username, password;
+    if (site.api_key.includes(':')) {
+      [username, password] = site.api_key.split(':');
+    } else {
+      password = site.api_key;
+    }
+
+    return await validateWordPressSite(site.site_url, password, username);
   } catch (error) {
     console.error('Error testing WordPress connection:', error);
     return {
@@ -235,12 +363,22 @@ export const importComponentToWordPress = async (
 
     if (componentError || !component) throw new Error('Component not found');
 
+    // Parse auth info and prepare headers
+    let authHeader;
+    if (site.api_key.includes(':')) {
+      const [username, password] = site.api_key.split(':');
+      const basicAuthToken = encodeBasicAuth(username, password);
+      authHeader = `Basic ${basicAuthToken}`;
+    } else {
+      authHeader = `Bearer ${site.api_key}`;
+    }
+
     // Import to WordPress via REST API
     const importUrl = `${site.site_url}/wp-json/elementor/v1/template-library/import`;
     const response = await fetch(importUrl, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${site.api_key}`,
+        'Authorization': authHeader,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({

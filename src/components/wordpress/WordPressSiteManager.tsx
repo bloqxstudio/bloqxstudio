@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
-import { AlertCircle, Check, ExternalLink, Trash2, TestTube, Plus } from 'lucide-react';
+import { AlertCircle, Check, ExternalLink, Trash2, TestTube, Plus, Info } from 'lucide-react';
 import { toast } from 'sonner';
 import { 
   getUserWordPressSites, 
@@ -22,6 +22,7 @@ const WordPressSiteManager = () => {
     site_url: '',
     api_key: '',
     site_name: '',
+    username: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -37,7 +38,7 @@ const WordPressSiteManager = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['wordpress-sites'] });
       setShowAddForm(false);
-      setFormData({ site_url: '', api_key: '', site_name: '' });
+      setFormData({ site_url: '', api_key: '', site_name: '', username: '' });
       toast.success('Site WordPress conectado com sucesso!');
     },
     onError: (error) => {
@@ -59,7 +60,7 @@ const WordPressSiteManager = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.site_url || !formData.api_key) {
-      toast.error('URL e API Key são obrigatórios');
+      toast.error('URL e Application Password são obrigatórios');
       return;
     }
 
@@ -75,7 +76,7 @@ const WordPressSiteManager = () => {
     try {
       const result = await testWordPressSiteConnection(siteId);
       if (result.is_valid) {
-        toast.success('Conexão testada com sucesso!');
+        toast.success(`Conexão testada com sucesso! Método: ${result.auth_method}`);
       } else {
         toast.error(`Falha na conexão: ${result.error}`);
       }
@@ -121,17 +122,34 @@ const WordPressSiteManager = () => {
                   required
                 />
               </div>
+
+              <div>
+                <Label htmlFor="username">Nome de Usuário do WordPress *</Label>
+                <Input
+                  id="username"
+                  value={formData.username}
+                  onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value }))}
+                  placeholder="Seu nome de usuário WordPress"
+                  required
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  O nome de usuário que você usa para fazer login no WordPress
+                </p>
+              </div>
               
               <div>
-                <Label htmlFor="api_key">API Key / Application Password *</Label>
+                <Label htmlFor="api_key">Application Password *</Label>
                 <Input
                   id="api_key"
                   type="password"
                   value={formData.api_key}
                   onChange={(e) => setFormData(prev => ({ ...prev, api_key: e.target.value }))}
-                  placeholder="Sua Application Password do WordPress"
+                  placeholder="xxxx xxxx xxxx xxxx xxxx xxxx"
                   required
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  A Application Password gerada no WordPress (formato: xxxx xxxx xxxx xxxx)
+                </p>
               </div>
 
               <div>
@@ -145,13 +163,35 @@ const WordPressSiteManager = () => {
               </div>
 
               <div className="bg-blue-50 p-4 rounded-lg text-sm">
-                <h4 className="font-medium text-blue-900 mb-2">Como obter a API Key:</h4>
-                <ol className="list-decimal list-inside space-y-1 text-blue-800">
-                  <li>Acesse seu WordPress Admin → Usuários → Perfil</li>
-                  <li>Role até "Application Passwords"</li>
-                  <li>Crie uma nova senha com nome "Superelements"</li>
-                  <li>Copie a senha gerada e cole acima</li>
-                </ol>
+                <div className="flex items-start gap-2">
+                  <Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <h4 className="font-medium text-blue-900 mb-2">Como obter a Application Password:</h4>
+                    <ol className="list-decimal list-inside space-y-1 text-blue-800">
+                      <li>Acesse seu WordPress Admin → Usuários → Perfil</li>
+                      <li>Role até a seção "Application Passwords"</li>
+                      <li>Digite "Superelements" no campo de nome</li>
+                      <li>Clique em "Add New Application Password"</li>
+                      <li>Copie a senha gerada (formato: xxxx xxxx xxxx xxxx)</li>
+                      <li>Cole a senha no campo acima</li>
+                    </ol>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-amber-50 p-4 rounded-lg text-sm">
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <h4 className="font-medium text-amber-900 mb-1">Problemas de Conexão?</h4>
+                    <ul className="list-disc list-inside space-y-1 text-amber-800">
+                      <li>Verifique se a REST API está habilitada</li>
+                      <li>Confirme se o usuário tem permissões de administrador</li>
+                      <li>Desative plugins de segurança temporariamente</li>
+                      <li>Certifique-se de que o WordPress é versão 5.6 ou superior</li>
+                    </ul>
+                  </div>
+                </div>
               </div>
 
               <div className="flex gap-2">
@@ -232,6 +272,7 @@ const WordPressSiteManager = () => {
                       size="sm"
                       variant="outline"
                       onClick={() => handleTestConnection(site.id)}
+                      title="Testar Conexão"
                     >
                       <TestTube className="h-4 w-4" />
                     </Button>
@@ -240,6 +281,7 @@ const WordPressSiteManager = () => {
                       size="sm"
                       variant="outline"
                       asChild
+                      title="Abrir Site"
                     >
                       <a href={site.site_url} target="_blank" rel="noopener noreferrer">
                         <ExternalLink className="h-4 w-4" />
@@ -251,6 +293,7 @@ const WordPressSiteManager = () => {
                       variant="outline"
                       onClick={() => handleDelete(site.id)}
                       className="text-red-600 hover:text-red-700"
+                      title="Remover Site"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
