@@ -21,11 +21,11 @@ interface UserData {
 
 interface UserManagementTableProps {
   users: UserData[];
-  onRoleChange: (userId: string, currentRole: string) => void;
-  isUpdating: boolean;
+  onRoleUpdate: (userId: string, newRole: string) => void;
+  isUpdatingRole: boolean;
 }
 
-const UserManagementTable = ({ users, onRoleChange, isUpdating }: UserManagementTableProps) => {
+const UserManagementTable = ({ users, onRoleUpdate, isUpdatingRole }: UserManagementTableProps) => {
   return (
     <div className="overflow-x-auto">
       <Table>
@@ -51,8 +51,8 @@ const UserManagementTable = ({ users, onRoleChange, isUpdating }: UserManagement
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => onRoleChange(user.id, user.role)}
-                  disabled={isUpdating}
+                  onClick={() => onRoleUpdate(user.id, user.role === 'admin' ? 'user' : 'admin')}
+                  disabled={isUpdatingRole}
                 >
                   <UserCog className="h-4 w-4 mr-1" />
                   {user.role === 'admin' ? 'Remover Admin' : 'Tornar Admin'}

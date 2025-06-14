@@ -6,12 +6,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/features/auth';
-import { updateProfile } from '@/core/api';
+import { updateUserProfile } from '@/core/api';
 import { toast } from 'sonner';
 import Navbar from '@/components/Navbar';
 
 const UserProfile = () => {
-  const { user, updateUser } = useAuth();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
@@ -41,8 +41,10 @@ const UserProfile = () => {
 
     setIsLoading(true);
     try {
-      const updatedUser = await updateProfile(user.id, formData);
-      updateUser(updatedUser);
+      await updateUserProfile(user.id, {
+        first_name: formData.first_name,
+        last_name: formData.last_name
+      });
       toast.success('Perfil atualizado com sucesso!');
     } catch (error: any) {
       toast.error(error.message || 'Erro ao atualizar perfil');

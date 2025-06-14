@@ -36,7 +36,7 @@ const UserManagement = () => {
 
   // Update user role mutation
   const updateRoleMutation = useMutation({
-    mutationFn: ({ userId, role }: { userId: string; role: string }) => 
+    mutationFn: ({ userId, role }: { userId: string; role: 'admin' | 'user' }) => 
       updateUserRole(userId, role),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
@@ -51,7 +51,7 @@ const UserManagement = () => {
   // Handle role update
   const handleRoleUpdate = (userId: string, newRole: string) => {
     if (window.confirm(`Tem certeza que deseja alterar a função deste usuário para ${newRole}?`)) {
-      updateRoleMutation.mutate({ userId, role: newRole });
+      updateRoleMutation.mutate({ userId, role: newRole as 'admin' | 'user' });
     }
   };
 

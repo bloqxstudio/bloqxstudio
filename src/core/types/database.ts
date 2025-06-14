@@ -1,9 +1,8 @@
 
-
 export interface Component {
   id: string;
   title: string;
-  description?: string;
+  description: string; // Made required instead of optional
   category: string;
   code: string;
   json_code?: string;

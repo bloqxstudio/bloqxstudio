@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -39,7 +38,7 @@ const Register = () => {
 
     setIsLoading(true);
     try {
-      await signUp(email, password, firstName, lastName);
+      await signUp(email, password);
       toast.success('Conta criada com sucesso! Verifique seu email.');
       navigate('/login');
     } catch (error: any) {
