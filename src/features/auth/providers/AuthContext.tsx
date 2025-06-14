@@ -1,7 +1,7 @@
 
 import React, { createContext, useEffect, useState } from 'react';
 import { Session, User } from '@supabase/supabase-js';
-import { supabase } from '@/core/api/client';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 // Helper function to check if a user is an admin
@@ -36,77 +36,75 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    // Set up auth state listener first
-    const auth = supabase.auth;
-    if (!auth) {
-      console.error("Supabase auth is not available");
-      setIsError(true);
-      setIsLoading(false);
-      return () => {};
-    }
-    
-    try {
-      const { data: { subscription } } = auth.onAuthStateChange((_event, session) => {
-        console.log("Auth state changed", session?.user?.email);
-        console.log("User metadata:", session?.user?.user_metadata);
-        setSession(session);
-        setUser(session?.user ?? null);
-        setIsAdmin(session?.user ? isUserAdmin(session.user) : false);
-        setIsLoading(false);
-      });
+    let mounted = true;
 
-      // Then get initial session
-      const initializeAuth = async () => {
-        try {
-          const { data, error } = await auth.getSession();
-          
-          if (error) {
-            console.error("Error fetching auth session:", error);
-            setIsError(true);
-            toast.error("Failed to connect to authentication service");
-          } else {
-            setSession(data.session);
-            setUser(data.session?.user ?? null);
-            
-            // Log user info for debugging
-            console.log("Session user:", data.session?.user);
-            console.log("User metadata:", data.session?.user?.user_metadata);
-            
-            const admin = data.session?.user ? isUserAdmin(data.session.user) : false;
-            console.log("Is admin:", admin);
-            setIsAdmin(admin);
-          }
-        } catch (err) {
-          console.error("Unexpected auth error:", err);
+    // Set up auth state listener first
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!mounted) return;
+      
+      console.log("Auth state changed", session?.user?.email);
+      console.log("User metadata:", session?.user?.user_metadata);
+      setSession(session);
+      setUser(session?.user ?? null);
+      setIsAdmin(session?.user ? isUserAdmin(session.user) : false);
+      setIsLoading(false);
+    });
+
+    // Then get initial session
+    const initializeAuth = async () => {
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        
+        if (!mounted) return;
+        
+        if (error) {
+          console.error("Error fetching auth session:", error);
           setIsError(true);
-          toast.error("Authentication service unavailable");
-        } finally {
+          toast.error("Falha ao conectar com o serviço de autenticação");
+        } else {
+          setSession(data.session);
+          setUser(data.session?.user ?? null);
+          
+          // Log user info for debugging
+          console.log("Session user:", data.session?.user);
+          console.log("User metadata:", data.session?.user?.user_metadata);
+          
+          const admin = data.session?.user ? isUserAdmin(data.session.user) : false;
+          console.log("Is admin:", admin);
+          setIsAdmin(admin);
+        }
+      } catch (err) {
+        console.error("Unexpected auth error:", err);
+        if (mounted) {
+          setIsError(true);
+          toast.error("Serviço de autenticação indisponível");
+        }
+      } finally {
+        if (mounted) {
           setIsLoading(false);
         }
-      };
+      }
+    };
 
-      initializeAuth();
+    initializeAuth();
 
-      return () => {
-        subscription.unsubscribe();
-      };
-    } catch (error) {
-      console.error("Error setting up auth listener:", error);
-      setIsError(true);
-      setIsLoading(false);
-      return () => {};
-    }
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {
     try {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) {
-        toast.error(error.message || "Failed to sign in");
+        toast.error(error.message || "Falha no login");
+      } else {
+        toast.success("Login realizado com sucesso!");
       }
       return { error };
     } catch (err: any) {
-      toast.error("An unexpected error occurred during sign in");
+      toast.error("Ocorreu um erro inesperado durante o login");
       return { error: err };
     }
   };
@@ -117,6 +115,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         email,
         password,
         options: {
+          emailRedirectTo: `${window.location.origin}/`,
           data: {
             role: 'user' // Default role for new users
           }
@@ -124,14 +123,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       
       if (error) {
-        toast.error(error.message || "Failed to sign up");
+        toast.error(error.message || "Falha no cadastro");
       } else if (data) {
-        toast.success("Registration successful! Please check your email to confirm your account.");
+        toast.success("Cadastro realizado com sucesso! Verifique seu email para confirmar sua conta.");
       }
       
       return { data, error };
     } catch (err: any) {
-      toast.error("An unexpected error occurred during sign up");
+      toast.error("Ocorreu um erro inesperado durante o cadastro");
       return { data: null, error: err };
     }
   };
@@ -139,9 +138,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signOut = async () => {
     try {
       await supabase.auth.signOut();
+      toast.success("Logout realizado com sucesso!");
     } catch (err) {
       console.error("Error during sign out:", err);
-      toast.error("Failed to sign out properly");
+      toast.error("Falha ao realizar logout");
     }
   };
 

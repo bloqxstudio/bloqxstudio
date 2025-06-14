@@ -1,12 +1,16 @@
 
+import { User, Session } from '@supabase/supabase-js';
+
 // Auth feature specific types
-export type { User, NewUser, UpdateUser } from '@/core/types/database';
+export type { User, Session };
 
 export interface AuthContextType {
   user: User | null;
+  session: Session | null;
   isAdmin: boolean;
   isLoading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string) => Promise<void>;
+  isError: boolean;
+  signIn: (email: string, password: string) => Promise<{ error: any | null }>;
+  signUp: (email: string, password: string) => Promise<{ error: any | null, data: any | null }>;
   signOut: () => Promise<void>;
 }
