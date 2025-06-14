@@ -1,25 +1,89 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { Component, NewComponent, UpdateComponent } from '@/core/types';
+import { getWordPressComponents } from './wordpress';
 
 export const getComponents = async (): Promise<Component[]> => {
-  const { data, error } = await supabase
-    .from('components')
-    .select('*')
-    .order('created_at', { ascending: false });
+  try {
+    // Buscar componentes locais do Supabase
+    const { data: localComponents, error: localError } = await supabase
+      .from('components')
+      .select('*')
+      .order('created_at', { ascending: false });
 
-  if (error) {
-    console.error('Error fetching components:', error);
-    throw error;
+    if (localError) {
+      console.error('Error fetching local components:', localError);
+    }
+
+    // Buscar componentes do WordPress (sem limite)
+    let wordpressComponents: Component[] = [];
+    try {
+      const wpResponse = await getWordPressComponents({ 
+        limit: 1000, // Buscar muitos componentes
+        page: 1 
+      });
+      
+      // Converter componentes WordPress para o formato Component
+      wordpressComponents = wpResponse.data.map(wpComponent => ({
+        id: `wp-${wpComponent.id}`, // Prefixo para evitar conflitos
+        title: wpComponent.title,
+        description: wpComponent.description || '',
+        category: wpComponent.category || 'geral',
+        code: wpComponent.elementor_json || wpComponent.code,
+        json_code: wpComponent.elementor_json || wpComponent.code,
+        preview_image: wpComponent.preview_image,
+        tags: wpComponent.tags || [],
+        type: 'elementor',
+        visibility: 'public' as const,
+        created_at: wpComponent.created_at || new Date().toISOString(),
+        updated_at: wpComponent.updated_at || new Date().toISOString(),
+        created_by: 'wordpress-import', // Identificador especial
+        alignment: wpComponent.alignment,
+        columns: wpComponent.columns,
+        elements: wpComponent.elements || [],
+        // Adicionar flag para identificar origem
+        source: 'wordpress' as any
+      }));
+
+      console.log(`✅ ${wordpressComponents.length} componentes WordPress carregados`);
+    } catch (wpError) {
+      console.warn('⚠️ Erro ao carregar componentes WordPress:', wpError);
+      // Continuar mesmo se o WordPress falhar
+    }
+
+    // Combinar e retornar todos os componentes
+    const localMapped = (localComponents || []).map(item => ({
+      ...item,
+      visibility: item.visibility as 'public' | 'private',
+      alignment: item.alignment as 'left' | 'center' | 'right' | 'full' | undefined,
+      columns: item.columns as '1' | '2' | '3+' | undefined,
+      elements: item.elements as ('button' | 'video' | 'image' | 'list' | 'heading')[] | undefined,
+      source: 'local' as any
+    }));
+
+    // Combinar arrays, colocando componentes locais primeiro
+    const allComponents = [...localMapped, ...wordpressComponents];
+    
+    console.log(`📊 Total: ${allComponents.length} componentes (${localMapped.length} locais + ${wordpressComponents.length} WordPress)`);
+    
+    return allComponents;
+
+  } catch (error) {
+    console.error('Error in getComponents:', error);
+    // Em caso de erro, tentar retornar pelo menos os componentes locais
+    const { data: localComponents } = await supabase
+      .from('components')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    return (localComponents || []).map(item => ({
+      ...item,
+      visibility: item.visibility as 'public' | 'private',
+      alignment: item.alignment as 'left' | 'center' | 'right' | 'full' | undefined,
+      columns: item.columns as '1' | '2' | '3+' | undefined,
+      elements: item.elements as ('button' | 'video' | 'image' | 'list' | 'heading')[] | undefined,
+      source: 'local' as any
+    }));
   }
-
-  return (data || []).map(item => ({
-    ...item,
-    visibility: item.visibility as 'public' | 'private',
-    alignment: item.alignment as 'left' | 'center' | 'right' | 'full' | undefined,
-    columns: item.columns as '1' | '2' | '3+' | undefined,
-    elements: item.elements as ('button' | 'video' | 'image' | 'list' | 'heading')[] | undefined
-  }));
 };
 
 export const getComponentById = async (id: string): Promise<Component | null> => {

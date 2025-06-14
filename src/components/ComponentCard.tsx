@@ -1,10 +1,11 @@
+
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Component } from '@/core/types';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Copy, Download, Eye, Tag, Lock, Plus, Check } from 'lucide-react';
+import { Copy, Download, Eye, Tag, Lock, Plus, Check, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/features/auth';
 import { useSelectedComponents } from '@/shared/contexts/SelectedComponentsContext';
@@ -18,7 +19,7 @@ import {
 } from '@/components/ui/dialog';
 
 interface ComponentCardProps {
-  component: Component;
+  component: Component & { source?: 'local' | 'wordpress' };
   className?: string;
 }
 
@@ -33,6 +34,7 @@ const ComponentCard: React.FC<ComponentCardProps> = ({ component, className }) =
   } = useSelectedComponents();
 
   const isSelected = isComponentSelected(component.id);
+  const isWordPressComponent = component.source === 'wordpress';
   
   // Get language preference - this would come from a language context in a real implementation
   const language = localStorage.getItem('language') || 'en';
@@ -140,17 +142,24 @@ const ComponentCard: React.FC<ComponentCardProps> = ({ component, className }) =
                 {getTranslation('View details', 'Ver detalhes')}
               </Button>
             </div>
-            {component.visibility === 'private' && (
-              <div className="absolute top-2 right-2">
+            
+            {/* Source indicator */}
+            <div className="absolute top-2 left-2 flex gap-1">
+              {isWordPressComponent && (
+                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                  <ExternalLink className="h-3 w-3 mr-1" /> Superelements
+                </Badge>
+              )}
+              {component.visibility === 'private' && (
                 <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
                   <Lock className="h-3 w-3 mr-1" /> {getTranslation('Private', 'Privado')}
                 </Badge>
-              </div>
-            )}
+              )}
+            </div>
             
             {/* Selection indicator */}
             {isSelected && (
-              <div className="absolute top-2 left-2">
+              <div className="absolute top-2 right-2">
                 <Badge className="bg-green-500 text-white">
                   <Check className="h-3 w-3 mr-1" /> {getTranslation('Selected', 'Selecionado')}
                 </Badge>

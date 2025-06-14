@@ -76,6 +76,7 @@ const Components = () => {
       <ComponentsHeader 
         filteredCount={filteredComponents.length}
         totalCount={components.length}
+        components={components}
       />
       
       <ComponentFilterBar
