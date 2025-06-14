@@ -1,5 +1,5 @@
 
-import { supabase } from './client';
+import { supabase } from '@/integrations/supabase/client';
 import { User, UpdateUser } from '@/core/types';
 import { toast } from 'sonner';
 
