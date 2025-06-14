@@ -425,7 +425,7 @@ const SuperelementsComponents = () => {
                 <p><strong>Status:</strong> {isLoading ? 'Carregando...' : error ? 'Erro' : 'Sucesso'}</p>
               </div>
             </CardContent>
-          </div>
+          </Card>
         )}
       </div>
     </PageWrapper>
