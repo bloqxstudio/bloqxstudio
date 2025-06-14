@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Component } from '@/core/types';
 import { Card, CardContent } from '@/components/ui/card';
@@ -24,6 +25,22 @@ const ComponentsGrid: React.FC<ComponentsGridProps> = ({
   handleRetry,
   user
 }) => {
+  // Log para debug
+  console.log('🎯 ComponentsGrid renderizando:', {
+    totalComponents: components.length,
+    filteredComponents: filteredComponents.length,
+    isLoading,
+    hasError: !!error
+  });
+
+  // Log detalhado dos componentes
+  if (filteredComponents.length > 0) {
+    console.log('📋 Primeiros 5 componentes filtrados:');
+    filteredComponents.slice(0, 5).forEach((comp, i) => {
+      console.log(`  ${i + 1}. ${comp.title} (${comp.source}) - Imagem: ${comp.preview_image ? 'SIM' : 'NÃO'}`);
+    });
+  }
+
   if (isLoading) {
     return (
       <div className="flex justify-center py-12">
@@ -36,6 +53,7 @@ const ComponentsGrid: React.FC<ComponentsGridProps> = ({
   }
 
   if (error) {
+    console.error('❌ Erro no ComponentsGrid:', error);
     return (
       <Card className="border-dashed border-red-200 bg-red-50">
         <CardContent className="flex flex-col items-center justify-center py-12 text-center">
@@ -55,6 +73,7 @@ const ComponentsGrid: React.FC<ComponentsGridProps> = ({
   }
 
   if (filteredComponents.length === 0) {
+    console.log('📭 Nenhum componente encontrado após filtros');
     return (
       <Card className="border-dashed">
         <CardContent className="flex flex-col items-center justify-center py-12 text-center">
@@ -70,11 +89,22 @@ const ComponentsGrid: React.FC<ComponentsGridProps> = ({
     );
   }
 
+  console.log(`🎨 Renderizando grid com ${filteredComponents.length} componentes`);
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-      {filteredComponents.map((component) => (
-        <ComponentCard key={component.id} component={component} />
-      ))}
+      {filteredComponents.map((component, index) => {
+        console.log(`🔧 Renderizando card ${index + 1}:`, {
+          id: component.id,
+          title: component.title,
+          source: component.source,
+          preview_image: component.preview_image
+        });
+        
+        return (
+          <ComponentCard key={component.id} component={component} />
+        );
+      })}
     </div>
   );
 };
