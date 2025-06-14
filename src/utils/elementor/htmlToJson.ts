@@ -1,10 +1,8 @@
-
 /**
- * Enhanced utility to convert Elementor HTML to proper JSON format with complete style preservation
+ * Convert HTML to Elementor JSON format with enhanced style preservation
  */
 
-import { extractCompleteStyles, mergeStylesIntoJson } from './styleExtractor';
-import { cleanElementorJsonWithStyles } from '../json/preserveStyles';
+import { extractAdvancedStyles } from '@/utils/elementor/advancedStyleExtractor';
 
 export interface ElementorElement {
   id: string;
@@ -16,7 +14,324 @@ export interface ElementorElement {
   widgetType?: string;
 }
 
-export const convertHtmlToElementorJson = (htmlContent: string, title: string = ''): string => {
+export const convertHtmlToElementorJson = (htmlContent: string, title: string = 'Imported Component'): string => {
+  console.log('🔄 Convertendo HTML para JSON Elementor com preservação de estilos...');
+  
+  try {
+    // Enhanced HTML processing with style extraction
+    let advancedStyles;
+    try {
+      advancedStyles = extractAdvancedStyles(htmlContent);
+      console.log('✅ Estilos avançados extraídos durante conversão');
+    } catch (styleError) {
+      console.warn('⚠️ Erro na extração de estilos durante conversão:', styleError);
+      advancedStyles = null;
+    }
+    
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(htmlContent, 'text/html');
+    
+    // Process elements with enhanced style awareness
+    const processedElements = processElementsWithStyles(doc.body, advancedStyles);
+    
+    const elementorJson = {
+      type: "elementor",
+      siteurl: "https://superelements.io/",
+      elements: [
+        {
+          id: generateElementId(),
+          elType: "section",
+          settings: {
+            ...extractSectionSettingsFromStyles(advancedStyles),
+            _title: title
+          },
+          elements: [
+            {
+              id: generateElementId(),
+              elType: "column",
+              settings: {
+                _column_size: 100,
+                ...extractColumnSettingsFromStyles(advancedStyles)
+              },
+              elements: processedElements,
+              isInner: false
+            }
+          ],
+          isInner: false
+        }
+      ],
+      globals: extractGlobalsFromStyles(advancedStyles)
+    };
+    
+    const jsonString = JSON.stringify(elementorJson, null, 2);
+    console.log(`✅ HTML convertido para JSON com ${jsonString.length} caracteres`);
+    
+    return jsonString;
+  } catch (error) {
+    console.error('❌ Erro na conversão HTML para JSON:', error);
+    
+    // Fallback to basic conversion
+    return createBasicElementorJson(htmlContent, title);
+  }
+};
+
+// Process elements with enhanced style preservation
+const processElementsWithStyles = (element: Element, advancedStyles: any): any[] => {
+  const elements: any[] = [];
+  
+  // Process child elements
+  Array.from(element.children).forEach(child => {
+    const elementData = processElement(child, advancedStyles);
+    if (elementData) {
+      elements.push(elementData);
+    }
+  });
+  
+  // If no specific elements found, create a text widget with all content
+  if (elements.length === 0 && element.textContent) {
+    elements.push({
+      id: generateElementId(),
+      elType: "widget",
+      widgetType: "text-editor",
+      settings: {
+        editor: element.innerHTML,
+        ...extractTextSettingsFromStyles(advancedStyles)
+      }
+    });
+  }
+  
+  return elements;
+};
+
+// Process individual element with style awareness
+const processElement = (element: Element, advancedStyles: any): any | null => {
+  const tagName = element.tagName.toLowerCase();
+  const elementId = generateElementId();
+  
+  // Extract element-specific styles
+  const elementStyles = extractElementStyles(element, advancedStyles);
+  
+  switch (tagName) {
+    case 'h1':
+    case 'h2':
+    case 'h3':
+    case 'h4':
+    case 'h5':
+    case 'h6':
+      return {
+        id: elementId,
+        elType: "widget",
+        widgetType: "heading",
+        settings: {
+          title: element.textContent || '',
+          size: tagName,
+          ...elementStyles.typography,
+          ...elementStyles.colors
+        }
+      };
+      
+    case 'p':
+      return {
+        id: elementId,
+        elType: "widget",
+        widgetType: "text-editor",
+        settings: {
+          editor: element.innerHTML,
+          ...elementStyles.typography,
+          ...elementStyles.colors
+        }
+      };
+      
+    case 'img':
+      const imgElement = element as HTMLImageElement;
+      return {
+        id: elementId,
+        elType: "widget",
+        widgetType: "image",
+        settings: {
+          image: {
+            url: imgElement.src,
+            alt: imgElement.alt || ''
+          },
+          ...elementStyles.spacing
+        }
+      };
+      
+    case 'a':
+      return {
+        id: elementId,
+        elType: "widget",
+        widgetType: "button",
+        settings: {
+          text: element.textContent || '',
+          link: {
+            url: (element as HTMLAnchorElement).href || ''
+          },
+          ...elementStyles.colors,
+          ...elementStyles.typography
+        }
+      };
+      
+    case 'div':
+    case 'section':
+      if (element.children.length > 0) {
+        return {
+          id: elementId,
+          elType: "widget",
+          widgetType: "html",
+          settings: {
+            html: element.innerHTML,
+            ...elementStyles.spacing,
+            ...elementStyles.colors
+          }
+        };
+      }
+      break;
+  }
+  
+  return null;
+};
+
+// Extract element-specific styles
+const extractElementStyles = (element: Element, advancedStyles: any): any => {
+  const styles = {
+    typography: {},
+    colors: {},
+    spacing: {}
+  };
+  
+  if (!advancedStyles) return styles;
+  
+  // Get inline style from element
+  const inlineStyle = element.getAttribute('style');
+  if (inlineStyle) {
+    const cssProps = parseCSSProperties(inlineStyle);
+    
+    // Map CSS properties to Elementor settings
+    Object.entries(cssProps).forEach(([prop, value]) => {
+      if (prop.includes('color') && !prop.includes('background')) {
+        styles.colors.text_color = value;
+      } else if (prop.includes('background-color')) {
+        styles.colors.background_color = value;
+      } else if (prop.includes('font-size')) {
+        styles.typography.typography_font_size = { unit: 'px', size: parseFloat(value) };
+      } else if (prop.includes('font-family')) {
+        styles.typography.typography_font_family = value;
+      } else if (prop.includes('padding')) {
+        styles.spacing.padding = parseSpacingValue(value);
+      } else if (prop.includes('margin')) {
+        styles.spacing.margin = parseSpacingValue(value);
+      }
+    });
+  }
+  
+  return styles;
+};
+
+// Extract section settings from advanced styles
+const extractSectionSettingsFromStyles = (advancedStyles: any): any => {
+  const settings: any = {};
+  
+  if (advancedStyles && advancedStyles.backgroundImages.length > 0) {
+    settings.background_background = 'image';
+    settings.background_image = { url: advancedStyles.backgroundImages[0] };
+  }
+  
+  if (advancedStyles && advancedStyles.gradients.length > 0) {
+    settings.background_background = 'gradient';
+    settings.background_color = advancedStyles.gradients[0];
+  }
+  
+  return settings;
+};
+
+// Extract column settings from advanced styles
+const extractColumnSettingsFromStyles = (advancedStyles: any): any => {
+  const settings: any = {};
+  
+  if (advancedStyles && Object.keys(advancedStyles.spacing).length > 0) {
+    // Apply first spacing rule found
+    const firstSpacing = Object.values(advancedStyles.spacing)[0];
+    if (firstSpacing) {
+      settings.padding = firstSpacing;
+    }
+  }
+  
+  return settings;
+};
+
+// Extract text settings from advanced styles
+const extractTextSettingsFromStyles = (advancedStyles: any): any => {
+  const settings: any = {};
+  
+  if (advancedStyles && Object.keys(advancedStyles.typography).length > 0) {
+    Object.entries(advancedStyles.typography).forEach(([key, value]) => {
+      if (key.includes('font-size')) {
+        settings.typography_font_size = value;
+      } else if (key.includes('color')) {
+        settings.text_color = value;
+      }
+    });
+  }
+  
+  if (advancedStyles && Object.keys(advancedStyles.colors).length > 0) {
+    const firstColor = Object.values(advancedStyles.colors)[0];
+    if (firstColor && !settings.text_color) {
+      settings.text_color = firstColor;
+    }
+  }
+  
+  return settings;
+};
+
+// Extract globals from advanced styles
+const extractGlobalsFromStyles = (advancedStyles: any): any => {
+  const globals: any = {};
+  
+  if (advancedStyles && Object.keys(advancedStyles.colors).length > 0) {
+    const uniqueColors = [...new Set(Object.values(advancedStyles.colors))];
+    globals.colors = uniqueColors.slice(0, 8).reduce((acc, color, index) => {
+      acc[`color_${index + 1}`] = color;
+      return acc;
+    }, {} as Record<string, string>);
+  }
+  
+  return globals;
+};
+
+const generateElementId = (): string => {
+  return Math.random().toString(36).substr(2, 7);
+};
+
+const parseCSSProperties = (styleStr: string): Record<string, string> => {
+  const styles: Record<string, string> = {};
+  const declarations = styleStr.split(';');
+  
+  declarations.forEach(declaration => {
+    const colonIndex = declaration.indexOf(':');
+    if (colonIndex > 0) {
+      const property = declaration.slice(0, colonIndex).trim();
+      const value = declaration.slice(colonIndex + 1).trim();
+      styles[property] = value;
+    }
+  });
+  
+  return styles;
+};
+
+const parseSpacingValue = (value: string): any => {
+  const values = value.split(' ').map(v => parseInt(v) || 0);
+  
+  if (values.length === 1) {
+    return { unit: 'px', top: values[0], right: values[0], bottom: values[0], left: values[0], isLinked: true };
+  } else if (values.length === 4) {
+    return { unit: 'px', top: values[0], right: values[1], bottom: values[2], left: values[3], isLinked: false };
+  }
+  
+  return { unit: 'px', top: 0, right: 0, bottom: 0, left: 0, isLinked: true };
+};
+
+const createBasicElementorJson = (htmlContent: string, title: string): string => {
   try {
     console.log('🎨 Iniciando conversão HTML → JSON com preservação de estilos');
     
@@ -317,10 +632,6 @@ const extractEnhancedWidgetContent = (element: Element, widgetType: string, base
 };
 
 // Helper functions
-const generateElementId = (): string => {
-  return Math.random().toString(36).substr(2, 7);
-};
-
 const detectElementType = (element: Element): string => {
   if (element.classList.contains('e-con') || element.classList.contains('elementor-section')) {
     return 'container';
