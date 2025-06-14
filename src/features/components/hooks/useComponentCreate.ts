@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -6,8 +5,7 @@ import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { createComponent, uploadComponentImage } from '@/core/api';
-import { componentFormSchema } from '@/components/forms/componentFormSchema';
-import type { ComponentFormData } from '@/core/types';
+import { componentFormSchema, type ComponentFormData } from '@/components/forms/componentFormSchema';
 
 export const useComponentCreate = () => {
   const navigate = useNavigate();
