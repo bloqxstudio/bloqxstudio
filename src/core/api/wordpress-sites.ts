@@ -186,7 +186,7 @@ export const validateWordPressSite = async (
       wordpress_version: siteInfo.version,
       elementor_active,
       rest_api_enabled: true,
-      auth_method,
+      auth_method: authMethod,
     };
 
   } catch (error) {
