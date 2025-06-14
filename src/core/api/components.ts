@@ -13,7 +13,13 @@ export const getComponents = async (): Promise<Component[]> => {
     throw error;
   }
 
-  return data || [];
+  return (data || []).map(item => ({
+    ...item,
+    visibility: item.visibility as 'public' | 'private',
+    alignment: item.alignment as 'left' | 'center' | 'right' | 'full' | undefined,
+    columns: item.columns as '1' | '2' | '3+' | undefined,
+    elements: item.elements as ('button' | 'video' | 'image' | 'list' | 'heading')[] | undefined
+  }));
 };
 
 export const getComponentById = async (id: string): Promise<Component | null> => {
@@ -28,7 +34,13 @@ export const getComponentById = async (id: string): Promise<Component | null> =>
     throw error;
   }
 
-  return data;
+  return {
+    ...data,
+    visibility: data.visibility as 'public' | 'private',
+    alignment: data.alignment as 'left' | 'center' | 'right' | 'full' | undefined,
+    columns: data.columns as '1' | '2' | '3+' | undefined,
+    elements: data.elements as ('button' | 'video' | 'image' | 'list' | 'heading')[] | undefined
+  };
 };
 
 export const uploadComponentImage = async (file: File, path: string): Promise<string> => {
@@ -80,7 +92,13 @@ export const createComponent = async (componentData: any): Promise<Component> =>
     throw error;
   }
 
-  return data;
+  return {
+    ...data,
+    visibility: data.visibility as 'public' | 'private',
+    alignment: data.alignment as 'left' | 'center' | 'right' | 'full' | undefined,
+    columns: data.columns as '1' | '2' | '3+' | undefined,
+    elements: data.elements as ('button' | 'video' | 'image' | 'list' | 'heading')[] | undefined
+  };
 };
 
 export const updateComponent = async (id: string, componentData: FormData): Promise<Component> => {
@@ -116,7 +134,13 @@ export const updateComponent = async (id: string, componentData: FormData): Prom
     throw error;
   }
 
-  return data;
+  return {
+    ...data,
+    visibility: data.visibility as 'public' | 'private',
+    alignment: data.alignment as 'left' | 'center' | 'right' | 'full' | undefined,
+    columns: data.columns as '1' | '2' | '3+' | undefined,
+    elements: data.elements as ('button' | 'video' | 'image' | 'list' | 'heading')[] | undefined
+  };
 };
 
 export const deleteComponent = async (id: string): Promise<void> => {
