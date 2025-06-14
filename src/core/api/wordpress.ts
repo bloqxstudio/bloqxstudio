@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Component, Category } from '@/core/types';
+import { extractCompleteStyles } from '@/utils/elementor/styleExtractor';
 
 export interface WordPressApiResponse<T> {
   success: boolean;
@@ -97,17 +98,40 @@ export const getWordPressComponents = async (filters: WordPressFilters = {}): Pr
       throw error;
     }
 
-    // Transform components for WordPress format
-    const wordpressComponents: WordPressComponent[] = (data || []).map(component => ({
-      ...component,
-      visibility: component.visibility as 'public' | 'private',
-      alignment: component.alignment as 'left' | 'center' | 'right' | 'full' | undefined,
-      columns: component.columns as '1' | '2' | '3+' | undefined,
-      elements: component.elements as ('button' | 'video' | 'image' | 'list' | 'heading')[] | undefined,
-      elementor_json: component.json_code || component.code,
-      download_url: `/wordpress-api/components/${component.id}/download`,
-      copy_code: component.json_code || component.code,
-      wordpress_compatible: true,
+    // Transform components for WordPress format with enhanced style extraction
+    const wordpressComponents: WordPressComponent[] = await Promise.all((data || []).map(async component => {
+      let enhancedJsonCode = component.json_code || component.code;
+      
+      // Extract and merge styles if HTML content is available
+      if (component.content && enhancedJsonCode) {
+        try {
+          const styleData = extractCompleteStyles(component.content);
+          
+          // If we extracted meaningful style data, enhance the JSON
+          if (Object.keys(styleData.colors).length > 0 || 
+              Object.keys(styleData.typography).length > 0 || 
+              Object.keys(styleData.spacing).length > 0) {
+            
+            const { mergeStylesIntoJson } = await import('@/utils/elementor/styleExtractor');
+            enhancedJsonCode = mergeStylesIntoJson(enhancedJsonCode, styleData);
+          }
+        } catch (styleError) {
+          console.warn('Error extracting styles for component:', component.id, styleError);
+          // Continue with original JSON if style extraction fails
+        }
+      }
+
+      return {
+        ...component,
+        visibility: component.visibility as 'public' | 'private',
+        alignment: component.alignment as 'left' | 'center' | 'right' | 'full' | undefined,
+        columns: component.columns as '1' | '2' | '3+' | undefined,
+        elements: component.elements as ('button' | 'video' | 'image' | 'list' | 'heading')[] | undefined,
+        elementor_json: enhancedJsonCode, // Use enhanced JSON with styles
+        download_url: `/wordpress-api/components/${component.id}/download`,
+        copy_code: enhancedJsonCode, // Use enhanced JSON for copying
+        wordpress_compatible: true,
+      };
     }));
 
     const totalCount = count || 0;
@@ -148,15 +172,34 @@ export const getWordPressComponent = async (id: string): Promise<WordPressApiRes
       throw error;
     }
 
+    let enhancedJsonCode = data.json_code || data.code;
+    
+    // Extract and merge styles if HTML content is available
+    if (data.content && enhancedJsonCode) {
+      try {
+        const styleData = extractCompleteStyles(data.content);
+        
+        if (Object.keys(styleData.colors).length > 0 || 
+            Object.keys(styleData.typography).length > 0 || 
+            Object.keys(styleData.spacing).length > 0) {
+          
+          const { mergeStylesIntoJson } = await import('@/utils/elementor/styleExtractor');
+          enhancedJsonCode = mergeStylesIntoJson(enhancedJsonCode, styleData);
+        }
+      } catch (styleError) {
+        console.warn('Error extracting styles for component:', data.id, styleError);
+      }
+    }
+
     const wordpressComponent: WordPressComponent = {
       ...data,
       visibility: data.visibility as 'public' | 'private',
       alignment: data.alignment as 'left' | 'center' | 'right' | 'full' | undefined,
       columns: data.columns as '1' | '2' | '3+' | undefined,
       elements: data.elements as ('button' | 'video' | 'image' | 'list' | 'heading')[] | undefined,
-      elementor_json: data.json_code || data.code,
+      elementor_json: enhancedJsonCode,
       download_url: `/wordpress-api/components/${data.id}/download`,
-      copy_code: data.json_code || data.code,
+      copy_code: enhancedJsonCode,
       wordpress_compatible: true,
     };
 

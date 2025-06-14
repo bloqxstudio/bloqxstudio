@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { supabase } from '@/integrations/supabase/client';
@@ -20,7 +21,10 @@ import {
   AlertTitle,
   AlertDescription
 } from '@/components/ui';
-import { Bot, Sparkles, Loader2, Code, Wand2 } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Bot, Sparkles, Loader2, Code, Wand2, Settings } from 'lucide-react';
+import { cleanElementorJsonWithStyles } from '@/utils/json/preserveStyles';
 
 interface AnalyzerProps {
   jsonCode: string;
@@ -41,12 +45,14 @@ const ClaudeJsonAnalyzer: React.FC<AnalyzerProps> = ({
 }) => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isExtracting, setIsExtracting] = useState(false);
+  const [isStandardizing, setIsStandardizing] = useState(false);
   const [analysis, setAnalysis] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [applyStructure, setApplyStructure] = useState(false);
 
   const form = useForm({
     defaultValues: {
-      instructions: "Transform this Elementor component into a modern responsive container. Keep all spacing, padding, and flex directions. Improve responsiveness and remove unnecessary properties while maintaining the original structure and functionality."
+      instructions: "Transform this Elementor component into a modern responsive container while preserving ALL STYLES (colors, fonts, spacing, animations). Keep exact visual appearance and functionality. Improve structure and remove unnecessary properties but maintain original styling completely."
     }
   });
 
@@ -154,6 +160,40 @@ const ClaudeJsonAnalyzer: React.FC<AnalyzerProps> = ({
     }
   };
 
+  // Apply JsonTransformer-style standardization
+  const handleStandardizeJson = () => {
+    if (!jsonCode) {
+      toast.error("Você precisa ter um código JSON para padronizar");
+      return;
+    }
+
+    setIsStandardizing(true);
+
+    try {
+      const standardizedJson = cleanElementorJsonWithStyles(
+        jsonCode,
+        undefined, // No HTML content available here
+        false, // Don't remove styles
+        true,  // Wrap in container
+        applyStructure // Apply standard structure if enabled
+      );
+
+      if (onJsonUpdate) {
+        onJsonUpdate(standardizedJson);
+      }
+
+      toast.success(applyStructure ? 
+        "JSON padronizado com estrutura padrão aplicada!" :
+        "JSON padronizado com sucesso!"
+      );
+    } catch (error) {
+      console.error("Erro ao padronizar JSON:", error);
+      toast.error("Erro ao padronizar JSON. Verifique se é um código válido.");
+    } finally {
+      setIsStandardizing(false);
+    }
+  };
+
   // Função auxiliar para extrair JSON de um texto
   const extractJsonFromText = (text: string): string | null => {
     const jsonRegex = /```json\n([\s\S]*?)\n```|```([\s\S]*?)```/;
@@ -175,8 +215,17 @@ const ClaudeJsonAnalyzer: React.FC<AnalyzerProps> = ({
         // Tentar validar o JSON extraído
         JSON.parse(extractedJson);
         
-        onJsonUpdate(extractedJson);
-        toast.success("JSON atualizado com sucesso!");
+        // Apply standardization to the Claude-optimized JSON
+        const standardizedJson = cleanElementorJsonWithStyles(
+          extractedJson,
+          undefined,
+          false,
+          true,
+          applyStructure
+        );
+        
+        onJsonUpdate(standardizedJson);
+        toast.success("JSON atualizado e padronizado com sucesso!");
       } catch (err) {
         toast.error("O JSON sugerido não é válido. Por favor, revise a sugestão.");
       }
@@ -186,11 +235,11 @@ const ClaudeJsonAnalyzer: React.FC<AnalyzerProps> = ({
   };
 
   const useQuickPrompt = () => {
-    form.setValue("instructions", "Optimize this Elementor component by converting all sections and columns to modern flex containers. Preserve all spacing, padding, margins, and flex directions. Remove unnecessary styling properties but keep the exact structure and layout. Return ONLY the optimized JSON without explanations.");
+    form.setValue("instructions", "Optimize this Elementor component by converting all sections and columns to modern flex containers. Preserve ALL styling (colors, fonts, spacing, borders, shadows, animations). Remove unnecessary properties but keep the exact visual appearance. Return ONLY the optimized JSON without explanations.");
   };
 
   const useExpertPrompt = () => {
-    form.setValue("instructions", "You are a senior front-end developer specializing in Elementor. Transform this JSON into a highly optimized and responsive container component. CRITICAL REQUIREMENTS: 1) Preserve ALL flex directions, container structures, spacing values and padding; 2) Convert all sections/columns to modern containers with proper flex settings; 3) Remove only unnecessary styling properties while keeping layout intact; 4) Ensure the component remains visually identical; 5) Return ONLY the optimized JSON code with no explanations.");
+    form.setValue("instructions", "You are a senior front-end developer specializing in Elementor. Transform this JSON into a highly optimized and responsive container component. CRITICAL REQUIREMENTS: 1) Preserve ALL STYLES completely (colors, fonts, spacing, animations, responsiveness); 2) Convert sections/columns to modern containers with proper flex settings; 3) Remove only unnecessary properties while keeping ALL styling intact; 4) Ensure component remains visually identical; 5) Maintain all responsive breakpoints; 6) Return ONLY the optimized JSON code with no explanations.");
   };
 
   return (
@@ -201,10 +250,57 @@ const ClaudeJsonAnalyzer: React.FC<AnalyzerProps> = ({
           <span>Otimização e Análise com IA</span>
         </CardTitle>
         <CardDescription>
-          Extraia informações e otimize componentes automaticamente
+          Extraia informações e otimize componentes automaticamente, preservando todos os estilos
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {/* JSON Standardization Section */}
+        <Card className="mb-6 bg-blue-50/50 border-blue-200">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Settings className="h-5 w-5 text-blue-600" />
+                <h4 className="font-medium text-blue-900">Padronização JSON</h4>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="apply-structure-analyzer"
+                  checked={applyStructure}
+                  onCheckedChange={setApplyStructure}
+                />
+                <Label htmlFor="apply-structure-analyzer" className="text-sm">
+                  Estrutura Padrão
+                </Label>
+              </div>
+            </div>
+            
+            {applyStructure && (
+              <p className="text-xs text-blue-700 mb-3">
+                Aplicará: Seção → Padding → Linha → Coluna → Grupos de Conteúdo
+              </p>
+            )}
+            
+            <Button 
+              onClick={handleStandardizeJson}
+              disabled={isStandardizing}
+              variant="outline"
+              className="w-full border-blue-300 text-blue-700 hover:bg-blue-100"
+            >
+              {isStandardizing ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Padronizando...
+                </>
+              ) : (
+                <>
+                  <Code className="h-4 w-4 mr-2" />
+                  Aplicar Padronização JsonTransformer
+                </>
+              )}
+            </Button>
+          </CardContent>
+        </Card>
+
         {/* Extract Metadata Button */}
         <Button 
           onClick={extractMetadata}
@@ -235,14 +331,14 @@ const ClaudeJsonAnalyzer: React.FC<AnalyzerProps> = ({
                   <FormLabel>Instruções para otimização</FormLabel>
                   <FormControl>
                     <Textarea 
-                      placeholder="Ex: Transforme em container moderno e responsivo" 
+                      placeholder="Ex: Transforme em container moderno e responsivo preservando estilos" 
                       {...field} 
-                      rows={3}
+                      rows={4}
                     />
                   </FormControl>
                   <FormDescription className="flex flex-wrap justify-between items-center gap-2">
                     <span>
-                      Descreva como o componente deve ser otimizado
+                      Descreva como o componente deve ser otimizado (estilos serão preservados)
                     </span>
                     <div className="flex flex-wrap gap-2">
                       <Button 
@@ -285,7 +381,7 @@ const ClaudeJsonAnalyzer: React.FC<AnalyzerProps> = ({
                 ) : (
                   <>
                     <Sparkles className="h-4 w-4" />
-                    Otimizar Componente
+                    Otimizar com IA
                   </>
                 )}
               </Button>
@@ -297,7 +393,7 @@ const ClaudeJsonAnalyzer: React.FC<AnalyzerProps> = ({
                   onClick={applyChanges}
                   className="gap-2"
                 >
-                  Aplicar Componente Otimizado
+                  Aplicar Otimização + Padronização
                 </Button>
               )}
             </div>
@@ -314,14 +410,14 @@ const ClaudeJsonAnalyzer: React.FC<AnalyzerProps> = ({
         {analysis && extractJsonFromText(analysis) && (
           <div className="mt-6 border rounded-md p-4 bg-muted/20">
             <div className="flex justify-between items-center mb-2">
-              <h3 className="text-lg font-medium">Componente Otimizado</h3>
+              <h3 className="text-lg font-medium">Componente Otimizado pela IA</h3>
               <Button 
                 variant="ghost" 
                 size="sm" 
                 onClick={applyChanges}
                 className="text-xs"
               >
-                Aplicar
+                Aplicar + Padronizar
               </Button>
             </div>
             <div className="bg-black/90 text-green-400 p-3 rounded text-xs font-mono overflow-auto max-h-64">

@@ -5,10 +5,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Copy, Download, Upload, Code } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
+import { Copy, Download, Upload, Code, Check, Settings } from 'lucide-react';
 import { toast } from 'sonner';
 import { getWordPressComponents } from '@/core/api/wordpress';
 import { getUserWordPressSites, importComponentToWordPress } from '@/core/api/wordpress-sites';
+import { cleanElementorJsonWithStyles } from '@/utils/json/preserveStyles';
 
 interface WordPressComponentGridProps {
   selectedCategory?: string;
@@ -21,6 +24,8 @@ const WordPressComponentGrid: React.FC<WordPressComponentGridProps> = ({
 }) => {
   const [selectedSiteId, setSelectedSiteId] = useState<string>('');
   const [page, setPage] = useState(1);
+  const [applyStructure, setApplyStructure] = useState(true);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const { data: componentsResponse, isLoading: isLoadingComponents } = useQuery({
     queryKey: ['wordpress-components', selectedCategory, searchTerm, page],
@@ -51,22 +56,70 @@ const WordPressComponentGrid: React.FC<WordPressComponentGridProps> = ({
   const components = componentsResponse?.data || [];
   const pagination = componentsResponse?.pagination;
 
-  const handleCopyCode = (component: any) => {
-    navigator.clipboard.writeText(component.elementor_json);
-    toast.success(`Código do ${component.title} copiado!`);
+  const handleCopyCode = async (component: any) => {
+    try {
+      let jsonToCopy = component.elementor_json || component.copy_code;
+      
+      // Apply JsonTransformer-style cleaning and standardization
+      if (jsonToCopy) {
+        const cleanedJson = cleanElementorJsonWithStyles(
+          jsonToCopy,
+          component.content, // Pass HTML content for style extraction
+          false, // Don't remove styles
+          true,  // Wrap in container
+          applyStructure // Apply standard structure if enabled
+        );
+        jsonToCopy = cleanedJson;
+      }
+
+      await navigator.clipboard.writeText(jsonToCopy);
+      setCopiedId(component.id);
+      
+      toast.success(applyStructure ? 
+        `JSON do ${component.title} copiado e padronizado com estrutura!` :
+        `JSON do ${component.title} copiado e padronizado!`
+      );
+      
+      // Reset copied state after 2 seconds
+      setTimeout(() => setCopiedId(null), 2000);
+    } catch (error) {
+      console.error('Erro ao copiar e tratar JSON:', error);
+      toast.error('Erro ao copiar JSON. Tente novamente.');
+    }
   };
 
-  const handleDownload = (component: any) => {
-    const filename = `${component.title.toLowerCase().replace(/\s+/g, '-')}.json`;
-    const blob = new Blob([component.elementor_json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    toast.success(`${filename} baixado com sucesso!`);
+  const handleDownload = async (component: any) => {
+    try {
+      let jsonToDownload = component.elementor_json || component.copy_code;
+      
+      // Apply JsonTransformer-style cleaning
+      if (jsonToDownload) {
+        const cleanedJson = cleanElementorJsonWithStyles(
+          jsonToDownload,
+          component.content,
+          false,
+          true,
+          applyStructure
+        );
+        jsonToDownload = cleanedJson;
+      }
+
+      const filename = `${component.title.toLowerCase().replace(/\s+/g, '-')}.json`;
+      const blob = new Blob([jsonToDownload], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      
+      toast.success(`${filename} baixado com tratamento aplicado!`);
+    } catch (error) {
+      console.error('Erro ao baixar JSON:', error);
+      toast.error('Erro ao baixar JSON. Tente novamente.');
+    }
   };
 
   const handleImport = (componentId: string) => {
@@ -96,6 +149,38 @@ const WordPressComponentGrid: React.FC<WordPressComponentGridProps> = ({
 
   return (
     <div className="space-y-6">
+      {/* Processing Options */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Settings className="h-5 w-5 text-muted-foreground" />
+              <Label className="font-medium">Opções de Processamento JSON:</Label>
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="apply-structure"
+                  checked={applyStructure}
+                  onCheckedChange={setApplyStructure}
+                />
+                <Label htmlFor="apply-structure" className="text-sm">
+                  Aplicar Estrutura Padrão
+                </Label>
+              </div>
+            </div>
+            {applyStructure && (
+              <Badge variant="outline" className="text-blue-600">
+                Estrutura: Seção → Padding → Linha → Coluna
+              </Badge>
+            )}
+          </div>
+          {applyStructure && (
+            <p className="text-xs text-muted-foreground mt-2">
+              O JSON será processado com a estrutura padrão do JsonTransformer, mantendo todos os estilos.
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Site Selection */}
       {sites.length > 0 && (
         <Card>
@@ -157,10 +242,20 @@ const WordPressComponentGrid: React.FC<WordPressComponentGridProps> = ({
                     size="sm"
                     variant="outline"
                     onClick={() => handleCopyCode(component)}
+                    disabled={copiedId === component.id}
                     className="flex-1"
                   >
-                    <Copy className="h-4 w-4 mr-1" />
-                    Copiar
+                    {copiedId === component.id ? (
+                      <>
+                        <Check className="h-4 w-4 mr-1" />
+                        Copiado!
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-4 w-4 mr-1" />
+                        Copiar JSON
+                      </>
+                    )}
                   </Button>
                   <Button
                     size="sm"
