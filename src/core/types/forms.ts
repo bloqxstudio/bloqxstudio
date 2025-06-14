@@ -9,7 +9,8 @@ export type ElementType = z.infer<typeof ElementType>;
 export const componentFormSchema = z.object({
   title: z.string().min(3, { message: 'Título é obrigatório' }),
   description: z.string().min(1, { message: 'Descrição é obrigatória' }),
-  tags: z.string().optional(),
+  category: z.string().min(1, { message: 'Categoria é obrigatória' }),
+  tags: z.array(z.string()).optional().default([]),
   jsonCode: z.string().min(10, { message: 'Código é obrigatório' }),
   visibility: z.enum(['public', 'private'], { message: 'Visibilidade deve ser pública ou privada' }),
   alignment: z.enum(['left', 'center', 'right', 'full']).optional(),

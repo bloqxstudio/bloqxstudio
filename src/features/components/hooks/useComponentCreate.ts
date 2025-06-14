@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -117,7 +118,7 @@ export const useComponentCreate = () => {
         title: data.title,
         description: data.description,
         category: data.category,
-        tags: data.tags,
+        tags: data.tags || [],
         code: data.jsonCode, // Use the JSON directly
         json_code: data.jsonCode, // Store the same JSON
         preview_image: previewImageUrl,
