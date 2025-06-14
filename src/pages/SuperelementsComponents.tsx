@@ -95,6 +95,64 @@ const getFeaturedImageUrl = async (mediaId: number): Promise<string | null> => {
   return null;
 };
 
+// Função para buscar metadados completos do Elementor
+const getElementorMetaData = async (postId: number): Promise<string | null> => {
+  try {
+    console.log(`🔍 Buscando metadados Elementor para post ${postId}...`);
+    
+    // Tentar buscar com parâmetros de meta específicos
+    const strategies = [
+      `https://superelements.io/wp-json/wp/v2/posts/${postId}?_embed=1&meta_key=_elementor_data`,
+      `https://superelements.io/wp-json/wp/v2/posts/${postId}?context=edit&meta_key=_elementor_data`,
+      `https://superelements.io/wp-json/wp/v2/posts/${postId}?_fields=meta,id,title`,
+      `https://superelements.io/wp-json/wp/v2/elementor_library/${postId}?_embed=1`,
+      `https://superelements.io/wp-json/wp/v2/elementor_library/${postId}?context=edit`
+    ];
+
+    for (const url of strategies) {
+      try {
+        console.log(`📡 Tentando URL: ${url}`);
+        
+        const response = await fetch(url, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+          },
+          mode: 'cors',
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log(`✅ Dados recebidos para post ${postId}:`, data);
+          
+          // Verificar diferentes locais onde _elementor_data pode estar
+          const elementorData = 
+            data.meta?._elementor_data ||
+            data.meta?.elementor_data ||
+            data._elementor_data ||
+            data.elementor_data ||
+            data.meta?.['_elementor_data'] ||
+            null;
+
+          if (elementorData) {
+            console.log(`🎯 _elementor_data encontrado para post ${postId}!`);
+            return typeof elementorData === 'string' ? elementorData : JSON.stringify(elementorData);
+          }
+        }
+      } catch (error) {
+        console.warn(`⚠️ Erro na estratégia para post ${postId}:`, error);
+      }
+    }
+    
+    console.log(`❌ Nenhum _elementor_data encontrado para post ${postId}`);
+    return null;
+  } catch (error) {
+    console.error(`💥 Erro ao buscar metadados do post ${postId}:`, error);
+    return null;
+  }
+};
+
 // Função para buscar componentes do Elementor com múltiplas estratégias
 const getElementorComponents = async (search?: string): Promise<ElementorComponent[]> => {
   console.log('🔍 Buscando componentes do Elementor...');
@@ -102,24 +160,24 @@ const getElementorComponents = async (search?: string): Promise<ElementorCompone
   // Estratégias em ordem de prioridade
   const strategies = [
     {
-      name: 'Elementor Library Endpoint',
+      name: 'Elementor Library with Meta',
       url: 'https://superelements.io/wp-json/wp/v2/elementor_library',
-      params: 'per_page=50&orderby=date&order=desc'
+      params: 'per_page=50&orderby=date&order=desc&_embed=1&context=edit'
+    },
+    {
+      name: 'Elementor Library Standard',
+      url: 'https://superelements.io/wp-json/wp/v2/elementor_library',
+      params: 'per_page=50&orderby=date&order=desc&_embed=1'
     },
     {
       name: 'Posts with Elementor Library Type',
       url: 'https://superelements.io/wp-json/wp/v2/posts',
-      params: 'post_type=elementor_library&per_page=50&orderby=date&order=desc'
+      params: 'post_type=elementor_library&per_page=50&orderby=date&order=desc&_embed=1'
     },
     {
-      name: 'All Posts Filtered by Elementor',
+      name: 'All Posts with Meta',
       url: 'https://superelements.io/wp-json/wp/v2/posts',
-      params: 'per_page=100&orderby=date&order=desc&search=elementor'
-    },
-    {
-      name: 'General Posts Search',
-      url: 'https://superelements.io/wp-json/wp/v2/posts',
-      params: 'per_page=100&orderby=date&order=desc'
+      params: 'per_page=100&orderby=date&order=desc&_embed=1&meta_key=_elementor_data'
     }
   ];
   
@@ -153,8 +211,21 @@ const getElementorComponents = async (search?: string): Promise<ElementorCompone
         console.log(`✅ Dados recebidos (${strategy.name}):`, data.length, 'items');
         
         if (Array.isArray(data) && data.length > 0) {
-          // Processar cada item para extrair dados do Elementor
+          // Processar cada item para extrair dados do Elementor com metadados
           const processedComponents = await Promise.all(data.map(async (item) => {
+            // Primeiro, tentar obter _elementor_data diretamente dos metadados
+            let elementorMetaData = null;
+            
+            // Verificar se já temos os metadados na resposta
+            if (item.meta?._elementor_data || item.meta?.elementor_data || item._elementor_data) {
+              elementorMetaData = item.meta?._elementor_data || item.meta?.elementor_data || item._elementor_data;
+              console.log(`🎯 Metadados Elementor encontrados diretamente para ${item.id}`);
+            } else {
+              // Se não temos, fazer requisição específica para obter os metadados
+              elementorMetaData = await getElementorMetaData(item.id);
+            }
+            
+            // Extrair dados do HTML como fallback
             const elementorData = extractElementorData(item.content?.rendered || '');
             
             // Buscar imagem destacada se disponível
@@ -167,19 +238,21 @@ const getElementorComponents = async (search?: string): Promise<ElementorCompone
               ...item,
               featured_image_url: featuredImageUrl,
               elementor_data: elementorData,
+              elementor_meta_data: elementorMetaData, // Adicionar campo para metadados completos
               widget_types: elementorData.widgetTypes,
-              has_elementor_content: elementorData.hasElementorContent,
-            } as ElementorComponent;
+              has_elementor_content: elementorData.hasElementorContent || !!elementorMetaData,
+            } as ElementorComponent & { elementor_meta_data?: string | null };
           }));
           
-          // Filtrar apenas componentes com conteúdo Elementor se for estratégia geral
-          const filteredComponents = strategy.name.includes('General') ? 
-            processedComponents.filter(comp => comp.has_elementor_content) :
-            processedComponents;
+          // Filtrar apenas componentes com conteúdo Elementor
+          const filteredComponents = processedComponents.filter(comp => 
+            comp.has_elementor_content || comp.elementor_meta_data
+          );
           
           if (filteredComponents.length > 0) {
             allComponents = filteredComponents;
             console.log(`🎯 Encontrados ${filteredComponents.length} componentes com Elementor`);
+            console.log(`📊 Com metadados: ${filteredComponents.filter(c => c.elementor_meta_data).length}`);
             break;
           }
         }
@@ -220,27 +293,60 @@ const SuperelementsComponents = () => {
     refetch();
   };
 
-  const handleCopyElementorJson = async (component: ElementorComponent) => {
+  const handleCopyElementorJson = async (component: ElementorComponent & { elementor_meta_data?: string | null }) => {
     try {
-      console.log('🎨 Iniciando cópia com preservação completa de estilos...');
+      console.log('🎨 Iniciando cópia com dados completos do Elementor...');
       
-      // Import the enhanced conversion utility
-      const { convertHtmlToElementorJson } = await import('@/utils/elementor/htmlToJson');
+      let elementorJson = '';
       
-      // Convert HTML content to proper Elementor JSON format with enhanced style preservation
-      const elementorJson = convertHtmlToElementorJson(
-        component.content?.rendered || '',
-        component.title?.rendered || `Componente ${component.id}`
-      );
+      // Prioridade 1: Usar _elementor_data se disponível (dados completos com estilos)
+      if (component.elementor_meta_data) {
+        console.log('✅ Usando _elementor_data completo do WordPress');
+        
+        try {
+          // Tentar parsear se for string, ou usar diretamente se já for objeto
+          const parsedData = typeof component.elementor_meta_data === 'string' 
+            ? JSON.parse(component.elementor_data) 
+            : component.elementor_meta_data;
+          
+          // Criar estrutura Elementor válida
+          const elementorStructure = {
+            type: "elementor",
+            siteurl: "https://superelements.io/",
+            elements: Array.isArray(parsedData) ? parsedData : [parsedData],
+            globals: {}
+          };
+          
+          elementorJson = JSON.stringify(elementorStructure, null, 2);
+        } catch (parseError) {
+          console.warn('⚠️ Erro ao parsear _elementor_data, usando como string:', parseError);
+          elementorJson = component.elementor_meta_data;
+        }
+      } 
+      // Prioridade 2: Processar HTML como fallback
+      else {
+        console.log('📝 Processando HTML como fallback...');
+        const { convertHtmlToElementorJson } = await import('@/utils/elementor/htmlToJson');
+        
+        elementorJson = convertHtmlToElementorJson(
+          component.content?.rendered || '',
+          component.title?.rendered || `Componente ${component.id}`
+        );
+      }
 
       await navigator.clipboard.writeText(elementorJson);
       setCopiedId(component.id);
-      toast.success(`JSON do Elementor copiado com estilos preservados! 🎨\nAgora você pode colar diretamente no Elementor com todas as cores, fontes e espaçamentos mantidos.`);
+      
+      const message = component.elementor_meta_data 
+        ? `JSON completo do Elementor copiado! 🎯\nUsando dados originais com todos os estilos preservados.`
+        : `JSON do Elementor copiado com processamento HTML! 🎨\nEstilos extraídos e preservados da melhor forma possível.`;
+      
+      toast.success(message);
       
       // Reset copied state after 3 seconds
       setTimeout(() => setCopiedId(null), 3000);
     } catch (error) {
-      console.error('❌ Erro ao copiar JSON com estilos:', error);
+      console.error('❌ Erro ao copiar JSON:', error);
       toast.error('Erro ao copiar JSON. Tente novamente.');
     }
   };
@@ -367,156 +473,176 @@ const SuperelementsComponents = () => {
               </div>
             ) : (
               <div className="space-y-4">
-                {components.map((component, index) => (
-                  <div 
-                    key={component.id} 
-                    className="border rounded-lg overflow-hidden hover:bg-gray-50 transition-colors"
-                  >
-                    <div className="flex">
-                      {/* Área da imagem */}
-                      <div className="w-32 h-32 flex-shrink-0 bg-gray-100 flex items-center justify-center">
-                        {component.featured_image_url ? (
-                          <img
-                            src={component.featured_image_url}
-                            alt={component.title?.rendered || `Componente ${component.id}`}
-                            className="w-full h-full object-cover"
-                            loading="lazy"
-                          />
-                        ) : (
-                          <div className="flex flex-col items-center text-gray-400">
-                            <FileText className="h-8 w-8 mb-1" />
-                            <span className="text-xs">Sem imagem</span>
-                          </div>
-                        )}
-                      </div>
+                {components.map((component, index) => {
+                  const componentWithMeta = component as ElementorComponent & { elementor_meta_data?: string | null };
+                  return (
+                    <div 
+                      key={component.id} 
+                      className="border rounded-lg overflow-hidden hover:bg-gray-50 transition-colors"
+                    >
+                      <div className="flex">
+                        {/* Área da imagem */}
+                        <div className="w-32 h-32 flex-shrink-0 bg-gray-100 flex items-center justify-center">
+                          {component.featured_image_url ? (
+                            <img
+                              src={component.featured_image_url}
+                              alt={component.title?.rendered || `Componente ${component.id}`}
+                              className="w-full h-full object-cover"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <div className="flex flex-col items-center text-gray-400">
+                              <FileText className="h-8 w-8 mb-1" />
+                              <span className="text-xs">Sem imagem</span>
+                            </div>
+                          )}
+                        </div>
 
-                      {/* Conteúdo principal */}
-                      <div className="flex-1 p-4">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-2">
-                              <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded">
-                                #{index + 1}
-                              </span>
-                              <h3 className="font-medium text-gray-900">
-                                {component.title?.rendered || `Componente ${component.id}`}
-                              </h3>
-                              {component.has_elementor_content && (
-                                <span className="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded">
-                                  Elementor
+                        {/* Conteúdo principal */}
+                        <div className="flex-1 p-4">
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-3 mb-2">
+                                <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded">
+                                  #{index + 1}
                                 </span>
-                              )}
-                            </div>
-                            
-                            <div className="space-y-1 text-sm text-gray-500">
-                              <p>ID: {component.id} • Tipo: {component.type}</p>
-                              <p>Criado: {component.date ? new Date(component.date).toLocaleDateString('pt-BR') : 'Data não disponível'}</p>
-                              
-                              {component.widget_types && component.widget_types.length > 0 && (
-                                <div className="flex flex-wrap gap-1 mt-2">
-                                  <span className="text-xs font-medium">Widgets:</span>
-                                  {component.widget_types.slice(0, 5).map((widget, i) => (
-                                    <span key={i} className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded">
-                                      {widget}
-                                    </span>
-                                  ))}
-                                  {component.widget_types.length > 5 && (
-                                    <span className="text-xs text-gray-500">
-                                      +{component.widget_types.length - 5} mais
-                                    </span>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-center gap-2 ml-4">
-                            {/* Botão Copiar JSON do Elementor */}
-                            {component.has_elementor_content && (
-                              <Button 
-                                variant="outline" 
-                                size="sm"
-                                onClick={() => handleCopyElementorJson(component)}
-                                disabled={copiedId === component.id}
-                                className="bg-green-50 border-green-200 hover:bg-green-100"
-                              >
-                                {copiedId === component.id ? (
-                                  <>
-                                    <Check className="h-4 w-4 mr-1" />
-                                    Copiado!
-                                  </>
-                                ) : (
-                                  <>
-                                    <Copy className="h-4 w-4 mr-1" />
-                                    Copiar JSON
-                                  </>
+                                <h3 className="font-medium text-gray-900">
+                                  {component.title?.rendered || `Componente ${component.id}`}
+                                </h3>
+                                {component.has_elementor_content && (
+                                  <span className="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded">
+                                    Elementor
+                                  </span>
                                 )}
-                              </Button>
-                            )}
-
-                            <Dialog>
-                              <DialogTrigger asChild>
-                                <Button variant="outline" size="sm">
-                                  <Eye className="h-4 w-4 mr-1" />
-                                  Ver Dados
-                                </Button>
-                              </DialogTrigger>
-                              <DialogContent className="max-w-4xl max-h-[80vh]">
-                                <DialogHeader>
-                                  <DialogTitle>
-                                    Dados do Componente: {component.title?.rendered}
-                                  </DialogTitle>
-                                </DialogHeader>
-                                <ScrollArea className="h-[60vh]">
-                                  <div className="space-y-4">
-                                    <div>
-                                      <h4 className="font-medium mb-2">Dados Elementor:</h4>
-                                      <pre className="bg-gray-100 p-3 rounded text-xs overflow-auto">
-                                        {JSON.stringify(component.elementor_data, null, 2)}
-                                      </pre>
-                                    </div>
-                                    
-                                    <div>
-                                      <h4 className="font-medium mb-2">HTML do Componente:</h4>
-                                      <pre className="bg-gray-100 p-3 rounded text-xs overflow-auto max-h-40">
-                                        {component.content?.rendered || 'Sem conteúdo'}
-                                      </pre>
-                                    </div>
-                                    
-                                    <div>
-                                      <h4 className="font-medium mb-2">Metadados:</h4>
-                                      <pre className="bg-gray-100 p-3 rounded text-xs overflow-auto">
-                                        {JSON.stringify(component.meta || {}, null, 2)}
-                                      </pre>
-                                    </div>
+                                {componentWithMeta.elementor_meta_data && (
+                                  <span className="bg-purple-100 text-purple-800 text-xs font-medium px-2 py-1 rounded">
+                                    Meta Data
+                                  </span>
+                                )}
+                              </div>
+                              
+                              <div className="space-y-1 text-sm text-gray-500">
+                                <p>ID: {component.id} • Tipo: {component.type}</p>
+                                <p>Criado: {component.date ? new Date(component.date).toLocaleDateString('pt-BR') : 'Data não disponível'}</p>
+                                
+                                {component.widget_types && component.widget_types.length > 0 && (
+                                  <div className="flex flex-wrap gap-1 mt-2">
+                                    <span className="text-xs font-medium">Widgets:</span>
+                                    {component.widget_types.slice(0, 5).map((widget, i) => (
+                                      <span key={i} className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded">
+                                        {widget}
+                                      </span>
+                                    ))}
+                                    {component.widget_types.length > 5 && (
+                                      <span className="text-xs text-gray-500">
+                                        +{component.widget_types.length - 5} mais
+                                      </span>
+                                    )}
                                   </div>
-                                </ScrollArea>
-                              </DialogContent>
-                            </Dialog>
+                                )}
+                              </div>
+                            </div>
                             
-                            {component.link && (
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                asChild
-                              >
-                                <a 
-                                  href={component.link} 
-                                  target="_blank" 
-                                  rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-1"
+                            <div className="flex items-center gap-2 ml-4">
+                              {/* Botão Copiar JSON do Elementor */}
+                              {component.has_elementor_content && (
+                                <Button 
+                                  variant="outline" 
+                                  size="sm"
+                                  onClick={() => handleCopyElementorJson(componentWithMeta)}
+                                  disabled={copiedId === component.id}
+                                  className={componentWithMeta.elementor_meta_data 
+                                    ? "bg-purple-50 border-purple-200 hover:bg-purple-100" 
+                                    : "bg-green-50 border-green-200 hover:bg-green-100"
+                                  }
                                 >
-                                  <ExternalLink className="h-4 w-4" />
-                                  Ver no Site
-                                </a>
-                              </Button>
-                            )}
+                                  {copiedId === component.id ? (
+                                    <>
+                                      <Check className="h-4 w-4 mr-1" />
+                                      Copiado!
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Copy className="h-4 w-4 mr-1" />
+                                      {componentWithMeta.elementor_meta_data ? 'Copiar Meta' : 'Copiar JSON'}
+                                    </>
+                                  )}
+                                </Button>
+                              )}
+
+                              <Dialog>
+                                <DialogTrigger asChild>
+                                  <Button variant="outline" size="sm">
+                                    <Eye className="h-4 w-4 mr-1" />
+                                    Ver Dados
+                                  </Button>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-4xl max-h-[80vh]">
+                                  <DialogHeader>
+                                    <DialogTitle>
+                                      Dados do Componente: {component.title?.rendered}
+                                    </DialogTitle>
+                                  </DialogHeader>
+                                  <ScrollArea className="h-[60vh]">
+                                    <div className="space-y-4">
+                                      {componentWithMeta.elementor_meta_data && (
+                                        <div>
+                                          <h4 className="font-medium mb-2">_elementor_data (Meta):</h4>
+                                          <pre className="bg-purple-100 p-3 rounded text-xs overflow-auto max-h-40">
+                                            {componentWithMeta.elementor_meta_data}
+                                          </pre>
+                                        </div>
+                                      )}
+                                      
+                                      <div>
+                                        <h4 className="font-medium mb-2">Dados Elementor Extraídos:</h4>
+                                        <pre className="bg-gray-100 p-3 rounded text-xs overflow-auto">
+                                          {JSON.stringify(component.elementor_data, null, 2)}
+                                        </pre>
+                                      </div>
+                                      
+                                      <div>
+                                        <h4 className="font-medium mb-2">HTML do Componente:</h4>
+                                        <pre className="bg-gray-100 p-3 rounded text-xs overflow-auto max-h-40">
+                                          {component.content?.rendered || 'Sem conteúdo'}
+                                        </pre>
+                                      </div>
+                                      
+                                      <div>
+                                        <h4 className="font-medium mb-2">Metadados:</h4>
+                                        <pre className="bg-gray-100 p-3 rounded text-xs overflow-auto">
+                                          {JSON.stringify(component.meta || {}, null, 2)}
+                                        </pre>
+                                      </div>
+                                    </div>
+                                  </ScrollArea>
+                                </DialogContent>
+                              </Dialog>
+                              
+                              {component.link && (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  asChild
+                                >
+                                  <a 
+                                    href={component.link} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center gap-1"
+                                  >
+                                    <ExternalLink className="h-4 w-4" />
+                                    Ver no Site
+                                  </a>
+                                </Button>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </CardContent>
@@ -532,13 +658,14 @@ const SuperelementsComponents = () => {
               <div className="text-xs space-y-2">
                 <p><strong>Estratégias testadas:</strong></p>
                 <ul className="list-disc list-inside pl-2 space-y-1">
-                  <li>/wp-json/wp/v2/elementor_library (endpoint direto)</li>
-                  <li>/wp-json/wp/v2/posts?post_type=elementor_library (via posts)</li>
-                  <li>/wp-json/wp/v2/posts com filtro Elementor</li>
-                  <li>/wp-json/wp/v2/posts geral (com extração Elementor)</li>
+                  <li>/wp-json/wp/v2/elementor_library?_embed=1&context=edit (com metadados)</li>
+                  <li>/wp-json/wp/v2/elementor_library?_embed=1 (padrão)</li>
+                  <li>/wp-json/wp/v2/posts?post_type=elementor_library&_embed=1</li>
+                  <li>/wp-json/wp/v2/posts?meta_key=_elementor_data&_embed=1</li>
                 </ul>
                 <p><strong>Total encontrados:</strong> {components.length}</p>
                 <p><strong>Com conteúdo Elementor:</strong> {components.filter(c => c.has_elementor_content).length}</p>
+                <p><strong>Com metadados:</strong> {components.filter(c => (c as any).elementor_meta_data).length}</p>
                 <p><strong>Com imagens:</strong> {components.filter(c => c.featured_image_url).length}</p>
                 <p><strong>Status:</strong> {isLoading ? 'Carregando...' : error ? 'Erro' : 'Sucesso'}</p>
               </div>
