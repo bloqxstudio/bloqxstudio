@@ -2,8 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { getComponentById, getCategories } from '@/lib/api';
-import { useAuth } from '@/context/AuthContext';
+import { getComponentById, getCategories } from '@/core/api';
+import { useAuth } from '@/features/auth';
 import { toast } from 'sonner';
 import Navbar from '@/components/Navbar';
 import {
@@ -103,9 +103,7 @@ const ComponentEdit = () => {
         </CardHeader>
         <CardContent>
           <EditComponentForm
-            id={id || ''}
             component={component}
-            categories={categories}
             isLoading={isLoading || isLoadingComponent}
           />
         </CardContent>

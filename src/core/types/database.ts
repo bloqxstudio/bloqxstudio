@@ -1,4 +1,5 @@
 
+
 export interface Component {
   id: string;
   title: string;
@@ -25,6 +26,8 @@ export interface Category {
   slug: string;
   created_at: string;
 }
+
+export type NewCategory = Omit<Category, 'id' | 'created_at'>;
 
 export interface User {
   id: string;

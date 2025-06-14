@@ -1,13 +1,13 @@
 
 import React, { useEffect } from 'react';
 import Navbar from '@/components/Navbar';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth } from '@/features/auth';
 import { useQuery } from '@tanstack/react-query';
-import { getComponents } from '@/lib/api';
+import { getComponents } from '@/core/api';
 import { toast } from 'sonner';
 import { Filter } from 'lucide-react';
 import { Button, Badge } from '@/components/ui';
-import { SelectedComponentsProvider } from '@/context/SelectedComponentsContext';
+import { SelectedComponentsProvider } from '@/shared/contexts/SelectedComponentsContext';
 
 // Import our components and hook
 import ComponentsHeader from '@/components/components/ComponentsHeader';
@@ -76,9 +76,12 @@ const Components = () => {
         
         <main className="container mx-auto px-4 py-8">
           <div className="flex justify-between items-center mb-6">
-            <ComponentsHeader />
+            <ComponentsHeader 
+              filteredCount={filteredComponents.length}
+              totalCount={components.length}
+            />
             <div className="flex items-center gap-2">
-              <SelectedComponentsSidebar />
+              <SelectedComponentsSidebar isOpen={false} onClose={() => {}} />
             </div>
           </div>
           

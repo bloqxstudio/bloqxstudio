@@ -31,34 +31,42 @@ export const getComponentById = async (id: string): Promise<Component | null> =>
   return data;
 };
 
-export const createComponent = async (componentData: FormData): Promise<Component> => {
-  // Extract form data
-  const title = componentData.get('title') as string;
-  const tags = JSON.parse(componentData.get('tags') as string || '[]');
-  const jsonCode = componentData.get('jsonCode') as string;
-  const visibility = componentData.get('visibility') as 'public' | 'private';
-  const alignment = componentData.get('alignment') as string;
-  const columns = componentData.get('columns') as string;
-  const elements = JSON.parse(componentData.get('elements') as string || '[]');
-  const category = componentData.get('category') as string || 'general';
-  const description = componentData.get('description') as string || '';
+export const uploadComponentImage = async (file: File, path: string): Promise<string> => {
+  const { data, error } = await supabase.storage
+    .from('component-images')
+    .upload(path, file);
 
+  if (error) {
+    console.error('Error uploading image:', error);
+    throw error;
+  }
+
+  const { data: { publicUrl } } = supabase.storage
+    .from('component-images')
+    .getPublicUrl(data.path);
+
+  return publicUrl;
+};
+
+export const createComponent = async (componentData: any): Promise<Component> => {
   // Get current user
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('User not authenticated');
 
   const componentPayload = {
-    title,
-    tags,
-    code: jsonCode,
-    json_code: jsonCode,
-    visibility,
-    alignment,
-    columns,
-    elements,
-    category,
-    description,
+    title: componentData.title,
+    description: componentData.description || '',
+    category: componentData.category || 'general',
+    code: componentData.code,
+    json_code: componentData.json_code,
+    preview_image: componentData.preview_image,
+    tags: componentData.tags || [],
+    type: componentData.type || 'elementor',
+    visibility: componentData.visibility,
     created_by: user.id,
+    alignment: componentData.alignment,
+    columns: componentData.columns,
+    elements: componentData.elements || [],
   };
 
   const { data, error } = await supabase

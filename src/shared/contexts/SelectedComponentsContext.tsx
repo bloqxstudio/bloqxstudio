@@ -27,6 +27,7 @@ export interface SelectedComponentsContextType {
   clearAllComponents: () => void;
   isComponentVisible: (componentId: string) => boolean;
   setComponentVisibility: (componentId: string, visible: boolean) => void;
+  isComponentSelected: (componentId: string) => boolean;
 }
 
 const SelectedComponentsContext = createContext<SelectedComponentsContextType | undefined>(undefined);
@@ -67,13 +68,18 @@ export const SelectedComponentsProvider: React.FC<SelectedComponentsProviderProp
     }));
   };
 
+  const isComponentSelected = (componentId: string) => {
+    return selectedComponents.some(c => c.id === componentId);
+  };
+
   const value: SelectedComponentsContextType = {
     selectedComponents,
     addComponent,
     removeComponent,
     clearAllComponents,
     isComponentVisible,
-    setComponentVisibility
+    setComponentVisibility,
+    isComponentSelected
   };
 
   return (

@@ -1,352 +1,228 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { useAuth } from '@/features/auth';
+import { getComponentById } from '@/core/api';
+import { Component } from '@/core/types/database';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
+import { 
+  ArrowLeft, 
+  Copy, 
+  Download, 
+  Edit, 
+  Eye, 
+  EyeOff, 
+  Calendar,
+  User,
+  Tag,
+  Lock,
+  Globe
+} from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import CodeViewer from '@/components/CodeViewer';
-import ComponentBreadcrumb from '@/components/ComponentBreadcrumb';
-import { useAuth } from '@/context/AuthContext';
-import { 
-  Button, 
-  Card,
-  CardContent,
-  Separator,
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui';
-import { ArrowLeft, Calendar, Download, Eye, Pencil, Trash, User, Shield, Clock, Tag } from 'lucide-react';
-import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
-import { Component } from '@/lib/database.types';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { deleteComponent } from '@/lib/api';
 
-const ComponentDetail = () => {
-  const { id } = useParams<{ id: string }>();
-  const [isScrolled, setIsScrolled] = useState(false);
-  const { user, isAdmin } = useAuth();
-  const navigate = useNavigate();
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const queryClient = useQueryClient();
-
-  // Use React Query to fetch the component data
-  const { data: component, isLoading, error } = useQuery({
-    queryKey: ['component', id],
-    queryFn: async () => {
-      if (!id) return null;
-      
-      const { data, error } = await supabase
-        .from('components')
-        .select('*')
-        .eq('id', id)
-        .single();
-      
-      if (error) {
-        console.error('Error fetching component:', error);
-        throw error;
-      }
-      
-      return data as Component;
-    },
-  });
-
-  // Check if user is the owner of the component
-  const isOwner = user && component ? user.id === component.created_by : false;
-
-  // Delete mutation
-  const deleteMutation = useMutation({
-    mutationFn: (componentId: string) => deleteComponent(componentId),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['components'] });
-      toast.success('Componente excluído com sucesso!');
-      navigate('/components');
-    },
-    onError: (error) => {
-      console.error('Error deleting component:', error);
-      toast.error('Erro ao excluir componente. Tente novamente.');
-    }
-  });
-
-  const handleDelete = () => {
-    if (id) {
-      deleteMutation.mutate(id);
-      setShowDeleteDialog(false);
-    }
-  };
-
-  React.useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // Show loading state
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex flex-col bg-background">
-        <Navbar />
-        <main className="flex-grow py-12 px-4 container mx-auto">
-          <div className="text-center py-12">
-            <h1 className="text-2xl font-bold mb-4">Carregando componente...</h1>
-            <p className="text-muted-foreground mb-6">
-              Aguarde enquanto buscamos as informações do componente.
-            </p>
-          </div>
-        </main>
-      </div>
-    );
-  }
-
-  // Show error state
-  if (error || !component) {
-    return (
-      <div className="min-h-screen flex flex-col bg-background">
-        <Navbar />
-        <main className="flex-grow py-12 px-4 container mx-auto">
-          <div className="text-center py-12">
-            <h1 className="text-2xl font-bold mb-4">Componente não encontrado</h1>
-            <p className="text-muted-foreground mb-6">
-              O componente que você está procurando não existe ou foi removido.
-            </p>
-            <Button asChild>
-              <Link to="/components">Voltar para componentes</Link>
-            </Button>
-          </div>
-        </main>
-      </div>
-    );
-  }
-
-  const handleEdit = () => {
-    if (id) {
-      if (isAdmin) {
-        navigate(`/component/edit/${id}`);
-      } else if (isOwner) {
-        navigate(`/my-component/edit/${id}`);
-      }
-    }
-  };
-
+const PageWrapper = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <Navbar />
-      
-      <div className={`sticky top-16 z-40 w-full border-b bg-background/95 backdrop-blur transition-all duration-200 ${isScrolled ? 'shadow-sm' : ''}`}>
-        <div className="container py-3 flex justify-between items-center gap-4">
-          <Button asChild variant="ghost" size="sm">
-            <Link to="/components" className="flex items-center">
-              <ArrowLeft className="h-4 w-4 mr-1" />
-              Voltar
-            </Link>
-          </Button>
-          
-          <div className="flex items-center gap-2">
-            {(isAdmin || isOwner) && (
-              <>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={handleEdit}
-                  className="hidden sm:flex"
-                >
-                  <Pencil className="h-4 w-4 mr-1" />
-                  Editar
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => setShowDeleteDialog(true)}
-                  className="hidden sm:flex text-destructive hover:bg-destructive/10"
-                >
-                  <Trash className="h-4 w-4 mr-1" />
-                  Excluir
-                </Button>
-              </>
-            )}
-          </div>
-        </div>
-      </div>
-      
-      <main className="flex-grow py-8 px-4 container mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-8 animate-fade-up">
-            <div>
-              <ComponentBreadcrumb category={component.category} title={component.title} />
-              <h1 className="text-3xl font-bold tracking-tighter mb-4">{component.title}</h1>
-              
-              <div className="rounded-lg overflow-hidden border bg-card shadow-sm mb-6">
-                <img 
-                  src={component.preview_image || '/placeholder.svg'} 
-                  alt={component.title}
-                  className="w-full object-contain bg-white"
-                  style={{ maxHeight: '500px' }}
-                />
-              </div>
-              
-              <div className="flex flex-wrap gap-3 my-6">
-                <Button variant="outline" size="sm" className="gap-2">
-                  <Eye className="h-4 w-4" />
-                  Visualizar
-                </Button>
-                
-                <Button variant="outline" size="sm" className="gap-2">
-                  <Download className="h-4 w-4" />
-                  Baixar
-                </Button>
-                
-                {component && (
-                  <CodeViewer 
-                    code={component.json_code || component.code}
-                    fileName={`${component.id}.json`}
-                    restricted={true}
-                  />
-                )}
-              </div>
-              
-              {component.description && (
-                <>
-                  <Separator className="my-6" />
-                  <div className="space-y-4">
-                    <h2 className="text-xl font-semibold">Descrição</h2>
-                    <p className="text-muted-foreground">{component.description}</p>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-          
-          <div className="lg:col-span-1 space-y-6 animate-fade-up delay-200">
-            <Card className="shadow-sm">
-              <CardContent className="p-6">
-                <h3 className="text-lg font-semibold mb-4">Detalhes</h3>
-                <div className="space-y-4">
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <Clock className="h-4 w-4 mr-2" />
-                    Última atualização: {new Date(component.updated_at).toLocaleDateString('pt-BR')}
-                  </div>
-                  
-                  <div className="flex items-center text-sm text-muted-foreground">
-                    <Tag className="h-4 w-4 mr-2" />
-                    Licença: <span className="text-primary ml-1">Gratuito</span>
-                  </div>
-                  
-                  {component.category && (
-                    <div className="flex items-center text-sm text-muted-foreground">
-                      <Tag className="h-4 w-4 mr-2" />
-                      Categoria: <span className="ml-1">{component.category}</span>
-                    </div>
-                  )}
-                  
-                  {component.tags && component.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-2 mt-2">
-                      {component.tags.map((tag, i) => (
-                        <span key={i} className="text-xs bg-muted rounded-full px-2.5 py-0.5">
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card className="shadow-sm">
-              <CardContent className="p-6">
-                <h3 className="text-lg font-semibold mb-4">Ajuda</h3>
-                <p className="text-sm text-muted-foreground mb-4">
-                  Precisa de assistência com este componente? Nossa equipe está pronta para ajudar.
-                </p>
-                <Button className="w-full" variant="outline" asChild>
-                  <a href="https://wa.me/5511999999999" target="_blank" rel="noopener noreferrer">
-                    Fale com a Bloqx Studio
-                  </a>
-                </Button>
-              </CardContent>
-            </Card>
-            
-            {(isAdmin || isOwner) && (
-            <Card className="shadow-sm">
-              <CardContent className="p-6">
-                <h3 className="text-lg font-semibold mb-4">Ações de administrador</h3>
-                <div className="space-y-3">
-                  <div>
-                    <p className="text-sm font-medium">Status:</p>
-                    <div className="flex items-center gap-1 mt-1">
-                      {isOwner ? (
-                        <span className="flex items-center text-primary text-sm">
-                          <User className="h-4 w-4 mr-1" />
-                          Você é o proprietário
-                        </span>
-                      ) : isAdmin ? (
-                        <span className="flex items-center text-amber-500 text-sm">
-                          <Shield className="h-4 w-4 mr-1" />
-                          Acesso administrativo
-                        </span>
-                      ) : null}
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-2 pt-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      className="justify-start"
-                      onClick={handleEdit}
-                    >
-                      <Pencil className="h-4 w-4 mr-2" />
-                      Editar componente
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      className="justify-start text-destructive hover:bg-destructive/10"
-                      onClick={() => setShowDeleteDialog(true)}
-                    >
-                      <Trash className="h-4 w-4 mr-2" />
-                      Excluir componente
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            )}
-          </div>
-        </div>
+      <main className="flex-grow container mx-auto px-4 py-8">
+        {children}
       </main>
-      
-      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Excluir Componente</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza de que deseja excluir este componente? Esta ação não pode ser desfeita.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {deleteMutation.isPending ? 'Excluindo...' : 'Excluir'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-      
       <footer className="border-t py-6">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
           &copy; {new Date().getFullYear()} Bloqx Studio. Todos os direitos reservados.
         </div>
       </footer>
     </div>
+  );
+};
+
+const ComponentDetail = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { user, isAdmin } = useAuth();
+  const [showCode, setShowCode] = useState(false);
+
+  const { data: component, isLoading, error } = useQuery({
+    queryKey: ['component', id],
+    queryFn: () => getComponentById(id || ''),
+    enabled: !!id,
+  });
+
+  useEffect(() => {
+    if (!user) {
+      toast.error('Você precisa estar logado para acessar esta página');
+      navigate('/login');
+    }
+  }, [user, navigate]);
+
+  if (!user) {
+    return null;
+  }
+
+  const handleCopyCode = () => {
+    if (!component) return;
+    navigator.clipboard.writeText(component.json_code || component.code);
+    toast.success('Código copiado para a área de transferência!');
+  };
+
+  const handleDownload = () => {
+    if (!component) return;
+    const codeContent = component.json_code || component.code;
+    const filename = `${component.title.toLowerCase().replace(/\s+/g, '-')}.json`;
+    const blob = new Blob([codeContent], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success(`${filename} baixado com sucesso`);
+  };
+
+  const handleEdit = () => {
+    navigate(`/component/edit/${id}`);
+  };
+
+  const imageSrc = component?.preview_image || '/placeholder.svg';
+
+  return (
+    <PageWrapper>
+      {isLoading ? (
+        <div>Carregando...</div>
+      ) : error ? (
+        <div>Erro ao carregar o componente.</div>
+      ) : component ? (
+        <>
+          <div className="mb-6">
+            <Button asChild variant="ghost" size="sm" className="mb-4">
+              <Link to="/components">
+                <ArrowLeft className="h-4 w-4 mr-1" />
+                Voltar para a lista
+              </Link>
+            </Button>
+            <div className="flex justify-between items-center">
+              <div>
+                <h1 className="text-3xl font-bold tracking-tighter">{component.title}</h1>
+                <p className="text-muted-foreground mt-1">
+                  Detalhes e opções para o componente selecionado
+                </p>
+              </div>
+              <div className="flex items-center space-x-2">
+                {isAdmin && (
+                  <Button size="sm" onClick={handleEdit}>
+                    <Edit className="h-4 w-4 mr-1" />
+                    Editar
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <Card className="space-y-4">
+            <CardHeader className="p-4">
+              <CardTitle>Informações do Componente</CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-4">
+              <div className="relative overflow-hidden rounded-md">
+                <img
+                  src={imageSrc}
+                  alt={component.title}
+                  className="w-full h-auto object-cover aspect-video rounded-md"
+                  style={{ maxHeight: '400px' }}
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = '/placeholder.svg';
+                  }}
+                />
+                {component.visibility === 'private' && (
+                  <div className="absolute top-2 right-2">
+                    <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
+                      <Lock className="h-3 w-3 mr-1" /> Privado
+                    </Badge>
+                  </div>
+                )}
+              </div>
+              <div className="grid gap-2">
+                <div className="flex items-center space-x-2">
+                  <Globe className="h-4 w-4 text-muted-foreground" />
+                  <span>Visibilidade:</span>
+                  <span>{component.visibility === 'public' ? 'Público' : 'Privado'}</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <span>Criado em:</span>
+                  <span>{new Date(component.created_at).toLocaleDateString()}</span>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <User className="h-4 w-4 text-muted-foreground" />
+                  <span>Criado por:</span>
+                  <span>{component.created_by}</span>
+                </div>
+                {component.tags && component.tags.length > 0 && (
+                  <div className="flex items-center space-x-2">
+                    <Tag className="h-4 w-4 text-muted-foreground" />
+                    <span>Tags:</span>
+                    <div>
+                      {component.tags.map((tag, index) => (
+                        <Badge key={index} variant="secondary" className="mr-1">{tag}</Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {component.description && (
+                  <div className="grid gap-2">
+                    <span>Descrição:</span>
+                    <p className="text-muted-foreground">{component.description}</p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex justify-between items-center">
+              <CardTitle>Código JSON</CardTitle>
+              <Button variant="ghost" size="sm" onClick={() => setShowCode(!showCode)}>
+                {showCode ? (
+                  <>
+                    <EyeOff className="h-4 w-4 mr-2" />
+                    Esconder Código
+                  </>
+                ) : (
+                  <>
+                    <Eye className="h-4 w-4 mr-2" />
+                    Mostrar Código
+                  </>
+                )}
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {showCode && (
+                <CodeViewer code={component.json_code || component.code} language="json" />
+              )}
+            </CardContent>
+          </Card>
+
+          <div className="flex justify-end space-x-2">
+            <Button variant="outline" onClick={handleCopyCode}>
+              <Copy className="h-4 w-4 mr-2" />
+              Copiar Código
+            </Button>
+            <Button onClick={handleDownload}>
+              <Download className="h-4 w-4 mr-2" />
+              Baixar JSON
+            </Button>
+          </div>
+        </>
+      ) : (
+        <div>Componente não encontrado.</div>
+      )}
+    </PageWrapper>
   );
 };
 

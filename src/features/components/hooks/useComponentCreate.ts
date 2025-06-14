@@ -6,7 +6,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { createComponent, uploadComponentImage } from '@/core/api/components';
-import { supabase } from '@/core/api/client';
+import { supabase } from '@/integrations/supabase/client';
 import { validateJson, cleanElementorJson } from '@/core/utils/jsonUtils';
 import { formSchema, type FormValues } from '@/features/components/types/componentFormSchema';
 
@@ -160,7 +160,7 @@ export const useComponentCreate = () => {
       const componentData = {
         title: values.title,
         description: '',
-        category: '',
+        category: 'general',
         code: values.jsonCode,
         json_code: values.jsonCode,
         tags: values.tags ? values.tags.split(',').map(tag => tag.trim()) : [],
