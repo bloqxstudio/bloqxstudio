@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/features/auth';
-import { updateUserProfile } from '@/core/api';
+import { updateUserProfile, getUserProfile } from '@/core/api';
 import { toast } from 'sonner';
 import Navbar from '@/components/Navbar';
 
@@ -14,6 +14,7 @@ const UserProfile = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
+  const [profileData, setProfileData] = useState<any>(null);
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
@@ -27,11 +28,26 @@ const UserProfile = () => {
       return;
     }
 
-    setFormData({
-      first_name: user.first_name || '',
-      last_name: user.last_name || '',
-      email: user.email || '',
-    });
+    const loadProfile = async () => {
+      try {
+        const profile = await getUserProfile(user.id);
+        setProfileData(profile);
+        setFormData({
+          first_name: profile?.first_name || '',
+          last_name: profile?.last_name || '',
+          email: user.email || '',
+        });
+      } catch (error) {
+        console.error('Erro ao carregar perfil:', error);
+        setFormData({
+          first_name: '',
+          last_name: '',
+          email: user.email || '',
+        });
+      }
+    };
+
+    loadProfile();
   }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -133,7 +149,7 @@ const UserProfile = () => {
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-sm font-medium">Função:</span>
-                  <span className="text-sm">{user.role === 'admin' ? 'Administrador' : 'Usuário'}</span>
+                  <span className="text-sm">{profileData?.role === 'admin' ? 'Administrador' : 'Usuário'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-sm font-medium">Membro desde:</span>
