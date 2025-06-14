@@ -3,13 +3,15 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Search, ExternalLink, FileText, AlertCircle } from 'lucide-react';
+import { Loader2, Search, ExternalLink, FileText, AlertCircle, Eye, Code } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import PageWrapper from '@/components/layout/PageWrapper';
 
-// Interface para componentes do WordPress
-interface WordPressPost {
+// Interface para componentes do Elementor
+interface ElementorComponent {
   id: number;
   title: {
     rendered: string;
@@ -20,33 +22,81 @@ interface WordPressPost {
   date: string;
   modified: string;
   link: string;
+  type: string;
   meta?: {
     _elementor_data?: string;
+    _elementor_template_type?: string;
+    _elementor_edit_mode?: string;
   };
+  elementor_data?: any;
+  widget_types?: string[];
+  has_elementor_content: boolean;
 }
 
-// Função para buscar componentes do WordPress com múltiplas tentativas
-const getWordPressElementorComponents = async (search?: string): Promise<WordPressPost[]> => {
-  console.log('Tentando buscar componentes do WordPress...');
+// Função para extrair dados do Elementor do HTML
+const extractElementorData = (htmlContent: string) => {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(htmlContent, 'text/html');
   
-  // URLs para tentar em ordem de prioridade
-  const urls = [
-    'https://superelements.io/wp-json/wp/v2/elementor_library',
-    'https://superelements.io/wp-json/wp/v2/posts?post_type=elementor_library',
-    'https://superelements.io/wp-json/wp/v2/posts'
+  // Procurar por elementos com data-elementor-*
+  const elementorElements = doc.querySelectorAll('[data-elementor-type], [data-elementor-id]');
+  const widgets = doc.querySelectorAll('[data-widget_type]');
+  
+  const widgetTypes = Array.from(widgets).map(widget => 
+    widget.getAttribute('data-widget_type')?.replace('.default', '') || 'unknown'
+  );
+  
+  return {
+    hasElementorContent: elementorElements.length > 0,
+    elementorType: elementorElements[0]?.getAttribute('data-elementor-type') || null,
+    elementorId: elementorElements[0]?.getAttribute('data-elementor-id') || null,
+    widgetTypes: [...new Set(widgetTypes)],
+    totalElements: elementorElements.length,
+    totalWidgets: widgets.length
+  };
+};
+
+// Função para buscar componentes do Elementor com múltiplas estratégias
+const getElementorComponents = async (search?: string): Promise<ElementorComponent[]> => {
+  console.log('🔍 Buscando componentes do Elementor...');
+  
+  // Estratégias em ordem de prioridade
+  const strategies = [
+    {
+      name: 'Elementor Library Endpoint',
+      url: 'https://superelements.io/wp-json/wp/v2/elementor_library',
+      params: 'per_page=50&orderby=date&order=desc'
+    },
+    {
+      name: 'Posts with Elementor Library Type',
+      url: 'https://superelements.io/wp-json/wp/v2/posts',
+      params: 'post_type=elementor_library&per_page=50&orderby=date&order=desc'
+    },
+    {
+      name: 'All Posts Filtered by Elementor',
+      url: 'https://superelements.io/wp-json/wp/v2/posts',
+      params: 'per_page=100&orderby=date&order=desc&search=elementor'
+    },
+    {
+      name: 'General Posts Search',
+      url: 'https://superelements.io/wp-json/wp/v2/posts',
+      params: 'per_page=100&orderby=date&order=desc'
+    }
   ];
   
   let lastError = null;
+  let allComponents: ElementorComponent[] = [];
   
-  for (const baseUrl of urls) {
+  for (const strategy of strategies) {
     try {
-      let url = `${baseUrl}?per_page=100&orderby=date&order=desc`;
+      let url = `${strategy.url}?${strategy.params}`;
       
       if (search) {
         url += `&search=${encodeURIComponent(search)}`;
       }
 
-      console.log('Tentando URL:', url);
+      console.log(`📡 Tentando estratégia: ${strategy.name}`);
+      console.log(`🌐 URL: ${url}`);
       
       const response = await fetch(url, {
         method: 'GET',
@@ -57,45 +107,62 @@ const getWordPressElementorComponents = async (search?: string): Promise<WordPre
         mode: 'cors',
       });
 
-      console.log('Response status:', response.status);
-      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+      console.log(`📊 Status: ${response.status}`);
 
       if (response.ok) {
         const data = await response.json();
-        console.log('Dados recebidos:', data);
+        console.log(`✅ Dados recebidos (${strategy.name}):`, data.length, 'items');
         
-        // Filtrar apenas posts do tipo elementor_library se possível
-        if (Array.isArray(data)) {
-          const filtered = data.filter(item => 
-            !item.type || item.type === 'elementor_library' || item.post_type === 'elementor_library'
-          );
-          return filtered.length > 0 ? filtered : data;
+        if (Array.isArray(data) && data.length > 0) {
+          // Processar cada item para extrair dados do Elementor
+          const processedComponents = data.map(item => {
+            const elementorData = extractElementorData(item.content?.rendered || '');
+            
+            return {
+              ...item,
+              elementor_data: elementorData,
+              widget_types: elementorData.widgetTypes,
+              has_elementor_content: elementorData.hasElementorContent,
+            } as ElementorComponent;
+          });
+          
+          // Filtrar apenas componentes com conteúdo Elementor se for estratégia geral
+          const filteredComponents = strategy.name.includes('General') ? 
+            processedComponents.filter(comp => comp.has_elementor_content) :
+            processedComponents;
+          
+          if (filteredComponents.length > 0) {
+            allComponents = filteredComponents;
+            console.log(`🎯 Encontrados ${filteredComponents.length} componentes com Elementor`);
+            break;
+          }
         }
-        
-        return data || [];
       } else {
         const errorText = await response.text();
-        console.error(`Erro ${response.status}:`, errorText);
-        lastError = new Error(`HTTP ${response.status}: ${errorText}`);
+        console.error(`❌ Erro ${response.status} (${strategy.name}):`, errorText);
+        lastError = new Error(`${strategy.name}: HTTP ${response.status} - ${errorText}`);
       }
     } catch (error) {
-      console.error('Erro na requisição:', error);
+      console.error(`💥 Erro na estratégia ${strategy.name}:`, error);
       lastError = error;
     }
   }
   
-  // Se chegou aqui, todas as tentativas falharam
-  throw lastError || new Error('Todas as tentativas de conexão falharam');
+  if (allComponents.length === 0) {
+    throw lastError || new Error('Nenhuma estratégia funcionou para acessar os componentes do Elementor');
+  }
+  
+  return allComponents;
 };
 
 const SuperelementsComponents = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
   const { data: components = [], isLoading, error, refetch } = useQuery({
-    queryKey: ['wordpress-elementor-components', searchTerm],
-    queryFn: () => getWordPressElementorComponents(searchTerm),
-    retry: 3,
-    retryDelay: 1000,
+    queryKey: ['elementor-components', searchTerm],
+    queryFn: () => getElementorComponents(searchTerm),
+    retry: 2,
+    retryDelay: 1500,
   });
 
   const handleSearch = (value: string) => {
@@ -110,22 +177,22 @@ const SuperelementsComponents = () => {
     <PageWrapper>
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-4">Componentes WordPress - Superelements</h1>
+          <h1 className="text-3xl font-bold mb-4">Componentes Elementor - Superelements</h1>
           <p className="text-muted-foreground text-lg">
-            Lista dos componentes Elementor disponíveis no WordPress Superelements
+            Biblioteca de componentes Elementor do WordPress Superelements
           </p>
         </div>
 
-        {/* Alerta de erro de conexão */}
+        {/* Alerta de erro */}
         {error && (
           <Alert className="mb-6" variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
               <div className="space-y-2">
-                <p><strong>Problema de conexão com o WordPress:</strong></p>
+                <p><strong>Erro ao acessar componentes Elementor:</strong></p>
                 <p className="text-sm">
                   {error.message.includes('rest_forbidden') 
-                    ? 'Acesso negado à API do WordPress. Isso pode indicar que a API REST está desabilitada ou requer autenticação.'
+                    ? 'API REST bloqueada - pode ser necessário autenticação ou CORS está bloqueado.'
                     : `Erro: ${error.message}`
                   }
                 </p>
@@ -143,11 +210,11 @@ const SuperelementsComponents = () => {
                     asChild
                   >
                     <a 
-                      href="https://superelements.io" 
+                      href="https://superelements.io/wp-admin/edit.php?post_type=elementor_library" 
                       target="_blank" 
                       rel="noopener noreferrer"
                     >
-                      Visitar Site
+                      Ver no WordPress
                     </a>
                   </Button>
                 </div>
@@ -161,7 +228,7 @@ const SuperelementsComponents = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Search className="h-5 w-5" />
-              Buscar Componentes
+              Buscar Componentes Elementor
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -197,7 +264,7 @@ const SuperelementsComponents = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5" />
-              Componentes WordPress 
+              Componentes Elementor
               {!isLoading && !error && (
                 <span className="text-sm font-normal text-muted-foreground">
                   ({components.length})
@@ -209,61 +276,127 @@ const SuperelementsComponents = () => {
             {isLoading ? (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-6 w-6 animate-spin mr-2" />
-                <span>Carregando componentes do WordPress...</span>
+                <span>Carregando componentes Elementor...</span>
               </div>
             ) : error ? (
               <div className="text-center py-8">
                 <div className="text-muted-foreground space-y-2">
-                  <p>Não foi possível carregar os componentes do WordPress.</p>
+                  <p>Não foi possível carregar os componentes Elementor.</p>
                   <p className="text-sm">
-                    Possíveis causas: API REST desabilitada, CORS bloqueado, ou permissões insuficientes.
+                    Verifique se o site permite acesso à API REST ou se há restrições de CORS.
                   </p>
                 </div>
               </div>
             ) : components.length === 0 ? (
               <div className="text-center py-8">
                 <p className="text-muted-foreground">
-                  {searchTerm ? 'Nenhum componente encontrado para esta busca.' : 'Nenhum componente encontrado.'}
+                  {searchTerm ? 'Nenhum componente encontrado para esta busca.' : 'Nenhum componente Elementor encontrado.'}
                 </p>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {components.map((component, index) => (
                   <div 
                     key={component.id} 
-                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors"
+                    className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
                   >
-                    <div className="flex items-center gap-3">
-                      <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded">
-                        #{index + 1}
-                      </span>
-                      <div>
-                        <h3 className="font-medium text-gray-900">
-                          {component.title?.rendered || `Componente ${component.id}`}
-                        </h3>
-                        <p className="text-sm text-gray-500">
-                          ID: {component.id} • Criado: {component.date ? new Date(component.date).toLocaleDateString('pt-BR') : 'Data não disponível'}
-                        </p>
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <span className="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded">
+                            #{index + 1}
+                          </span>
+                          <h3 className="font-medium text-gray-900">
+                            {component.title?.rendered || `Componente ${component.id}`}
+                          </h3>
+                          {component.has_elementor_content && (
+                            <span className="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded">
+                              Elementor
+                            </span>
+                          )}
+                        </div>
+                        
+                        <div className="space-y-1 text-sm text-gray-500">
+                          <p>ID: {component.id} • Tipo: {component.type}</p>
+                          <p>Criado: {component.date ? new Date(component.date).toLocaleDateString('pt-BR') : 'Data não disponível'}</p>
+                          
+                          {component.widget_types && component.widget_types.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-2">
+                              <span className="text-xs font-medium">Widgets:</span>
+                              {component.widget_types.slice(0, 5).map((widget, i) => (
+                                <span key={i} className="bg-gray-100 text-gray-700 text-xs px-2 py-1 rounded">
+                                  {widget}
+                                </span>
+                              ))}
+                              {component.widget_types.length > 5 && (
+                                <span className="text-xs text-gray-500">
+                                  +{component.widget_types.length - 5} mais
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {component.link && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          asChild
-                        >
-                          <a 
-                            href={component.link} 
-                            target="_blank" 
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1"
+                      
+                      <div className="flex items-center gap-2 ml-4">
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button variant="outline" size="sm">
+                              <Eye className="h-4 w-4 mr-1" />
+                              Ver Dados
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-4xl max-h-[80vh]">
+                            <DialogHeader>
+                              <DialogTitle>
+                                Dados do Componente: {component.title?.rendered}
+                              </DialogTitle>
+                            </DialogHeader>
+                            <ScrollArea className="h-[60vh]">
+                              <div className="space-y-4">
+                                <div>
+                                  <h4 className="font-medium mb-2">Dados Elementor:</h4>
+                                  <pre className="bg-gray-100 p-3 rounded text-xs overflow-auto">
+                                    {JSON.stringify(component.elementor_data, null, 2)}
+                                  </pre>
+                                </div>
+                                
+                                <div>
+                                  <h4 className="font-medium mb-2">HTML do Componente:</h4>
+                                  <pre className="bg-gray-100 p-3 rounded text-xs overflow-auto max-h-40">
+                                    {component.content?.rendered || 'Sem conteúdo'}
+                                  </pre>
+                                </div>
+                                
+                                <div>
+                                  <h4 className="font-medium mb-2">Metadados:</h4>
+                                  <pre className="bg-gray-100 p-3 rounded text-xs overflow-auto">
+                                    {JSON.stringify(component.meta || {}, null, 2)}
+                                  </pre>
+                                </div>
+                              </div>
+                            </ScrollArea>
+                          </DialogContent>
+                        </Dialog>
+                        
+                        {component.link && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            asChild
                           >
-                            <ExternalLink className="h-4 w-4" />
-                            Ver no WordPress
-                          </a>
-                        </Button>
-                      )}
+                            <a 
+                              href={component.link} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1"
+                            >
+                              <ExternalLink className="h-4 w-4" />
+                              Ver no Site
+                            </a>
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -276,22 +409,23 @@ const SuperelementsComponents = () => {
         {process.env.NODE_ENV === 'development' && (
           <Card className="mt-6">
             <CardHeader>
-              <CardTitle className="text-sm">Debug Info</CardTitle>
+              <CardTitle className="text-sm">Informações de Debug</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-xs space-y-1">
-                <p>URLs testadas:</p>
+              <div className="text-xs space-y-2">
+                <p><strong>Estratégias testadas:</strong></p>
                 <ul className="list-disc list-inside pl-2 space-y-1">
-                  <li>https://superelements.io/wp-json/wp/v2/elementor_library</li>
-                  <li>https://superelements.io/wp-json/wp/v2/posts?post_type=elementor_library</li>
-                  <li>https://superelements.io/wp-json/wp/v2/posts</li>
+                  <li>/wp-json/wp/v2/elementor_library (endpoint direto)</li>
+                  <li>/wp-json/wp/v2/posts?post_type=elementor_library (via posts)</li>
+                  <li>/wp-json/wp/v2/posts com filtro Elementor</li>
+                  <li>/wp-json/wp/v2/posts geral (com extração Elementor)</li>
                 </ul>
-                <p>Total de componentes: {components.length}</p>
-                <p>Status: {isLoading ? 'Carregando...' : error ? 'Erro' : 'Sucesso'}</p>
-                {error && <p>Erro: {error.message}</p>}
+                <p><strong>Total encontrados:</strong> {components.length}</p>
+                <p><strong>Com conteúdo Elementor:</strong> {components.filter(c => c.has_elementor_content).length}</p>
+                <p><strong>Status:</strong> {isLoading ? 'Carregando...' : error ? 'Erro' : 'Sucesso'}</p>
               </div>
             </CardContent>
-          </Card>
+          </div>
         )}
       </div>
     </PageWrapper>
