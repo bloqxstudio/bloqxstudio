@@ -81,49 +81,12 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
     validateJsonContent(jsonContent);
   };
 
-  // Função para formatar JSON para exibição
-  const formatJsonForDisplay = (json: string): string => {
-    try {
-      return JSON.stringify(JSON.parse(json), null, 2);
-    } catch (e) {
-      return json;
-    }
-  };
-
   return (
     <>
       {!simplified && (
         <JsonFileUploader onJsonLoaded={handleJsonFileUploaded} />
       )}
-    
-      {/* Structure toggle */}
-      {setApplyStructure && (
-        <div className="flex items-center space-x-4 mb-4">
-          <Switch
-            id="apply-structure-toggle"
-            checked={applyStructure}
-            onCheckedChange={setApplyStructure}
-          />
-          <Label htmlFor="apply-structure-toggle" className="font-medium">
-            {getTranslation(
-              'Apply Standard Structure',
-              'Aplicar Estrutura Padrão'
-            )}
-          </Label>
-        </div>
-      )}
 
-      {applyStructure && (
-        <div className="mb-4 p-3 border border-gray-200 rounded-md bg-gray-50">
-          <p className="text-sm text-gray-600">
-            {getTranslation(
-              'Standard structure will be applied: Section → Padding → Row → Column → Content Groups → Widgets',
-              'A estrutura padrão será aplicada: Seção → Padding → Linha → Coluna → Grupos de Conteúdo → Widgets'
-            )}
-          </p>
-        </div>
-      )}
-    
       <FormField
         control={form.control}
         name="jsonCode"
@@ -145,7 +108,7 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
                 >
                   {showExplanation ? 
                     getTranslation('Hide explanation', 'Ocultar explicação') :
-                    getTranslation('How to use the tool?', 'Como usar a ferramenta?')
+                    getTranslation('How to use?', 'Como usar?')
                   }
                 </button>
               )}
@@ -163,9 +126,9 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
             
             <FormControl>
               <Textarea 
-                placeholder='{"type": "elementor", "elements": [...]}'
-                className="min-h-[200px] font-mono text-sm"
-                value={field.value ? formatJsonForDisplay(field.value) : ''}
+                placeholder='{"type": "elementor", "siteurl": "https://superelements.io/wp-json/", "elements": [...]}'
+                className="min-h-[300px] font-mono text-sm"
+                value={field.value || ''}
                 onChange={(e) => {
                   field.onChange(e);
                   setJsonContent(e.target.value);
@@ -182,8 +145,8 @@ const JsonCodeSection: React.FC<JsonCodeSectionProps> = ({
             
             <FormDescription>
               {getTranslation(
-                'Paste the Elementor JSON code to transform it into a valid JSON',
-                'Cole o código JSON do Elementor para transformá-lo em Json Válido'
+                'Paste the Elementor JSON code directly from the export',
+                'Cole o código JSON do Elementor diretamente da exportação'
               )}
             </FormDescription>
             <FormMessage />
