@@ -32,7 +32,7 @@ export const getUsers = async (): Promise<User[]> => {
     .order('created_at', { ascending: false });
 
   if (error) throw error;
-  return data || [];
+  return (data || []) as User[];
 };
 
 // Função para atualizar perfil do usuário
@@ -46,7 +46,7 @@ export const updateUserProfile = async (userId: string, updates: UpdateUser): Pr
       .single();
       
     if (error) throw error;
-    return data;
+    return data as User;
   } catch (error) {
     console.error('Erro ao atualizar perfil:', error);
     throw error;
@@ -69,7 +69,7 @@ export const getUserProfile = async (userId: string): Promise<User | null> => {
       }
       throw error;
     }
-    return data;
+    return data as User;
   } catch (error) {
     console.error('Erro ao buscar perfil:', error);
     throw error;

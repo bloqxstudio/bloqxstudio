@@ -30,11 +30,11 @@ export interface Category {
 
 export interface User {
   id: string;
-  email: string;
-  first_name?: string;
-  last_name?: string;
-  avatar_url?: string;
-  role: 'user' | 'admin';
+  email: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
+  avatar_url?: string | null;
+  role: string | null;
   created_at: string;
   updated_at: string;
 }
