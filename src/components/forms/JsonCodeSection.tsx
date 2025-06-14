@@ -1,11 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
-import { FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from '@/components/ui/form';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
+import { FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from '@/ui/form';
+import { Textarea } from '@/ui/textarea';
+import { Switch } from '@/ui/switch';
+import { Label } from '@/ui/label';
 import { UseFormReturn } from 'react-hook-form';
-import { validateJson } from '@/utils/json';
+import { validateJson } from '@/core/utils/jsonUtils';
 import JsonToolsExplanation from './JsonToolsExplanation';
 import JsonActionsToolbar from './json/JsonActionsToolbar';
 import JsonValidityIndicator from './json/JsonValidityIndicator';

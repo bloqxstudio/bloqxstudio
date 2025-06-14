@@ -1,5 +1,5 @@
 
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from './client';
 import { toast } from 'sonner';
 
 // User management operations

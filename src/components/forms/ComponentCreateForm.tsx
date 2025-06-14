@@ -1,12 +1,12 @@
 
 import React, { useEffect } from 'react';
-import { Card, CardContent } from '@/components/ui';
-import { useComponentCreate } from '@/hooks/useComponentCreate';
+import { Card, CardContent } from '@/ui';
+import { useComponentCreate } from '@/features/components';
 import JsonCodeSection from './JsonCodeSection';
 import ClaudeJsonAnalyzer from './ClaudeJsonAnalyzer';
 import ComponentFormFields from './ComponentFormFields';
 import FormSubmitButton from './FormSubmitButton';
-import { Form } from '@/components/ui';
+import { Form } from '@/ui';
 
 const ComponentCreateForm = () => {
   const {

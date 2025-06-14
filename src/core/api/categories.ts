@@ -1,6 +1,6 @@
 
-import { supabase } from '@/integrations/supabase/client';
-import { Category, NewCategory } from '@/lib/database.types';
+import { supabase } from './client';
+import { Category, NewCategory } from '@/core/types/database';
 
 // Category operations
 export const getCategories = async () => {

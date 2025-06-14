@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { Component } from '@/lib/database.types';
+import { Component } from '@/core/types/database';
 
 type SelectedComponentsContextType = {
   selectedComponents: Component[];
