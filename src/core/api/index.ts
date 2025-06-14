@@ -4,3 +4,4 @@ export * from './components';
 export * from './categories';
 export * from './users';
 export * from './wordpress';
+export * from './wordpress-sites';

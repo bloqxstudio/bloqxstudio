@@ -33,6 +33,54 @@ export type Database = {
         }
         Relationships: []
       }
+      component_syncs: {
+        Row: {
+          component_id: string | null
+          created_at: string
+          error_message: string | null
+          id: string
+          metadata: Json | null
+          status: string
+          sync_type: string
+          wordpress_site_id: string | null
+        }
+        Insert: {
+          component_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          status?: string
+          sync_type: string
+          wordpress_site_id?: string | null
+        }
+        Update: {
+          component_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          metadata?: Json | null
+          status?: string
+          sync_type?: string
+          wordpress_site_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "component_syncs_component_id_fkey"
+            columns: ["component_id"]
+            isOneToOne: false
+            referencedRelation: "components"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "component_syncs_wordpress_site_id_fkey"
+            columns: ["wordpress_site_id"]
+            isOneToOne: false
+            referencedRelation: "wordpress_sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       components: {
         Row: {
           alignment: string | null
@@ -186,6 +234,48 @@ export type Database = {
           last_seen_at?: string
           session_id?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      wordpress_sites: {
+        Row: {
+          api_key: string
+          created_at: string
+          elementor_active: boolean | null
+          id: string
+          is_active: boolean | null
+          last_sync_at: string | null
+          site_name: string | null
+          site_url: string
+          updated_at: string
+          user_id: string
+          wordpress_version: string | null
+        }
+        Insert: {
+          api_key: string
+          created_at?: string
+          elementor_active?: boolean | null
+          id?: string
+          is_active?: boolean | null
+          last_sync_at?: string | null
+          site_name?: string | null
+          site_url: string
+          updated_at?: string
+          user_id: string
+          wordpress_version?: string | null
+        }
+        Update: {
+          api_key?: string
+          created_at?: string
+          elementor_active?: boolean | null
+          id?: string
+          is_active?: boolean | null
+          last_sync_at?: string | null
+          site_name?: string | null
+          site_url?: string
+          updated_at?: string
+          user_id?: string
+          wordpress_version?: string | null
         }
         Relationships: []
       }

@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.50.0";
 
@@ -28,7 +27,6 @@ function checkRateLimit(ip: string): { allowed: boolean; remaining: number; rese
   const entry = rateLimitMap.get(ip);
 
   if (!entry || now > entry.resetTime) {
-    // Primeira requisição ou janela expirou
     const resetTime = now + RATE_LIMIT_WINDOW;
     rateLimitMap.set(ip, { count: 1, resetTime });
     return { allowed: true, remaining: RATE_LIMIT_MAX - 1, resetTime };
@@ -42,13 +40,38 @@ function checkRateLimit(ip: string): { allowed: boolean; remaining: number; rese
   return { allowed: true, remaining: RATE_LIMIT_MAX - entry.count, resetTime: entry.resetTime };
 }
 
+async function validateApiKey(request: Request, supabase: any): Promise<{ valid: boolean; siteId?: string }> {
+  const apiKey = request.headers.get('x-api-key');
+  
+  if (!apiKey) {
+    return { valid: false };
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('wordpress_sites')
+      .select('id')
+      .eq('api_key', apiKey)
+      .eq('is_active', true)
+      .single();
+
+    if (error || !data) {
+      return { valid: false };
+    }
+
+    return { valid: true, siteId: data.id };
+  } catch (error) {
+    console.error('API key validation error:', error);
+    return { valid: false };
+  }
+}
+
 const supabase = createClient(
   Deno.env.get('SUPABASE_URL') ?? '',
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 );
 
 serve(async (req: Request) => {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -57,7 +80,6 @@ serve(async (req: Request) => {
     const url = new URL(req.url);
     const path = url.pathname.replace('/wordpress-api/', '');
     
-    // Rate limiting
     const clientIP = getRealIP(req);
     const rateLimitResult = checkRateLimit(clientIP);
     
@@ -79,8 +101,33 @@ serve(async (req: Request) => {
       );
     }
 
-    // Log da requisição
     console.log(`WordPress API Request: ${req.method} ${path} from ${clientIP}`);
+
+    // Public endpoints (no API key required)
+    const publicEndpoints = ['components', 'categories', 'stats'];
+    const isPublicEndpoint = publicEndpoints.some(endpoint => 
+      path === endpoint || path.startsWith(`${endpoint}/`) || path.startsWith(`${endpoint}?`)
+    );
+
+    // Validate API key for protected endpoints
+    if (!isPublicEndpoint && !path.startsWith('download/bulk')) {
+      const apiValidation = await validateApiKey(req, supabase);
+      if (!apiValidation.valid) {
+        return new Response(
+          JSON.stringify({ 
+            success: false, 
+            error: 'Invalid or missing API key' 
+          }),
+          {
+            status: 401,
+            headers: {
+              ...corsHeaders,
+              'Content-Type': 'application/json',
+            },
+          }
+        );
+      }
+    }
 
     if (path === 'components' && req.method === 'GET') {
       // GET /wordpress-api/components
@@ -148,6 +195,41 @@ serve(async (req: Request) => {
             ...corsHeaders,
             'Content-Type': 'application/json',
             'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
+          },
+        }
+      );
+    }
+
+    if (path === 'sync' && req.method === 'POST') {
+      // New endpoint for component sync logging
+      const apiValidation = await validateApiKey(req, supabase);
+      if (!apiValidation.valid) {
+        return new Response(
+          JSON.stringify({ success: false, error: 'Invalid API key' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const { component_id, sync_type, status, metadata } = await req.json();
+
+      const { error } = await supabase
+        .from('component_syncs')
+        .insert({
+          wordpress_site_id: apiValidation.siteId,
+          component_id,
+          sync_type,
+          status,
+          metadata,
+        });
+
+      if (error) throw error;
+
+      return new Response(
+        JSON.stringify({ success: true }),
+        {
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json',
           },
         }
       );
