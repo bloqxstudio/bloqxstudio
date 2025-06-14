@@ -36,7 +36,6 @@ const ComponentEdit = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user, isAdmin } = useAuth();
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (!isAdmin) {
@@ -62,12 +61,6 @@ const ComponentEdit = () => {
     queryKey: ['categories'],
     queryFn: getCategories
   });
-
-  useEffect(() => {
-    if (component) {
-      setIsLoading(false);
-    }
-  }, [component]);
 
   useEffect(() => {
     const handleError = (error: any) => {
@@ -102,10 +95,9 @@ const ComponentEdit = () => {
           <CardTitle>Dados do Componente</CardTitle>
         </CardHeader>
         <CardContent>
-          <EditComponentForm
-            component={component}
-            isLoading={isLoading || isLoadingComponent}
-          />
+          {component && (
+            <EditComponentForm component={component} />
+          )}
         </CardContent>
       </Card>
     </PageWrapper>

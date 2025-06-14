@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -85,7 +86,7 @@ const ComponentDetail = () => {
   };
 
   const handleEdit = () => {
-    navigate(`/component/edit/${id}`);
+    navigate(`/components/edit/${id}`);
   };
 
   const imageSrc = component?.preview_image || '/placeholder.svg';
@@ -203,7 +204,7 @@ const ComponentDetail = () => {
             </CardHeader>
             <CardContent>
               {showCode && (
-                <CodeViewer code={component.json_code || component.code} language="json" />
+                <CodeViewer code={component.json_code || component.code} />
               )}
             </CardContent>
           </Card>
