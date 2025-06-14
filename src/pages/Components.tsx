@@ -4,18 +4,21 @@ import { useQuery } from '@tanstack/react-query';
 import { getComponents, getCategories } from '@/core/api';
 import { useComponentFilters } from '@/hooks/useComponentFilters';
 import { useSelectedComponents } from '@/shared/contexts/SelectedComponentsContext';
+import { useAuth } from '@/features/auth';
 import PageWrapper from '@/components/layout/PageWrapper';
 import ComponentsHeader from '@/components/components/ComponentsHeader';
 import ComponentsGrid from '@/components/components/ComponentsGrid';
 import ComponentFilterBar from '@/components/filters/ComponentFilterBar';
 import SelectedComponentsSidebar from '@/components/selection/SelectedComponentsSidebar';
 import SelectionFloatingButton from '@/components/selection/SelectionFloatingButton';
+import type { AlignmentType, ColumnsType, ElementType } from '@/components/ComponentFilters';
 
 const Components = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { selectedComponents } = useSelectedComponents();
+  const { user } = useAuth();
 
-  const { data: components = [], isLoading: isLoadingComponents } = useQuery({
+  const { data: components = [], isLoading: isLoadingComponents, error, refetch } = useQuery({
     queryKey: ['components'],
     queryFn: getComponents,
   });
@@ -43,28 +46,61 @@ const Components = () => {
     filteredComponents,
   } = useComponentFilters({ components });
 
+  const handleAlignmentToggle = (alignment: AlignmentType) => {
+    handleAlignmentChange(alignment, !selectedAlignments.includes(alignment));
+  };
+
+  const handleColumnsToggle = (columns: ColumnsType) => {
+    handleColumnsChange(columns, !selectedColumns.includes(columns));
+  };
+
+  const handleElementToggle = (element: ElementType) => {
+    handleElementChange(element, !selectedElements.includes(element));
+  };
+
+  const handleClearFilterType = (filterType: 'alignment' | 'columns' | 'element') => {
+    if (filterType === 'alignment') {
+      selectedAlignments.forEach(alignment => handleAlignmentChange(alignment, false));
+    } else if (filterType === 'columns') {
+      selectedColumns.forEach(columns => handleColumnsChange(columns, false));
+    } else if (filterType === 'element') {
+      selectedElements.forEach(element => handleElementChange(element, false));
+    }
+  };
+
+  const handleRetry = () => {
+    refetch();
+  };
+
   return (
     <PageWrapper>
-      <ComponentsHeader />
+      <ComponentsHeader 
+        filteredCount={filteredComponents.length}
+        totalCount={components.length}
+      />
       
       <ComponentFilterBar
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
         categories={categories}
-        selectedAlignments={selectedAlignments}
-        selectedColumns={selectedColumns}
-        selectedElements={selectedElements}
-        handleAlignmentChange={handleAlignmentChange}
-        handleColumnsChange={handleColumnsChange}
-        handleElementChange={handleElementChange}
-        handleClearFilter={handleClearFilter}
+        selectedAlignments={selectedAlignments as AlignmentType[]}
+        selectedColumns={selectedColumns as ColumnsType[]}
+        selectedElements={selectedElements as ElementType[]}
+        handleAlignmentChange={handleAlignmentToggle}
+        handleColumnsChange={handleColumnsToggle}
+        handleElementChange={handleElementToggle}
+        handleClearFilter={handleClearFilterType}
         mobileFiltersOpen={mobileFiltersOpen}
         setMobileFiltersOpen={setMobileFiltersOpen}
       />
 
       <ComponentsGrid 
-        components={filteredComponents} 
-        isLoading={isLoadingComponents} 
+        components={components}
+        filteredComponents={filteredComponents}
+        isLoading={isLoadingComponents}
+        error={error}
+        handleRetry={handleRetry}
+        user={user}
       />
 
       {selectedComponents.length > 0 && (
