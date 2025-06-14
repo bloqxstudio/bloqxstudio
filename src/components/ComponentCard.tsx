@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Component } from '@/core/types';
@@ -19,7 +18,7 @@ import {
 } from '@/components/ui/dialog';
 
 interface ComponentCardProps {
-  component: Component & { source?: 'local' | 'wordpress' };
+  component: Component;
   className?: string;
 }
 

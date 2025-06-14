@@ -1,4 +1,3 @@
-
 // Unified database types - Single source of truth
 
 export interface Component {
@@ -19,6 +18,7 @@ export interface Component {
   alignment?: 'left' | 'center' | 'right' | 'full';
   columns?: '1' | '2' | '3+';
   elements?: ('button' | 'video' | 'image' | 'list' | 'heading')[];
+  source?: 'local' | 'wordpress'; // Add source property to the base Component type
 }
 
 export interface Category {

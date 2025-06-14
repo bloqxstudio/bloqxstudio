@@ -5,11 +5,12 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { PlusCircle, Settings2, ExternalLink, Database } from 'lucide-react';
 import { useAuth } from '@/features/auth';
+import type { Component } from '@/core/types';
 
 interface ComponentsHeaderProps {
   filteredCount: number;
   totalCount: number;
-  components?: Array<{ source?: 'local' | 'wordpress' }>;
+  components?: Component[];
 }
 
 const ComponentsHeader: React.FC<ComponentsHeaderProps> = ({
