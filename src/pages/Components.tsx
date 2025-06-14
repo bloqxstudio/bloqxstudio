@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getComponents, getCategories } from '@/core/api';
@@ -80,16 +79,15 @@ const Components = () => {
       />
       
       <ComponentFilterBar
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        categories={categories}
         selectedAlignments={selectedAlignments as AlignmentType[]}
         selectedColumns={selectedColumns as ColumnsType[]}
         selectedElements={selectedElements as ElementType[]}
-        handleAlignmentChange={handleAlignmentToggle}
-        handleColumnsChange={handleColumnsToggle}
-        handleElementChange={handleElementToggle}
-        handleClearFilter={handleClearFilterType}
+        onAlignmentChange={handleAlignmentToggle}
+        onColumnsChange={handleColumnsToggle}
+        onElementChange={handleElementToggle}
+        onClearFilter={handleClearFilterType}
+        filteredCount={filteredComponents.length}
+        totalCount={components.length}
         mobileFiltersOpen={mobileFiltersOpen}
         setMobileFiltersOpen={setMobileFiltersOpen}
       />
@@ -104,10 +102,7 @@ const Components = () => {
       />
 
       {selectedComponents.length > 0 && (
-        <SelectionFloatingButton
-          count={selectedComponents.length}
-          onClick={() => setSidebarOpen(true)}
-        />
+        <SelectionFloatingButton />
       )}
 
       <SelectedComponentsSidebar
