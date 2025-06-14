@@ -1,10 +1,10 @@
 
 /**
- * Example of properly formatted Elementor JSON based on the provided HTML
+ * Example of properly formatted Elementor JSON with complete structure
  */
 
 export const getFormattedElementorJson = (rawHtml: string, title: string): string => {
-  // This is the properly formatted JSON for the c1370 component
+  // This is the properly formatted JSON for Elementor components with complete settings
   const elementorJson = {
     "type": "elementor",
     "siteurl": "https://superelements.io/wp-json/",
@@ -15,9 +15,18 @@ export const getFormattedElementorJson = (rawHtml: string, title: string): strin
         "isInner": false,
         "isLocked": false,
         "settings": {
+          "flex_direction": "column",
+          "boxed_width": { "unit": "px", "size": 1290, "sizes": [] },
+          "flex_gap": { "column": "0", "row": "0", "isLinked": true, "unit": "px", "size": 0 },
           "background_background": "classic",
+          "background_color": "#F5F5F5",
+          "padding": { "unit": "px", "top": "40", "right": "40", "bottom": "120", "left": "40", "isLinked": false },
+          "padding_tablet": { "unit": "px", "top": "80", "right": "40", "bottom": "80", "left": "40", "isLinked": false },
+          "padding_mobile": { "unit": "px", "top": "60", "right": "20", "bottom": "60", "left": "20", "isLinked": false },
+          "container_type": "flex",
           "content_width": "boxed",
-          "flex_direction": "row"
+          "width": { "unit": "%", "size": "", "sizes": [] },
+          "min_height": { "unit": "px", "size": "", "sizes": [] }
         },
         "elements": [
           {
@@ -27,7 +36,8 @@ export const getFormattedElementorJson = (rawHtml: string, title: string): strin
             "isLocked": false,
             "settings": {
               "content_width": "boxed",
-              "flex_direction": "row"
+              "flex_direction": "row",
+              "container_type": "flex"
             },
             "elements": [
               {
@@ -41,7 +51,8 @@ export const getFormattedElementorJson = (rawHtml: string, title: string): strin
                   "_animation_delay": 500,
                   "image": {
                     "url": "https://superelements.io/wp-content/uploads/elementor/thumbs/assets_task_01jsj1wh4mfw4r0gmq7re8sfez_img_1-r4speq864zlh5ul5cej6opzgvpja6ra6oqjp6cldyo.webp",
-                    "alt": "assets_task_01jsj1wh4mfw4r0gmq7re8sfez_img_1"
+                    "id": "",
+                    "size": ""
                   }
                 }
               }
@@ -54,7 +65,8 @@ export const getFormattedElementorJson = (rawHtml: string, title: string): strin
             "isLocked": false,
             "settings": {
               "content_width": "full",
-              "flex_direction": "column"
+              "flex_direction": "column",
+              "container_type": "flex"
             },
             "elements": [
               {
@@ -67,7 +79,8 @@ export const getFormattedElementorJson = (rawHtml: string, title: string): strin
                   "animation": "slideInUp",
                   "animation_delay": 1000,
                   "content_width": "full",
-                  "flex_direction": "column"
+                  "flex_direction": "column",
+                  "container_type": "flex"
                 },
                 "elements": [
                   {

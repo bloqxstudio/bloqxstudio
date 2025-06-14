@@ -45,7 +45,9 @@ const extractElementsFromHtml = (element: Element): ElementorElement[] => {
   const elements: ElementorElement[] = [];
   
   // Get direct children that are Elementor elements
-  const elementorChildren = element.querySelectorAll(':scope > .elementor-element, :scope > .e-con-inner > .elementor-element');
+  const elementorChildren = Array.from(element.children).filter(child => 
+    child.hasAttribute('data-element_type') || child.hasAttribute('data-id')
+  );
   
   elementorChildren.forEach((child) => {
     const elementData = extractElementData(child);
@@ -75,14 +77,15 @@ const extractElementData = (element: Element): ElementorElement | null => {
 
   // Extract settings from data-settings attribute
   const settingsAttr = element.getAttribute('data-settings');
+  let extractedSettings = {};
+  
   if (settingsAttr) {
     try {
-      elementData.settings = JSON.parse(settingsAttr.replace(/&quot;/g, '"'));
+      extractedSettings = JSON.parse(settingsAttr.replace(/&quot;/g, '"'));
     } catch (e) {
-      elementData.settings = {};
+      console.warn('Failed to parse settings:', e);
+      extractedSettings = {};
     }
-  } else {
-    elementData.settings = {};
   }
 
   // Set widget type for widgets
@@ -92,15 +95,21 @@ const extractElementData = (element: Element): ElementorElement | null => {
 
   // Handle container specific logic
   if (elementType === 'container') {
-    // Set default container settings
+    // Set comprehensive container settings
     elementData.settings = {
-      ...elementData.settings,
-      content_width: elementData.settings.content_width || 'boxed',
-      flex_direction: elementData.settings.flex_direction || 'row',
+      flex_direction: "column",
+      container_type: "flex",
+      content_width: "boxed",
+      width: { unit: "%", size: "", sizes: [] },
+      min_height: { unit: "px", size: "", sizes: [] },
+      flex_gap: { column: "0", row: "0", isLinked: true, unit: "px", size: 0 },
+      padding: { unit: "px", top: "0", right: "0", bottom: "0", left: "0", isLinked: false },
+      background_background: "classic",
+      ...extractedSettings
     };
 
     // Extract child elements
-    const innerContainer = element.querySelector(':scope > .e-con-inner');
+    const innerContainer = element.querySelector('.e-con-inner') || element;
     if (innerContainer) {
       elementData.elements = extractElementsFromHtml(innerContainer);
     }
@@ -109,7 +118,7 @@ const extractElementData = (element: Element): ElementorElement | null => {
   // Handle widget specific content
   if (elementType === 'widget') {
     elementData.settings = {
-      ...elementData.settings,
+      ...extractedSettings,
       ...extractWidgetContent(element, widgetType || ''),
     };
   }
@@ -126,6 +135,8 @@ const extractWidgetContent = (element: Element, widgetType: string): Record<stri
       if (heading) {
         settings.title = heading.textContent || '';
         settings.header_size = heading.tagName.toLowerCase();
+        settings.title_color = "";
+        settings.typography_typography = "custom";
       }
       break;
 
@@ -141,8 +152,16 @@ const extractWidgetContent = (element: Element, widgetType: string): Record<stri
       if (img) {
         settings.image = {
           url: img.getAttribute('src') || '',
-          alt: img.getAttribute('alt') || '',
+          id: "",
+          size: ""
         };
+        
+        // Extract animation settings if present
+        const animationClass = element.classList.toString();
+        if (animationClass.includes('elementor-invisible')) {
+          settings._animation = "fadeIn";
+          settings._animation_delay = 500;
+        }
       }
       break;
 
