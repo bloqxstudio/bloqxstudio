@@ -1,89 +1,76 @@
 
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, Home, Grid, Search, Shield } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/features/auth';
-import AuthButtons from '@/components/AuthButtons';
-import UserMenu from '@/components/UserMenu';
+import { useSelectedComponents } from '@/shared/contexts/SelectedComponentsContext';
+import UserMenu from './UserMenu';
+import AuthButtons from './AuthButtons';
 
-interface NavbarProps {
-  className?: string;
-}
-
-const Navbar: React.FC<NavbarProps> = ({ className }) => {
-  const { isAdmin, user } = useAuth();
+const Navbar = () => {
+  const { user, isAdmin } = useAuth();
+  const { selectedComponents } = useSelectedComponents();
   const location = useLocation();
-  
-  return (
-    <header className={cn('w-full border-b border-border/40 backdrop-blur-sm bg-background/95 sticky top-0 z-50', className)}>
-      <div className="container flex h-16 items-center justify-between px-4 md:px-6">
-        <div className="flex items-center gap-2">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="bg-primary h-8 w-8 flex items-center justify-center rounded-md">
-              <span className="text-primary-foreground font-bold text-xl">B</span>
-            </div>
-            <span className="font-semibold text-lg">Bloqx Studio</span>
-          </Link>
-        </div>
-        
-        <nav className="hidden md:flex items-center gap-6">
-          <Link 
-            to="/" 
-            className={cn(
-              "text-sm font-medium transition-colors hover:text-primary flex items-center gap-1",
-              location.pathname === '/' && "text-primary"
-            )}
-          >
-            <Home className="h-4 w-4" />
-            <span>Início</span>
-          </Link>
-          <Link 
-            to="/components" 
-            className={cn(
-              "text-sm font-medium transition-colors hover:text-primary flex items-center gap-1",
-              location.pathname === '/components' && "text-primary"
-            )}
-          >
-            <Grid className="h-4 w-4" />
-            <span>Componentes</span>
-          </Link>
-          {isAdmin && (
-            <Link 
-              to="/admin" 
-              className={cn(
-                "text-sm font-medium transition-colors hover:text-primary flex items-center gap-1",
-                location.pathname.startsWith('/admin') && "text-primary"
-              )}
-            >
-              <Shield className="h-4 w-4" />
-              <span>Admin</span>
-            </Link>
-          )}
-        </nav>
 
-        <div className="flex items-center gap-2">
-          <div className="relative w-full md:w-auto mr-2 hidden md:block">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <input
-              type="search"
-              placeholder="Buscar componentes..."
-              className="h-9 w-[200px] md:w-[250px] rounded-md border border-input bg-transparent pl-8 pr-3 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-            />
+  const isActive = (path: string) => location.pathname === path;
+
+  return (
+    <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex justify-between h-16">
+          <div className="flex items-center space-x-8">
+            <Link to="/" className="flex items-center">
+              <span className="text-xl font-bold text-primary">Superelements</span>
+            </Link>
+            
+            <div className="hidden md:flex items-center space-x-4">
+              <Button 
+                variant={isActive('/components') ? 'default' : 'ghost'} 
+                asChild 
+                size="sm"
+              >
+                <Link to="/components">Biblioteca</Link>
+              </Button>
+              
+              <Button 
+                variant={isActive('/superelements') ? 'default' : 'ghost'} 
+                asChild 
+                size="sm"
+              >
+                <Link to="/superelements">Superelements</Link>
+              </Button>
+              
+              {user && (
+                <Button 
+                  variant={isActive('/wordpress') ? 'default' : 'ghost'} 
+                  asChild 
+                  size="sm"
+                >
+                  <Link to="/wordpress">WordPress</Link>
+                </Button>
+              )}
+              
+              {isAdmin && (
+                <Button variant={isActive('/admin') ? 'default' : 'ghost'} asChild size="sm">
+                  <Link to="/admin">Admin</Link>
+                </Button>
+              )}
+            </div>
           </div>
-          {user && (
-            <Button asChild size="sm" className="hover-lift mr-2">
-              <Link to="/components/new">
-                <PlusCircle className="mr-1 h-4 w-4" />
-                Novo
-              </Link>
-            </Button>
-          )}
-          {user ? <UserMenu /> : <AuthButtons />}
+
+          <div className="flex items-center space-x-4">
+            {selectedComponents.length > 0 && (
+              <Badge variant="secondary" className="hidden sm:flex">
+                {selectedComponents.length} selecionado{selectedComponents.length !== 1 ? 's' : ''}
+              </Badge>
+            )}
+            
+            {user ? <UserMenu /> : <AuthButtons />}
+          </div>
         </div>
       </div>
-    </header>
+    </nav>
   );
 };
 

@@ -1,96 +1,101 @@
 
-import { Toaster } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "@/features/auth";
-import { SelectedComponentsProvider } from "@/shared/contexts/SelectedComponentsContext";
-import Index from "@/pages/Index";
-import Login from "@/pages/Login";
-import Register from "@/pages/Register";
-import Components from "@/pages/Components";
-import ComponentDetail from "@/pages/ComponentDetail";
-import ComponentCreate from "@/pages/ComponentCreate";
-import ComponentEdit from "@/pages/ComponentEdit";
-import UserComponentEdit from "@/pages/UserComponentEdit";
-import UserProfile from "@/pages/UserProfile";
-import UserManagement from "@/pages/UserManagement";
-import AdminPanel from "@/pages/AdminPanel";
-import WordPressIntegration from "@/pages/WordPressIntegration";
-import NotFound from "@/pages/NotFound";
-import ProtectedRoute from "@/components/ProtectedRoute";
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { Toaster } from 'sonner';
+import { AuthProvider } from '@/features/auth';
+import { SelectedComponentsProvider } from '@/shared/contexts/SelectedComponentsContext';
+import ProtectedRoute from '@/components/ProtectedRoute';
+import Navbar from '@/components/Navbar';
 
-const queryClient = new QueryClient();
+// Pages
+import Index from '@/pages/Index';
+import Components from '@/pages/Components';
+import SuperelementsComponents from '@/pages/SuperelementsComponents';
+import ComponentDetail from '@/pages/ComponentDetail';
+import ComponentCreate from '@/pages/ComponentCreate';
+import ComponentEdit from '@/pages/ComponentEdit';
+import UserComponentEdit from '@/pages/UserComponentEdit';
+import Login from '@/pages/Login';
+import Register from '@/pages/Register';
+import UserProfile from '@/pages/UserProfile';
+import AdminPanel from '@/pages/AdminPanel';
+import UserManagement from '@/pages/UserManagement';
+import WordPressIntegration from '@/pages/WordPressIntegration';
+import NotFound from '@/pages/NotFound';
+
+import './App.css';
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <AuthProvider>
-          <SelectedComponentsProvider>
-            <Toaster />
-            <BrowserRouter>
+      <AuthProvider>
+        <SelectedComponentsProvider>
+          <Router>
+            <div className="min-h-screen bg-background">
+              <Navbar />
               <Routes>
                 <Route path="/" element={<Index />} />
+                <Route path="/components" element={<Components />} />
+                <Route path="/superelements" element={<SuperelementsComponents />} />
+                <Route path="/component/:id" element={<ComponentDetail />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
-                <Route path="/components" element={<Components />} />
-                <Route path="/components/:id" element={<ComponentDetail />} />
-                <Route path="/wordpress" element={<WordPressIntegration />} />
-                <Route
-                  path="/create"
-                  element={
-                    <ProtectedRoute>
-                      <ComponentCreate />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/components/:id/edit"
-                  element={
-                    <ProtectedRoute adminOnly>
-                      <ComponentEdit />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/components/:id/edit"
-                  element={
-                    <ProtectedRoute>
-                      <UserComponentEdit />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/profile"
-                  element={
-                    <ProtectedRoute>
-                      <UserProfile />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin/users"
-                  element={
-                    <ProtectedRoute adminOnly>
-                      <UserManagement />
-                    </ProtectedRoute>
-                  }
-                />
-                <Route
-                  path="/admin"
-                  element={
-                    <ProtectedRoute adminOnly>
-                      <AdminPanel />
-                    </ProtectedRoute>
-                  }
-                />
+                
+                {/* Protected Routes */}
+                <Route path="/profile" element={
+                  <ProtectedRoute>
+                    <UserProfile />
+                  </ProtectedRoute>
+                } />
+                <Route path="/components/new" element={
+                  <ProtectedRoute>
+                    <ComponentCreate />
+                  </ProtectedRoute>
+                } />
+                <Route path="/components/:id/edit" element={
+                  <ProtectedRoute>
+                    <UserComponentEdit />
+                  </ProtectedRoute>
+                } />
+                <Route path="/wordpress" element={
+                  <ProtectedRoute>
+                    <WordPressIntegration />
+                  </ProtectedRoute>
+                } />
+                
+                {/* Admin Routes */}
+                <Route path="/admin" element={
+                  <ProtectedRoute requireAdmin>
+                    <AdminPanel />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/users" element={
+                  <ProtectedRoute requireAdmin>
+                    <UserManagement />
+                  </ProtectedRoute>
+                } />
+                <Route path="/admin/components/:id/edit" element={
+                  <ProtectedRoute requireAdmin>
+                    <ComponentEdit />
+                  </ProtectedRoute>
+                } />
+                
                 <Route path="*" element={<NotFound />} />
               </Routes>
-            </BrowserRouter>
-          </SelectedComponentsProvider>
-        </AuthProvider>
-      </TooltipProvider>
+            </div>
+            <Toaster position="top-right" />
+          </Router>
+        </SelectedComponentsProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
