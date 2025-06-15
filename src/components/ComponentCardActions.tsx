@@ -19,10 +19,6 @@ const ComponentCardActions: React.FC<ComponentCardActionsProps> = ({
   const { user } = useAuth();
   const [copied, setCopied] = useState(false);
 
-  // Check if it's a WordPress component with valid URL
-  const isWordPressComponent = component.source === 'wordpress';
-  const hasRealWordPressLink = isWordPressComponent && component.wordpress_post_url;
-
   const handleCopyCode = async () => {
     if (!user) {
       toast.error('You need to be logged in to copy the code');
@@ -30,16 +26,7 @@ const ComponentCardActions: React.FC<ComponentCardActionsProps> = ({
     }
 
     try {
-      // For WordPress posts, copy the real link
-      if (hasRealWordPressLink) {
-        await navigator.clipboard.writeText(component.wordpress_post_url!);
-        setCopied(true);
-        toast.success('Post link copied!');
-        setTimeout(() => setCopied(false), 2000);
-        return;
-      }
-
-      // For other components, copy the processed JSON
+      // Always copy the processed JSON code
       const processedJson = cleanElementorJson(
         component.json_code || component.code || '[]',
         false,
@@ -49,14 +36,14 @@ const ComponentCardActions: React.FC<ComponentCardActionsProps> = ({
 
       await navigator.clipboard.writeText(processedJson);
       setCopied(true);
-      toast.success('Optimized JSON copied! Ready to paste in Elementor');
+      toast.success('Code copied to clipboard!');
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
       console.error('Error processing and copying:', error);
       try {
         await navigator.clipboard.writeText(component.json_code || component.code || '[]');
         setCopied(true);
-        toast.success('Code copied!');
+        toast.success('Code copied to clipboard!');
         setTimeout(() => setCopied(false), 2000);
       } catch (copyError) {
         toast.error('Error copying code');
@@ -83,7 +70,7 @@ const ComponentCardActions: React.FC<ComponentCardActionsProps> = ({
         onClick={handleCopyCode}
         disabled={copied}
         className="flex-1"
-        title={hasRealWordPressLink ? 'Copy Link' : 'Copy Code'}
+        title="Copy Code"
       >
         {copied ? (
           <>
@@ -93,7 +80,7 @@ const ComponentCardActions: React.FC<ComponentCardActionsProps> = ({
         ) : (
           <>
             <Copy className="h-4 w-4 mr-1" />
-            {hasRealWordPressLink ? 'Copy Link' : 'Copy'}
+            Copy
           </>
         )}
       </Button>
