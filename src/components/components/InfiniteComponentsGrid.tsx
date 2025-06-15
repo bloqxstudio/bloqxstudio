@@ -3,9 +3,9 @@ import React, { useEffect } from 'react';
 import { Component } from '@/core/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Filter, Loader2 } from 'lucide-react';
+import { Filter } from 'lucide-react';
 import ComponentCard from '@/components/ComponentCard';
-import { ComponentsGridSkeleton } from '@/components/ui/component-skeleton';
+import { ComponentsGridSkeleton, InfiniteLoadingSkeleton } from '@/components/ui/component-skeleton';
 import { useIntersectionObserver } from '@/hooks/useIntersectionObserver';
 
 interface InfiniteComponentsGridProps {
@@ -29,14 +29,16 @@ const InfiniteComponentsGrid: React.FC<InfiniteComponentsGridProps> = ({
   hasNextPage,
   isFetchingNextPage,
 }) => {
-  // Intersection observer for infinite scroll
+  // Intersection observer for infinite scroll - mais agressivo
   const { elementRef: loadMoreRef, isVisible: shouldLoadMore } = useIntersectionObserver({
-    threshold: 0.1,
+    threshold: 0.3, // Trigger mais cedo
+    rootMargin: '200px', // Trigger quando ainda está 200px longe
   });
 
   // Trigger next page load when scroll trigger becomes visible
   useEffect(() => {
     if (shouldLoadMore && hasNextPage && !isFetchingNextPage && fetchNextPage) {
+      console.log('🚀 Auto-loading next page via intersection...');
       fetchNextPage();
     }
   }, [shouldLoadMore, hasNextPage, isFetchingNextPage, fetchNextPage]);
@@ -50,16 +52,11 @@ const InfiniteComponentsGrid: React.FC<InfiniteComponentsGridProps> = ({
     isFetchingNextPage,
   });
 
+  // Loading inicial com skeletons
   if (isLoading && filteredComponents.length === 0) {
     return (
       <div className="space-y-6">
-        <div className="flex justify-center py-8">
-          <div className="flex flex-col items-center">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-            <p className="mt-2 text-sm text-muted-foreground">Carregando componentes...</p>
-          </div>
-        </div>
-        <ComponentsGridSkeleton count={12} />
+        <ComponentsGridSkeleton count={10} />
       </div>
     );
   }
@@ -84,7 +81,7 @@ const InfiniteComponentsGrid: React.FC<InfiniteComponentsGridProps> = ({
     );
   }
 
-  if (filteredComponents.length === 0) {
+  if (filteredComponents.length === 0 && !isLoading) {
     console.log('📭 No components found after filters');
     return (
       <Card className="border-dashed">
@@ -120,39 +117,21 @@ const InfiniteComponentsGrid: React.FC<InfiniteComponentsGridProps> = ({
         })}
       </div>
 
-      {/* Load More Trigger */}
+      {/* Invisible trigger for infinite scroll - sem botão */}
       {hasNextPage && (
         <div
           ref={loadMoreRef}
-          className="flex justify-center py-8"
+          className="h-20 flex items-center justify-center"
         >
-          {isFetchingNextPage ? (
-            <div className="flex flex-col items-center">
-              <Loader2 className="h-6 w-6 animate-spin text-primary" />
-              <p className="mt-2 text-sm text-muted-foreground">Carregando mais componentes...</p>
-            </div>
-          ) : (
-            <Button 
-              onClick={fetchNextPage}
-              variant="outline" 
-              className="min-w-32"
-            >
-              Carregar mais
-            </Button>
-          )}
+          {isFetchingNextPage && <InfiniteLoadingSkeleton />}
         </div>
-      )}
-
-      {/* Loading skeleton for next page */}
-      {isFetchingNextPage && (
-        <ComponentsGridSkeleton count={8} />
       )}
 
       {/* End message */}
       {!hasNextPage && filteredComponents.length > 0 && (
         <div className="text-center py-8">
           <p className="text-sm text-muted-foreground">
-            Todos os componentes foram carregados ({filteredComponents.length} total)
+            ✨ Todos os componentes foram carregados ({filteredComponents.length} total)
           </p>
         </div>
       )}

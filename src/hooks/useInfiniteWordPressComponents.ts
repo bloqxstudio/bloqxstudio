@@ -17,7 +17,9 @@ interface ComponentsPageData {
   page: number;
 }
 
-const COMPONENTS_PER_PAGE = 24;
+// Reduzido para carregamento ultra-rápido
+const INITIAL_COMPONENTS_PER_PAGE = 10;
+const SUBSEQUENT_COMPONENTS_PER_PAGE = 20;
 
 // Helper function to fetch WordPress posts with pagination
 const fetchWordPressComponentsPage = async (
@@ -25,7 +27,7 @@ const fetchWordPressComponentsPage = async (
   siteUrl: string, 
   apiKey: string, 
   page: number = 1,
-  perPage: number = COMPONENTS_PER_PAGE
+  perPage: number = INITIAL_COMPONENTS_PER_PAGE
 ): Promise<{ posts: any[], hasMore: boolean, totalPages: number }> => {
   let authHeader;
   if (apiKey.includes(':')) {
@@ -83,7 +85,7 @@ export const useInfiniteWordPressComponents = ({
   searchTerm, 
   selectedCategory, 
   selectedSite,
-  pageSize = COMPONENTS_PER_PAGE
+  pageSize = INITIAL_COMPONENTS_PER_PAGE
 }: UseInfiniteWordPressComponentsProps) => {
   // Fetch WordPress sites
   const { data: sites = [] } = useQuery({
@@ -105,16 +107,20 @@ export const useInfiniteWordPressComponents = ({
     queryKey: ['wordpress-infinite-components', sitesToFetch.map(s => s.id), searchTerm, selectedCategory],
     queryFn: async ({ pageParam = 1 }): Promise<ComponentsPageData> => {
       const allComponents: Component[] = [];
+      const currentPage = pageParam as number;
+      
+      // Use smaller page size for first load, larger for subsequent loads
+      const currentPageSize = currentPage === 1 ? INITIAL_COMPONENTS_PER_PAGE : SUBSEQUENT_COMPONENTS_PER_PAGE;
       
       for (const site of sitesToFetch) {
         try {
-          console.log(`🔄 Fetching page ${pageParam} from ${site.site_name}...`);
+          console.log(`🔄 Fetching page ${currentPage} from ${site.site_name} (${currentPageSize} items)...`);
           const { posts, hasMore } = await fetchWordPressComponentsPage(
             site.id, 
             site.site_url, 
             site.api_key, 
-            pageParam as number,
-            Math.ceil(pageSize / sitesToFetch.length) // Distribute pageSize among sites
+            currentPage,
+            Math.ceil(currentPageSize / sitesToFetch.length) // Distribute pageSize among sites
           );
           
           const siteComponents = posts.map(post => 
@@ -126,12 +132,12 @@ export const useInfiniteWordPressComponents = ({
         }
       }
       
-      console.log(`✅ Page ${pageParam}: ${allComponents.length} components fetched`);
-      return { components: allComponents, page: pageParam as number };
+      console.log(`✅ Page ${currentPage}: ${allComponents.length} components fetched (ultra-fast mode)`);
+      return { components: allComponents, page: currentPage };
     },
     getNextPageParam: (lastPage, allPages) => {
-      // Simple pagination - in a real scenario you'd check if there are more pages per site
-      return allPages.length < 10 ? allPages.length + 1 : undefined; // Limit to 10 pages for now
+      // Continue loading until we have enough content or hit limit
+      return allPages.length < 15 ? allPages.length + 1 : undefined; // Increased limit since pages are smaller
     },
     initialPageParam: 1,
     enabled: sitesToFetch.length > 0,

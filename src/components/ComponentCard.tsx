@@ -34,21 +34,22 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
   const { generatePreview, getPreviewState } = usePreviewGenerator();
   const previewState = getPreviewState(component.id);
 
-  // Intersection observer for lazy loading
+  // Intersection observer ultra-otimizado para lazy loading
   const { elementRef, isVisible } = useIntersectionObserver({
-    threshold: 0.1,
+    threshold: 0.05, // Trigger mais cedo para melhor UX
+    rootMargin: '100px', // Começar carregamento 100px antes
     freezeOnceVisible: true,
   });
 
   // Verificar se é um componente do WordPress com URL válida
   const isWordPressComponent = component.source === 'wordpress' && component.slug;
 
-  // Lazy load preview when component becomes visible
+  // Lazy load preview de forma muito mais conservadora
   useEffect(() => {
     if (isVisible && !shouldLoadPreview) {
       setShouldLoadPreview(true);
       
-      // Delay preview generation slightly to avoid blocking the UI
+      // Delay maior para evitar carregamento desnecessário durante scroll rápido
       const timer = setTimeout(() => {
         const shouldGeneratePreview = !isWordPressComponent &&
                                      !component.preview_image && 
@@ -59,7 +60,7 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
         if (shouldGeneratePreview) {
           generatePreview(component);
         }
-      }, 100);
+      }, 300); // Delay aumentado para 300ms
 
       return () => clearTimeout(timer);
     }
@@ -115,12 +116,12 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
   };
 
   const getPreviewContent = () => {
-    // Only load preview if component is visible
+    // Placeholder mais atraente durante carregamento
     if (!shouldLoadPreview) {
       return (
-        <div className="w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
-          <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
-            <div className="text-lg">📝</div>
+        <div className="w-full h-full bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center animate-pulse">
+          <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-blue-200 to-purple-200 flex items-center justify-center shadow-sm">
+            <div className="text-xl">⚡</div>
           </div>
         </div>
       );
