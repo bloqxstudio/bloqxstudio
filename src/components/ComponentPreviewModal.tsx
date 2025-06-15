@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -58,7 +57,25 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
 
   // Verificar se é componente WordPress
   const isWordPressComponent = component.source === 'wordpress' && component.slug;
-  const postUrl = isWordPressComponent ? `https://superelements.io/${component.slug}/` : null;
+  
+  // Construir URL real do post WordPress
+  const getRealPostUrl = () => {
+    if (!isWordPressComponent || !component.source_site || !component.slug) return null;
+    
+    // Garantir que source_site tenha protocol
+    let siteUrl = component.source_site;
+    if (!siteUrl.startsWith('http://') && !siteUrl.startsWith('https://')) {
+      siteUrl = `https://${siteUrl}`;
+    }
+    
+    // Remover trailing slash
+    siteUrl = siteUrl.replace(/\/$/, '');
+    
+    // Construir URL completa do post
+    return `${siteUrl}/${component.slug}/`;
+  };
+
+  const postUrl = getRealPostUrl();
 
   // Reset states when modal opens
   useEffect(() => {
