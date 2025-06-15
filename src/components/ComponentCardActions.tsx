@@ -26,8 +26,10 @@ const ComponentCardActions: React.FC<ComponentCardActionsProps> = ({
     }
 
     try {
-      // Use the centralized transformation for EXACT Supabase/Elementor compatibility
+      // Get the raw JSON from the component
       const sourceJson = component.json_code || component.code || '[]';
+      
+      // Apply the EXACT same transformation as JsonTransformer
       const elementorStandardJson = getStandardTransformedJson(sourceJson);
 
       await navigator.clipboard.writeText(elementorStandardJson);
