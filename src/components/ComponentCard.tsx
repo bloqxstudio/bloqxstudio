@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -42,7 +41,8 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
   });
 
   // Verificar se é um componente do WordPress com URL válida
-  const isWordPressComponent = component.source === 'wordpress' && component.slug;
+  const isWordPressComponent = component.source === 'wordpress';
+  const hasRealWordPressLink = isWordPressComponent && component.wordpress_post_url;
 
   // Lazy load preview de forma muito mais conservadora
   useEffect(() => {
@@ -73,6 +73,16 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
     }
 
     try {
+      // Para posts WordPress, copiar o link real
+      if (hasRealWordPressLink) {
+        await navigator.clipboard.writeText(component.wordpress_post_url!);
+        setCopied(true);
+        toast.success('Link do post copiado!');
+        setTimeout(() => setCopied(false), 2000);
+        return;
+      }
+
+      // Para outros componentes, copiar o JSON processado
       const processedJson = cleanElementorJson(
         component.json_code || component.code || '[]',
         false,
@@ -85,7 +95,7 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
       toast.success('Optimized JSON copied! Ready to paste in Elementor');
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
-      console.error('Error processing and copying JSON:', error);
+      console.error('Error processing and copying:', error);
       try {
         await navigator.clipboard.writeText(component.json_code || component.code || '[]');
         setCopied(true);
@@ -98,6 +108,13 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
   };
 
   const handlePreview = () => {
+    // Para posts WordPress com link real, abrir em nova aba
+    if (hasRealWordPressLink) {
+      window.open(component.wordpress_post_url, '_blank', 'noopener,noreferrer');
+      return;
+    }
+
+    // Para outros componentes, abrir modal de preview
     setPreviewOpen(true);
   };
 
@@ -216,7 +233,7 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
               className="flex-1"
             >
               <Eye className="h-4 w-4 mr-1" />
-              {isWordPressComponent ? 'View Site' : 'Preview'}
+              {hasRealWordPressLink ? 'Ver Post' : isWordPressComponent ? 'View Site' : 'Preview'}
             </Button>
             
             <Button
@@ -234,7 +251,7 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
               ) : (
                 <>
                   <Copy className="h-4 w-4 mr-1" />
-                  Copy
+                  {hasRealWordPressLink ? 'Copy Link' : 'Copy'}
                 </>
               )}
             </Button>

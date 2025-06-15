@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Component } from '@/core/types';
@@ -66,6 +65,7 @@ const convertWordPressPostToComponent = (post: any, siteId: string, siteName: st
     slug: post.slug,
     wordpress_category_id: post.categories?.[0],
     wordpress_category_name: undefined,
+    wordpress_post_url: post.link, // Capturar o link real do post
   };
 };
 

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Component } from '@/core/types';
 import { Card, CardContent } from '@/components/ui/card';
@@ -90,7 +89,7 @@ const ComponentsGrid: React.FC<ComponentsGridProps> = ({
   console.log(`🎨 Rendering grid with ${filteredComponents.length} components`);
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       {filteredComponents.map((component, index) => {
         console.log(`🔧 Rendering card ${index + 1}:`, {
           id: component.id,

@@ -18,12 +18,13 @@ export interface Component {
   alignment?: 'left' | 'center' | 'right' | 'full';
   columns?: '1' | '2' | '3+';
   elements?: ('button' | 'video' | 'image' | 'list' | 'heading')[];
-  source?: 'local' | 'wordpress'; // Add source property to the base Component type
+  source?: 'local' | 'wordpress' | 'superelements'; // Updated to include superelements
   source_site?: string;
   wordpress_site_id?: string;
   slug?: string; // WordPress post slug for URL construction
   wordpress_category_id?: number;
   wordpress_category_name?: string;
+  wordpress_post_url?: string; // Link real do post WordPress
 }
 
 export interface Category {

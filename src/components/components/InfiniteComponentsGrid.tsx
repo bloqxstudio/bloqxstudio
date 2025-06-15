@@ -29,10 +29,10 @@ const InfiniteComponentsGrid: React.FC<InfiniteComponentsGridProps> = ({
   hasNextPage,
   isFetchingNextPage,
 }) => {
-  // Intersection observer for infinite scroll - mais agressivo
+  // Intersection observer for infinite scroll
   const { elementRef: loadMoreRef, isVisible: shouldLoadMore } = useIntersectionObserver({
-    threshold: 0.3, // Trigger mais cedo
-    rootMargin: '200px', // Trigger quando ainda está 200px longe
+    threshold: 0.3,
+    rootMargin: '200px',
   });
 
   // Trigger next page load when scroll trigger becomes visible
@@ -102,8 +102,8 @@ const InfiniteComponentsGrid: React.FC<InfiniteComponentsGridProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Components Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6 gap-4">
+      {/* Components Grid - 3 colunas */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredComponents.map((component, index) => {
           console.log(`🔧 Rendering card ${index + 1}:`, {
             id: component.id,
@@ -117,7 +117,7 @@ const InfiniteComponentsGrid: React.FC<InfiniteComponentsGridProps> = ({
         })}
       </div>
 
-      {/* Invisible trigger for infinite scroll - sem botão */}
+      {/* Invisible trigger for infinite scroll */}
       {hasNextPage && (
         <div
           ref={loadMoreRef}

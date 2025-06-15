@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Component } from '@/core/types';
 import { AlertCircle, Loader2 } from 'lucide-react';
@@ -24,22 +23,31 @@ const ComponentPreviewEmbed: React.FC<ComponentPreviewEmbedProps> = ({
   });
 
   // Verificar se é componente WordPress
-  const isWordPressComponent = component.source === 'wordpress' && component.slug;
+  const isWordPressComponent = component.source === 'wordpress';
   
-  // Construir URL real do post WordPress
-  const getRealPostUrl = () => {
-    if (!isWordPressComponent || !component.source_site || !component.slug) return null;
+  // Usar o link real do WordPress se disponível, senão construir URL
+  const getPreviewUrl = () => {
+    if (!isWordPressComponent) return null;
     
-    let siteUrl = component.source_site;
-    if (!siteUrl.startsWith('http://') && !siteUrl.startsWith('https://')) {
-      siteUrl = `https://${siteUrl}`;
+    // Prioridade para o link real do post
+    if (component.wordpress_post_url) {
+      return component.wordpress_post_url;
     }
     
-    siteUrl = siteUrl.replace(/\/$/, '');
-    return `${siteUrl}/${component.slug}/`;
+    // Fallback para construção manual se disponível
+    if (component.source_site && component.slug) {
+      let siteUrl = component.source_site;
+      if (!siteUrl.startsWith('http://') && !siteUrl.startsWith('https://')) {
+        siteUrl = `https://${siteUrl}`;
+      }
+      siteUrl = siteUrl.replace(/\/$/, '');
+      return `${siteUrl}/${component.slug}/`;
+    }
+    
+    return null;
   };
 
-  const previewUrl = getRealPostUrl();
+  const previewUrl = getPreviewUrl();
 
   // Timeout para fallback em caso de carregamento lento
   useEffect(() => {
@@ -101,7 +109,7 @@ const ComponentPreviewEmbed: React.FC<ComponentPreviewEmbedProps> = ({
           <AlertCircle className="w-6 h-6 text-gray-400 mb-2" />
           <div className="text-center">
             <div className="text-sm font-medium text-gray-600">Preview indisponível</div>
-            <div className="text-xs text-gray-500">Use o botão Visualizar</div>
+            <div className="text-xs text-gray-500">Use o botão "Ver Post"</div>
           </div>
         </>
       ) : (
@@ -111,7 +119,9 @@ const ComponentPreviewEmbed: React.FC<ComponentPreviewEmbedProps> = ({
           </div>
           <div className="text-center">
             <div className="text-sm font-medium text-gray-700">{component.title}</div>
-            <div className="text-xs text-gray-500">Componente Elementor</div>
+            <div className="text-xs text-gray-500">
+              {isWordPressComponent ? 'Post WordPress' : 'Componente Elementor'}
+            </div>
           </div>
         </>
       )}
@@ -133,7 +143,7 @@ const ComponentPreviewEmbed: React.FC<ComponentPreviewEmbedProps> = ({
         </div>
       )}
 
-      {/* WordPress iframe preview - apenas se visível */}
+      {/* WordPress iframe preview - apenas se visível e com URL válida */}
       {isVisible && previewUrl && loadState !== 'error' ? (
         <iframe
           ref={iframeRef}
