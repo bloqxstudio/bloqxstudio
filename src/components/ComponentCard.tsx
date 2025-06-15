@@ -28,7 +28,6 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
   const { user } = useAuth();
   const [copied, setCopied] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
-  const [generatedPreview, setGeneratedPreview] = useState<string | null>(null);
   
   const { generatePreview, getPreviewState, regeneratePreview } = usePreviewGenerator();
   const previewState = getPreviewState(component.id);
@@ -41,13 +40,7 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
                                  !previewState.error;
 
     if (shouldGeneratePreview) {
-      console.log(`🚀 Auto-gerando preview para: ${component.title}`);
-      generatePreview(component).then(url => {
-        if (url) {
-          setGeneratedPreview(url);
-          console.log(`✅ Preview auto-gerado para: ${component.title}`);
-        }
-      });
+      generatePreview(component);
     }
   }, [component, generatePreview, previewState]);
 
@@ -71,7 +64,15 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
       console.error('Erro ao processar e copiar JSON:', error);
-      toast.error('Erro ao processar o código');
+      // Se falhar na limpeza, tentar copiar o código original
+      try {
+        await navigator.clipboard.writeText(component.json_code || component.code || '[]');
+        setCopied(true);
+        toast.success('Código copiado!');
+        setTimeout(() => setCopied(false), 2000);
+      } catch (copyError) {
+        toast.error('Erro ao copiar o código');
+      }
     }
   };
 
@@ -80,13 +81,11 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
   };
 
   const handleRegeneratePreview = async () => {
-    console.log(`🔄 Regenerando preview manualmente para: ${component.title}`);
     toast.info('Regenerando preview...');
     
     try {
       const newPreview = await regeneratePreview(component);
       if (newPreview) {
-        setGeneratedPreview(newPreview);
         toast.success('Preview regenerado com sucesso!');
       } else {
         toast.error('Não foi possível regenerar o preview');
@@ -140,7 +139,7 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
             <Loader2 className="w-8 h-8 animate-spin" />
             <div className="text-center">
               <div className="text-sm font-medium">Gerando preview...</div>
-              <div className="text-xs opacity-75">Renderizando componente</div>
+              <div className="text-xs opacity-75">Criando visualização</div>
             </div>
           </div>
         </div>
@@ -148,28 +147,18 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
     }
 
     // Preview gerado com sucesso
-    if (previewState.previewUrl || generatedPreview) {
-      const previewUrl = previewState.previewUrl || generatedPreview!;
-      const method = previewState.method || 'unknown';
-      
+    if (previewState.previewUrl) {
       return (
         <div className="w-full h-full relative group">
           <img
-            src={previewUrl}
+            src={previewState.previewUrl}
             alt={`Preview: ${component.title}`}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
             loading="lazy"
           />
-          <div className="absolute top-2 right-2 flex gap-1">
-            <Badge 
-              variant="secondary" 
-              className={`text-xs ${
-                method === 'screenshot' ? 'bg-green-100 text-green-800' : 
-                method === 'svg' ? 'bg-blue-100 text-blue-800' : 
-                'bg-gray-100 text-gray-800'
-              }`}
-            >
-              {method === 'screenshot' ? '📸' : method === 'svg' ? '🎨' : '🤖'}
+          <div className="absolute top-2 right-2">
+            <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-800">
+              🎨 SVG
             </Badge>
           </div>
           
@@ -258,13 +247,6 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
                     +{component.tags.length - 3}
                   </Badge>
                 )}
-              </div>
-            )}
-
-            {/* Debug info (apenas em desenvolvimento) */}
-            {process.env.NODE_ENV === 'development' && previewState.method && (
-              <div className="text-xs text-gray-500 mb-2">
-                Preview: {previewState.method} | JSON: {previewState.isValidJson !== false ? '✅' : '❌'}
               </div>
             )}
           </div>
