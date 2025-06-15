@@ -76,6 +76,14 @@ export function AppSidebar({
     return acc;
   }, {} as Record<string, { site: any; categories: WordPressCategory[] }>);
 
+  console.log('🎯 AppSidebar state:', {
+    selectedCategory,
+    selectedSite,
+    categoriesCount: categories.length,
+    sitesCount: sites.length,
+    categoriesBySite: Object.keys(categoriesBySite),
+  });
+
   return (
     <Sidebar>
       <SidebarHeader className="border-b">
@@ -103,6 +111,7 @@ export function AppSidebar({
               <SidebarMenuItem>
                 <SidebarMenuButton
                   onClick={() => {
+                    console.log('🔄 Clearing all filters');
                     onCategoryChange(null);
                     onSiteChange(null);
                   }}
@@ -135,12 +144,13 @@ export function AppSidebar({
                 <SidebarGroupLabel>
                   <button
                     onClick={() => {
+                      console.log('🔄 Site filter clicked:', siteId, selectedSite === siteId ? 'deselecting' : 'selecting');
                       onSiteChange(selectedSite === siteId ? null : siteId);
                       onCategoryChange(null);
                     }}
                     className={cn(
                       "flex items-center gap-2 w-full text-left hover:text-primary transition-colors",
-                      selectedSite === siteId && "text-primary"
+                      selectedSite === siteId && "text-primary font-medium"
                     )}
                   >
                     <Globe className="h-3 w-3" />
@@ -162,8 +172,11 @@ export function AppSidebar({
                       siteCategories.map((category) => (
                         <SidebarMenuItem key={category.id}>
                           <SidebarMenuButton
-                            onClick={() => onCategoryChange(category.id)}
-                            isActive={selectedCategory === category.id}
+                            onClick={() => {
+                              console.log('🔄 Category filter clicked:', category.category_id, category.name);
+                              onCategoryChange(category.category_id.toString());
+                            }}
+                            isActive={selectedCategory === category.category_id.toString()}
                             className="w-full justify-between"
                           >
                             <span className="truncate">{category.name}</span>

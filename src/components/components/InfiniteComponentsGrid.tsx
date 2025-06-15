@@ -1,12 +1,11 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Component } from '@/core/types';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Filter } from 'lucide-react';
+import { Filter, Loader2 } from 'lucide-react';
 import ComponentCard from '@/components/ComponentCard';
-import { ComponentsGridSkeleton, InfiniteLoadingSkeleton } from '@/components/ui/component-skeleton';
-import { useIntersectionObserver } from '@/hooks/useIntersectionObserver';
+import { ComponentsGridSkeleton } from '@/components/ui/component-skeleton';
 
 interface InfiniteComponentsGridProps {
   components: Component[];
@@ -29,19 +28,37 @@ const InfiniteComponentsGrid: React.FC<InfiniteComponentsGridProps> = ({
   hasNextPage,
   isFetchingNextPage,
 }) => {
-  // Intersection observer for infinite scroll
-  const { elementRef: loadMoreRef, isVisible: shouldLoadMore } = useIntersectionObserver({
-    threshold: 0.3,
-    rootMargin: '200px',
-  });
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
-  // Trigger next page load when scroll trigger becomes visible
+  // Improved intersection observer for infinite scroll
   useEffect(() => {
-    if (shouldLoadMore && hasNextPage && !isFetchingNextPage && fetchNextPage) {
-      console.log('🚀 Auto-loading next page via intersection...');
-      fetchNextPage();
+    if (!hasNextPage || isFetchingNextPage || !fetchNextPage) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (entry.isIntersecting) {
+          console.log('🚀 Triggering fetchNextPage via intersection');
+          fetchNextPage();
+        }
+      },
+      {
+        threshold: 0.1,
+        rootMargin: '100px',
+      }
+    );
+
+    const currentRef = loadMoreRef.current;
+    if (currentRef) {
+      observer.observe(currentRef);
     }
-  }, [shouldLoadMore, hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef);
+      }
+    };
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   console.log('🎯 InfiniteComponentsGrid rendering:', {
     totalComponents: components.length,
@@ -56,7 +73,7 @@ const InfiniteComponentsGrid: React.FC<InfiniteComponentsGridProps> = ({
   if (isLoading && filteredComponents.length === 0) {
     return (
       <div className="space-y-6">
-        <ComponentsGridSkeleton count={10} />
+        <ComponentsGridSkeleton count={12} />
       </div>
     );
   }
@@ -117,13 +134,18 @@ const InfiniteComponentsGrid: React.FC<InfiniteComponentsGridProps> = ({
         })}
       </div>
 
-      {/* Invisible trigger for infinite scroll */}
+      {/* Infinite scroll trigger */}
       {hasNextPage && (
         <div
           ref={loadMoreRef}
           className="h-20 flex items-center justify-center"
         >
-          {isFetchingNextPage && <InfiniteLoadingSkeleton />}
+          {isFetchingNextPage && (
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span className="text-sm">Carregando mais componentes...</span>
+            </div>
+          )}
         </div>
       )}
 

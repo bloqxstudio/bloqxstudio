@@ -1,3 +1,4 @@
+
 import { useMemo } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { Component } from '@/core/types';
@@ -14,11 +15,12 @@ interface UseInfiniteWordPressComponentsProps {
 interface ComponentsPageData {
   components: Component[];
   page: number;
+  hasMore: boolean;
 }
 
 // Reduzido para carregamento ultra-rápido
-const INITIAL_COMPONENTS_PER_PAGE = 10;
-const SUBSEQUENT_COMPONENTS_PER_PAGE = 20;
+const INITIAL_COMPONENTS_PER_PAGE = 12;
+const SUBSEQUENT_COMPONENTS_PER_PAGE = 24;
 
 // Helper function to fetch WordPress posts with pagination
 const fetchWordPressComponentsPage = async (
@@ -26,7 +28,8 @@ const fetchWordPressComponentsPage = async (
   siteUrl: string, 
   apiKey: string, 
   page: number = 1,
-  perPage: number = INITIAL_COMPONENTS_PER_PAGE
+  perPage: number = INITIAL_COMPONENTS_PER_PAGE,
+  categoryId?: string | null
 ): Promise<{ posts: any[], hasMore: boolean, totalPages: number }> => {
   let authHeader;
   if (apiKey.includes(':')) {
@@ -37,7 +40,13 @@ const fetchWordPressComponentsPage = async (
     authHeader = `Bearer ${apiKey}`;
   }
 
-  const response = await fetch(`${siteUrl}/wp-json/wp/v2/posts?per_page=${perPage}&page=${page}&status=publish`, {
+  // Build URL with category filter if provided
+  let url = `${siteUrl}/wp-json/wp/v2/posts?per_page=${perPage}&page=${page}&status=publish`;
+  if (categoryId && categoryId !== 'null') {
+    url += `&categories=${categoryId}`;
+  }
+
+  const response = await fetch(url, {
     headers: {
       'Authorization': authHeader,
       'Content-Type': 'application/json',
@@ -77,7 +86,7 @@ const convertWordPressPostToComponent = (post: any, siteId: string, siteName: st
     slug: post.slug,
     wordpress_category_id: post.categories?.[0],
     wordpress_category_name: undefined,
-    wordpress_post_url: post.link, // Capturar o link real do post
+    wordpress_post_url: post.link,
   };
 };
 
@@ -96,6 +105,13 @@ export const useInfiniteWordPressComponents = ({
   // Filter sites based on selection
   const sitesToFetch = selectedSite ? sites.filter(s => s.id === selectedSite) : sites;
 
+  console.log('🔧 useInfiniteWordPressComponents filters:', {
+    searchTerm,
+    selectedCategory,
+    selectedSite,
+    sitesToFetch: sitesToFetch.length,
+  });
+
   const {
     data,
     fetchNextPage,
@@ -112,69 +128,77 @@ export const useInfiniteWordPressComponents = ({
       // Use smaller page size for first load, larger for subsequent loads
       const currentPageSize = currentPage === 1 ? INITIAL_COMPONENTS_PER_PAGE : SUBSEQUENT_COMPONENTS_PER_PAGE;
       
+      let hasMorePages = false;
+      
       for (const site of sitesToFetch) {
         try {
-          console.log(`🔄 Fetching page ${currentPage} from ${site.site_name} (${currentPageSize} items)...`);
+          console.log(`🔄 Fetching page ${currentPage} from ${site.site_name} (category: ${selectedCategory})...`);
           const { posts, hasMore } = await fetchWordPressComponentsPage(
             site.id, 
             site.site_url, 
             site.api_key, 
             currentPage,
-            Math.ceil(currentPageSize / sitesToFetch.length) // Distribute pageSize among sites
+            Math.ceil(currentPageSize / sitesToFetch.length), // Distribute pageSize among sites
+            selectedCategory // Pass category filter to API
           );
           
           const siteComponents = posts.map(post => 
             convertWordPressPostToComponent(post, site.id, site.site_name || site.site_url)
           );
           allComponents.push(...siteComponents);
+          
+          if (hasMore) {
+            hasMorePages = true;
+          }
         } catch (error) {
           console.error(`❌ Error fetching from ${site.site_name}:`, error);
         }
       }
       
-      console.log(`✅ Page ${currentPage}: ${allComponents.length} components fetched (ultra-fast mode)`);
-      return { components: allComponents, page: currentPage };
+      console.log(`✅ Page ${currentPage}: ${allComponents.length} components fetched`);
+      return { 
+        components: allComponents, 
+        page: currentPage,
+        hasMore: hasMorePages
+      };
     },
     getNextPageParam: (lastPage, allPages) => {
-      // Continue loading until we have enough content or hit limit
-      return allPages.length < 15 ? allPages.length + 1 : undefined; // Increased limit since pages are smaller
+      // Continue if the last page had content and we haven't hit the limit
+      return lastPage.hasMore && allPages.length < 10 ? allPages.length + 1 : undefined;
     },
     initialPageParam: 1,
     enabled: sitesToFetch.length > 0,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    gcTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  // Flatten all pages and apply filters
+  // Flatten all pages
   const allComponents = useMemo(() => {
     if (!data?.pages) return [];
     
     return data.pages.flatMap(page => page.components);
   }, [data]);
 
-  // Filter components based on search and category
+  // Apply search filter (category filter is now applied at API level)
   const filteredComponents = useMemo(() => {
+    if (!searchTerm) return allComponents;
+    
     return allComponents.filter(component => {
-      // Search filter
-      if (searchTerm) {
-        const searchLower = searchTerm.toLowerCase();
-        const titleMatch = component.title.toLowerCase().includes(searchLower);
-        const descriptionMatch = component.description?.toLowerCase().includes(searchLower);
-        const sourceMatch = component.source_site?.toLowerCase().includes(searchLower);
-        
-        if (!titleMatch && !descriptionMatch && !sourceMatch) {
-          return false;
-        }
-      }
-
-      // Category filter
-      if (selectedCategory && component.wordpress_category_id?.toString() !== selectedCategory) {
-        return false;
-      }
-
-      return true;
+      const searchLower = searchTerm.toLowerCase();
+      const titleMatch = component.title.toLowerCase().includes(searchLower);
+      const descriptionMatch = component.description?.toLowerCase().includes(searchLower);
+      const sourceMatch = component.source_site?.toLowerCase().includes(searchLower);
+      
+      return titleMatch || descriptionMatch || sourceMatch;
     });
-  }, [allComponents, searchTerm, selectedCategory]);
+  }, [allComponents, searchTerm]);
+
+  console.log('🎯 Final filter results:', {
+    totalComponents: allComponents.length,
+    filteredComponents: filteredComponents.length,
+    hasNextPage,
+    isFetchingNextPage,
+  });
 
   return {
     components: allComponents,
