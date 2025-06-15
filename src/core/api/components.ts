@@ -1,4 +1,3 @@
-
 // API para buscar componentes diretamente do WordPress
 import { Component } from '@/core/types';
 import { getUserWordPressSites } from './wordpress-sites';
@@ -90,6 +89,12 @@ const extractTags = (title: string, content: string): string[] => {
   return [...new Set(tags)]; // Remove duplicatas
 };
 
+// Normalizar URL do site - garantir que sempre tenha formato consistente
+const normalizeSiteUrl = (siteUrl: string): string => {
+  // Remover protocol e trailing slash para armazenamento consistente
+  return siteUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
+};
+
 // Buscar componentes de um site WordPress conectado
 const getWordPressSiteComponents = async (siteId: string, siteUrl: string, apiKey: string, siteName: string): Promise<Component[]> => {
   try {
@@ -130,8 +135,8 @@ const getWordPressSiteComponents = async (siteId: string, siteUrl: string, apiKe
       const tags = extractTags(post.title.rendered, post.content.rendered);
       const description = `Componente de ${siteName}: ${post.title.rendered}`;
 
-      // Garantir que temos a URL completa do site sem protocol para source_site
-      const cleanSiteUrl = siteUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
+      // Normalizar URL do site para armazenamento consistente
+      const normalizedSiteUrl = normalizeSiteUrl(siteUrl);
 
       return {
         id: `${siteId}-${post.id}`,
@@ -148,7 +153,7 @@ const getWordPressSiteComponents = async (siteId: string, siteUrl: string, apiKe
         updated_at: post.modified,
         created_by: siteId,
         source: 'wordpress' as const,
-        source_site: cleanSiteUrl, // URL limpa sem protocol
+        source_site: normalizedSiteUrl, // URL normalizada sem protocol
         slug: post.slug,
         wordpress_site_id: siteId
       };
@@ -241,8 +246,8 @@ export const getComponentById = async (id: string): Promise<Component | null> =>
     const tags = extractTags(post.title.rendered, post.content.rendered);
     const description = `Componente de ${site.site_name || site.site_url}: ${post.title.rendered}`;
 
-    // Garantir que temos a URL completa do site sem protocol
-    const cleanSiteUrl = site.site_url.replace(/^https?:\/\//, '').replace(/\/$/, '');
+    // Normalizar URL do site
+    const normalizedSiteUrl = normalizeSiteUrl(site.site_url);
 
     return {
       id: `${siteId}-${post.id}`,
@@ -259,7 +264,7 @@ export const getComponentById = async (id: string): Promise<Component | null> =>
       updated_at: post.modified,
       created_by: siteId,
       source: 'wordpress' as const,
-      source_site: cleanSiteUrl, // URL limpa sem protocol
+      source_site: normalizedSiteUrl, // URL normalizada
       slug: post.slug,
       wordpress_site_id: siteId
     };

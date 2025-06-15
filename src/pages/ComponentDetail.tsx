@@ -90,18 +90,32 @@ const ComponentDetail = () => {
     navigate(`/components/edit/${id}`);
   };
 
-  // Construir URL do componente baseado nas informações
-  const getComponentUrl = () => {
+  // Construir URL do site de origem (sempre HTTPS)
+  const getSiteOriginUrl = () => {
+    if (!component?.source_site) return null;
+    
+    let siteUrl = component.source_site;
+    if (!siteUrl.startsWith('http://') && !siteUrl.startsWith('https://')) {
+      siteUrl = `https://${siteUrl}`;
+    }
+    
+    return siteUrl.replace(/\/$/, ''); // Remove trailing slash
+  };
+
+  // Construir URL completa do post
+  const getPostUrl = () => {
     if (component?.source === 'wordpress' && component.source_site && component.slug) {
-      // Garantir que temos a URL completa do site
-      const cleanSiteUrl = component.source_site.replace(/^https?:\/\//, '').replace(/\/$/, '');
-      return `https://${cleanSiteUrl}/${component.slug}`;
+      const siteOrigin = getSiteOriginUrl();
+      if (siteOrigin) {
+        return `${siteOrigin}/${component.slug}/`;
+      }
     }
     return null;
   };
 
   const imageSrc = component?.preview_image || '/placeholder.svg';
-  const componentUrl = getComponentUrl();
+  const siteOriginUrl = getSiteOriginUrl();
+  const postUrl = getPostUrl();
 
   return (
     <PageWrapper>
@@ -167,27 +181,35 @@ const ComponentDetail = () => {
                   <span>{component.visibility === 'public' ? 'Público' : 'Privado'}</span>
                 </div>
                 
-                {/* Exibir URL do componente se disponível */}
-                {componentUrl && (
+                {/* Site de Origem - sempre mostrar a URL base */}
+                {siteOriginUrl && (
                   <div className="flex items-center space-x-2">
-                    <ExternalLink className="h-4 w-4 text-muted-foreground" />
-                    <span>Link do Post:</span>
+                    <Globe className="h-4 w-4 text-muted-foreground" />
+                    <span>Site de Origem:</span>
                     <a 
-                      href={componentUrl} 
+                      href={siteOriginUrl} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-800 underline break-all"
+                      className="text-blue-600 hover:text-blue-800 underline"
                     >
-                      {componentUrl}
+                      {siteOriginUrl}
                     </a>
                   </div>
                 )}
 
-                {component.source_site && (
+                {/* Link do Post - URL completa do post específico */}
+                {postUrl && (
                   <div className="flex items-center space-x-2">
-                    <Globe className="h-4 w-4 text-muted-foreground" />
-                    <span>Site de Origem:</span>
-                    <span>{component.source_site}</span>
+                    <ExternalLink className="h-4 w-4 text-muted-foreground" />
+                    <span>Link do Post:</span>
+                    <a 
+                      href={postUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-800 underline break-all"
+                    >
+                      {postUrl}
+                    </a>
                   </div>
                 )}
 

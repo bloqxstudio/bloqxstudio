@@ -21,22 +21,24 @@ const ComponentPreviewEmbed: React.FC<ComponentPreviewEmbedProps> = ({
   // Verificar se é componente WordPress
   const isWordPressComponent = component.source === 'wordpress' && component.slug;
   
-  // Construir URL com parâmetros para forçar desktop
-  const getDesktopPreviewUrl = () => {
-    if (!isWordPressComponent) return null;
+  // Construir URL real do post WordPress
+  const getRealPostUrl = () => {
+    if (!isWordPressComponent || !component.source_site || !component.slug) return null;
     
-    const baseUrl = `https://superelements.io/${component.slug}/`;
-    const url = new URL(baseUrl);
+    // Garantir que source_site tenha protocol
+    let siteUrl = component.source_site;
+    if (!siteUrl.startsWith('http://') && !siteUrl.startsWith('https://')) {
+      siteUrl = `https://${siteUrl}`;
+    }
     
-    // Adicionar parâmetros para forçar visualização desktop
-    url.searchParams.set('desktop', '1');
-    url.searchParams.set('viewport', 'desktop');
-    url.searchParams.set('force_desktop', 'true');
+    // Remover trailing slash
+    siteUrl = siteUrl.replace(/\/$/, '');
     
-    return url.toString();
+    // Construir URL completa do post
+    return `${siteUrl}/${component.slug}/`;
   };
 
-  const previewUrl = getDesktopPreviewUrl();
+  const previewUrl = getRealPostUrl();
 
   // Intersection Observer para lazy loading
   useEffect(() => {
@@ -64,7 +66,7 @@ const ComponentPreviewEmbed: React.FC<ComponentPreviewEmbedProps> = ({
         if (loadState === 'loading') {
           setLoadState('error');
         }
-      }, 5000); // 5 segundos timeout
+      }, 8000); // 8 segundos timeout para sites externos
     }
 
     return () => {
@@ -164,7 +166,7 @@ const ComponentPreviewEmbed: React.FC<ComponentPreviewEmbedProps> = ({
         </div>
       )}
 
-      {/* WordPress iframe preview - otimizado para desktop */}
+      {/* WordPress iframe preview - usando URL real do post */}
       {isVisible && previewUrl && loadState !== 'error' ? (
         <iframe
           ref={iframeRef}
