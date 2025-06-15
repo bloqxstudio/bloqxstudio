@@ -90,30 +90,6 @@ export const MainSidebar: React.FC<MainSidebarProps> = ({
                 {totalComponents}
               </span>
             </Button>
-
-            <Button
-              variant="ghost"
-              className="w-full justify-start"
-              disabled
-            >
-              <Users className="h-4 w-4 mr-3" />
-              AGENTES
-              <Badge variant="secondary" className="ml-auto text-xs">
-                em breve
-              </Badge>
-            </Button>
-
-            <Button
-              variant="ghost"
-              className="w-full justify-start"
-              disabled
-            >
-              <Video className="h-4 w-4 mr-3" />
-              VIDEOS
-              <Badge variant="secondary" className="ml-auto text-xs">
-                em breve
-              </Badge>
-            </Button>
           </div>
 
           {/* WordPress Sites Section */}
@@ -169,6 +145,33 @@ export const MainSidebar: React.FC<MainSidebarProps> = ({
               </Collapsible>
             </div>
           )}
+
+          {/* Coming Soon Features */}
+          <div className="mt-8 space-y-1">
+            <Button
+              variant="ghost"
+              className="w-full justify-start"
+              disabled
+            >
+              <Users className="h-4 w-4 mr-3" />
+              Agents
+              <Badge variant="secondary" className="ml-auto text-xs">
+                coming soon
+              </Badge>
+            </Button>
+
+            <Button
+              variant="ghost"
+              className="w-full justify-start"
+              disabled
+            >
+              <Video className="h-4 w-4 mr-3" />
+              Videos
+              <Badge variant="secondary" className="ml-auto text-xs">
+                coming soon
+              </Badge>
+            </Button>
+          </div>
         </div>
       </div>
 
