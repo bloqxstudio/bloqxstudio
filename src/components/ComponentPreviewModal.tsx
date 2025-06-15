@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -18,7 +17,10 @@ import {
   Loader2,
   AlertCircle,
   RefreshCw,
-  ExternalLink
+  ExternalLink,
+  ZoomIn,
+  ZoomOut,
+  Focus
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Component } from '@/core/types';
@@ -43,11 +45,13 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
   const [hasError, setHasError] = useState(false);
   const [iframeKey, setIframeKey] = useState(0);
   const [copied, setCopied] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const [focusMode, setFocusMode] = useState(false);
 
   const viewportConfig = {
-    desktop: { width: '1400px', height: '800px', label: 'Desktop' },
-    tablet: { width: '768px', height: '600px', label: 'Tablet' },
-    mobile: { width: '375px', height: '600px', label: 'Mobile' },
+    desktop: { width: '1400px', height: '800px', label: 'Desktop', mockupStyle: 'browser' },
+    tablet: { width: '768px', height: '600px', label: 'Tablet', mockupStyle: 'tablet' },
+    mobile: { width: '375px', height: '600px', label: 'Mobile', mockupStyle: 'phone' },
   };
 
   const currentViewport = viewportConfig[viewportSize];
@@ -121,7 +125,84 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
     setIframeKey(prev => prev + 1);
   };
 
-  // Construir URL do post usando o slug real
+  const getMockupClasses = () => {
+    const baseClasses = "relative transition-all duration-300 mx-auto";
+    
+    switch (currentViewport.mockupStyle) {
+      case 'browser':
+        return `${baseClasses} rounded-lg shadow-2xl bg-white`;
+      case 'tablet':
+        return `${baseClasses} rounded-2xl shadow-2xl bg-black p-4`;
+      case 'phone':
+        return `${baseClasses} rounded-3xl shadow-2xl bg-black p-2`;
+      default:
+        return baseClasses;
+    }
+  };
+
+  const getMockupFrame = () => {
+    switch (currentViewport.mockupStyle) {
+      case 'browser':
+        return (
+          <div className="bg-gray-200 px-4 py-3 rounded-t-lg border-b">
+            <div className="flex items-center gap-2">
+              <div className="flex gap-1.5">
+                <div className="w-3 h-3 rounded-full bg-red-400"></div>
+                <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
+                <div className="w-3 h-3 rounded-full bg-green-400"></div>
+              </div>
+              <div className="flex-1 ml-4">
+                <div className="bg-white rounded px-3 py-1 text-xs text-gray-500 max-w-md">
+                  {component.source === 'wordpress' && component.slug 
+                    ? `https://superelements.io/${component.slug}/`
+                    : 'Preview do Componente'
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      case 'tablet':
+        return (
+          <div className="absolute top-2 left-1/2 transform -translate-x-1/2 w-12 h-1 bg-gray-400 rounded-full"></div>
+        );
+      case 'phone':
+        return (
+          <div className="absolute top-1 left-1/2 transform -translate-x-1/2">
+            <div className="w-16 h-1 bg-gray-400 rounded-full"></div>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  const getBackgroundPattern = () => {
+    return (
+      <div className="absolute inset-0 opacity-5">
+        <div 
+          className="w-full h-full"
+          style={{
+            backgroundImage: `radial-gradient(circle, #000 1px, transparent 1px)`,
+            backgroundSize: '20px 20px',
+          }}
+        />
+      </div>
+    );
+  };
+
+  const handleFocusMode = () => {
+    setFocusMode(!focusMode);
+  };
+
+  const handleZoomIn = () => {
+    setZoomLevel(Math.min(2, zoomLevel + 0.1));
+  };
+
+  const handleZoomOut = () => {
+    setZoomLevel(Math.max(0.5, zoomLevel - 0.1));
+  };
+
   const getPostUrl = () => {
     if (component.source === 'wordpress' && component.slug) {
       return `https://superelements.io/${component.slug}/`;
@@ -146,6 +227,37 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
             </div>
             
             <div className="flex items-center gap-2">
+              <Button
+                variant={focusMode ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setFocusMode(!focusMode)}
+              >
+                <Focus className="h-4 w-4 mr-1" />
+                Foco
+              </Button>
+              
+              <div className="flex items-center gap-1 border rounded-md p-1">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setZoomLevel(Math.max(0.5, zoomLevel - 0.1))}
+                  disabled={zoomLevel <= 0.5}
+                >
+                  <ZoomOut className="h-4 w-4" />
+                </Button>
+                <span className="text-xs px-2 font-mono">
+                  {Math.round(zoomLevel * 100)}%
+                </span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setZoomLevel(Math.min(2, zoomLevel + 0.1))}
+                  disabled={zoomLevel >= 2}
+                >
+                  <ZoomIn className="h-4 w-4" />
+                </Button>
+              </div>
+              
               <Button
                 variant="outline"
                 size="sm"
@@ -234,46 +346,83 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
         </div>
 
         <div className="px-6 pb-6 flex-1 min-h-0">
-          <div className="relative bg-gray-100 rounded-lg overflow-auto border h-full">
-            <div 
-              className="mx-auto transition-all duration-300 min-h-full"
-              style={{ 
-                width: currentViewport.width,
-                minWidth: viewportSize === 'desktop' ? currentViewport.width : 'auto'
-              }}
-            >
-              {isLoading && (
-                <div className="absolute inset-0 bg-white/80 flex items-center justify-center z-10">
-                  <div className="flex items-center gap-2 text-gray-600">
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    <span>Carregando preview...</span>
-                  </div>
-                </div>
-              )}
+          <div 
+            className={`
+              relative rounded-lg overflow-auto border-0 h-full
+              ${focusMode 
+                ? 'bg-black/90' 
+                : 'bg-gradient-to-br from-gray-100 via-gray-50 to-blue-50/30'
+              }
+            `}
+          >
+            {getBackgroundPattern()}
+            
+            <div className="relative z-10 p-8 h-full flex items-center justify-center">
+              <div 
+                className={getMockupClasses()}
+                style={{ 
+                  width: currentViewport.width,
+                  minWidth: viewportSize === 'desktop' ? currentViewport.width : 'auto',
+                  transform: `scale(${zoomLevel})`,
+                  transformOrigin: 'center'
+                }}
+              >
+                {getMockupFrame()}
+                
+                <div className="relative overflow-hidden rounded-b-lg">
+                  {isLoading && (
+                    <div className="absolute inset-0 bg-white/90 flex items-center justify-center z-20">
+                      <div className="flex flex-col items-center gap-3 text-gray-600">
+                        <Loader2 className="h-8 w-8 animate-spin" />
+                        <div className="text-center">
+                          <p className="font-medium">Carregando preview...</p>
+                          <p className="text-sm text-gray-500">
+                            Renderizando {currentViewport.label.toLowerCase()}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
-              {hasError && (
-                <div className="absolute inset-0 bg-white flex items-center justify-center z-10">
-                  <div className="text-center">
-                    <AlertCircle className="h-8 w-8 text-red-500 mx-auto mb-2" />
-                    <p className="text-gray-600 mb-4">Erro ao carregar preview</p>
-                    <Button onClick={handleRefresh} size="sm">
-                      <RefreshCw className="h-4 w-4 mr-1" />
-                      Tentar novamente
-                    </Button>
-                  </div>
-                </div>
-              )}
+                  {hasError && (
+                    <div className="absolute inset-0 bg-white flex items-center justify-center z-20">
+                      <div className="text-center p-8">
+                        <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+                        <h3 className="font-semibold text-gray-900 mb-2">
+                          Erro ao carregar preview
+                        </h3>
+                        <p className="text-gray-600 mb-6 max-w-sm">
+                          Não foi possível carregar o preview do componente. 
+                          Verifique se o link está funcionando.
+                        </p>
+                        <Button onClick={handleRefresh} size="sm">
+                          <RefreshCw className="h-4 w-4 mr-2" />
+                          Tentar novamente
+                        </Button>
+                      </div>
+                    </div>
+                  )}
 
-              <iframe
-                key={`preview-${iframeKey}`}
-                src={postUrl || undefined}
-                className="w-full border-0 block"
-                style={{ height: currentViewport.height }}
-                onLoad={handleIframeLoad}
-                onError={handleIframeError}
-                title={`Preview: ${component.title}`}
-                sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
-              />
+                  <iframe
+                    key={`preview-${iframeKey}`}
+                    src={postUrl || undefined}
+                    className={`
+                      w-full border-0 block
+                      ${currentViewport.mockupStyle === 'browser' ? '' : 'rounded-lg'}
+                      ${focusMode ? 'ring-2 ring-blue-500 ring-opacity-50' : ''}
+                    `}
+                    style={{ height: currentViewport.height }}
+                    onLoad={handleIframeLoad}
+                    onError={handleIframeError}
+                    title={`Preview: ${component.title}`}
+                    sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+                  />
+                </div>
+                
+                {focusMode && (
+                  <div className="absolute -inset-2 bg-gradient-to-r from-blue-500/50 to-purple-500/50 rounded-lg -z-10 blur-xl opacity-75"></div>
+                )}
+              </div>
             </div>
           </div>
         </div>
