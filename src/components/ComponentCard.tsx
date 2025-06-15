@@ -9,6 +9,7 @@ import { cleanElementorJson } from '@/utils/json/cleaners';
 import { Component } from '@/core/types';
 import { usePreviewGenerator } from '@/hooks/usePreviewGenerator';
 import { useIntersectionObserver } from '@/hooks/useIntersectionObserver';
+import { useLocation } from 'react-router-dom';
 import ComponentPreviewModal from './ComponentPreviewModal';
 import ComponentPreviewEmbed from './ComponentPreviewEmbed';
 
@@ -26,12 +27,16 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
   showSelectButton = false,
 }) => {
   const { user } = useAuth();
+  const location = useLocation();
   const [copied, setCopied] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [shouldLoadPreview, setShouldLoadPreview] = useState(false);
   
   const { generatePreview, getPreviewState } = usePreviewGenerator();
   const previewState = getPreviewState(component.id);
+
+  // Check if we're on a component detail page
+  const isComponentDetailPage = location.pathname.startsWith('/component/');
 
   // Intersection observer ultra-optimized for lazy loading
   const { elementRef, isVisible } = useIntersectionObserver({
@@ -108,7 +113,13 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
   };
 
   const handlePreview = () => {
-    // For WordPress posts with real link, open in new tab
+    // If we're on component detail page, always show modal
+    if (isComponentDetailPage) {
+      setPreviewOpen(true);
+      return;
+    }
+
+    // For WordPress posts with real link on other pages, open in new tab
     if (hasRealWordPressLink) {
       window.open(component.wordpress_post_url, '_blank', 'noopener,noreferrer');
       return;
@@ -231,10 +242,10 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
               size="sm"
               onClick={handlePreview}
               className="flex-1"
-              title={hasRealWordPressLink ? 'View Component' : isWordPressComponent ? 'View Site' : 'Component Preview'}
+              title="View Component"
             >
               <Eye className="h-4 w-4 mr-1" />
-              {hasRealWordPressLink ? 'View Component' : isWordPressComponent ? 'View Site' : 'Component Preview'}
+              View Component
             </Button>
             
             <Button
