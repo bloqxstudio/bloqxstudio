@@ -1,4 +1,3 @@
-
 // Unified database types - Single source of truth
 
 export interface Component {
@@ -11,7 +10,7 @@ export interface Component {
   content?: string; // HTML content for style extraction
   preview_image?: string;
   tags?: string[];
-  type?: string;
+  type?: 'elementor' | 'custom';
   visibility: 'public' | 'private';
   created_at: string;
   updated_at: string;

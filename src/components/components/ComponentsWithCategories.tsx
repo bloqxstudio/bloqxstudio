@@ -1,8 +1,6 @@
 
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { getComponents } from '@/core/api/components';
-import { useWordPressComponentFilters } from '@/hooks/useWordPressComponentFilters';
+import { useWordPressDirectComponents } from '@/hooks/useWordPressDirectComponents';
 import { useSelectedComponents } from '@/shared/contexts/SelectedComponentsContext';
 import PageWrapper from '@/components/layout/PageWrapper';
 import ComponentsHeader from '@/components/components/ComponentsHeader';
@@ -14,29 +12,32 @@ import SelectionFloatingButton from '@/components/selection/SelectionFloatingBut
 
 const ComponentsWithCategories = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedSite, setSelectedSite] = useState<string | null>(null);
   const { selectedComponents } = useSelectedComponents();
 
-  // Fetch components from all sources
-  const { data: components = [], isLoading: isLoadingComponents, error, refetch } = useQuery({
-    queryKey: ['all-components'],
-    queryFn: getComponents,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
+  // Fetch components directly from WordPress
+  const {
+    components,
+    filteredComponents,
+    isLoading,
+    error,
+  } = useWordPressDirectComponents({
+    searchTerm,
+    selectedCategory,
+    selectedSite,
   });
 
-  const {
-    searchTerm,
-    setSearchTerm,
-    selectedCategory,
-    setSelectedCategory,
-    selectedSite,
-    setSelectedSite,
-    filteredComponents,
-    handleClearFilters,
-  } = useWordPressComponentFilters({ components });
+  const handleClearFilters = () => {
+    setSearchTerm('');
+    setSelectedCategory(null);
+    setSelectedSite(null);
+  };
 
   const handleRetry = () => {
-    refetch();
+    // The query will automatically retry due to React Query
+    window.location.reload();
   };
 
   console.log('🎯 Components with categories rendering:', {
@@ -44,7 +45,7 @@ const ComponentsWithCategories = () => {
     filteredComponents: filteredComponents.length,
     selectedCategory,
     selectedSite,
-    isLoading: isLoadingComponents,
+    isLoading,
     hasError: !!error
   });
 
@@ -73,7 +74,7 @@ const ComponentsWithCategories = () => {
             <div className="mt-4">
               <ComponentSearch
                 searchTerm={searchTerm}
-                onSearchChange={setSearchTerm}
+                setSearchTerm={setSearchTerm}
                 onClearSearch={() => setSearchTerm('')}
                 placeholder="Search components by title, description, or tags..."
               />
@@ -113,7 +114,7 @@ const ComponentsWithCategories = () => {
             <ComponentsGrid 
               components={components}
               filteredComponents={filteredComponents}
-              isLoading={isLoadingComponents}
+              isLoading={isLoading}
               error={error}
               handleRetry={handleRetry}
             />
