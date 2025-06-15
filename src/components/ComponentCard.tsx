@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -199,7 +198,7 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
               className="flex-1"
             >
               <Eye className="h-4 w-4 mr-1" />
-              {isWordPressComponent ? 'Ver Site' : 'Preview'}
+              {isWordPressComponent ? 'Ver Site' : 'Visualizar'}
             </Button>
             
             <Button

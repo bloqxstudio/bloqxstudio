@@ -1,8 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Component } from '@/core/types';
-import { Badge } from '@/components/ui/badge';
-import { Globe, AlertCircle, Loader2 } from 'lucide-react';
+import { AlertCircle, Loader2 } from 'lucide-react';
 
 interface ComponentPreviewEmbedProps {
   component: Component;
@@ -81,7 +80,7 @@ const ComponentPreviewEmbed: React.FC<ComponentPreviewEmbedProps> = ({
           <AlertCircle className="w-8 h-8 text-gray-400 mb-2" />
           <div className="text-center">
             <div className="text-sm font-medium text-gray-600">Preview indisponível</div>
-            <div className="text-xs text-gray-500">Use o botão Preview para ver</div>
+            <div className="text-xs text-gray-500">Use o botão Visualizar para ver</div>
           </div>
         </>
       ) : (
@@ -115,33 +114,21 @@ const ComponentPreviewEmbed: React.FC<ComponentPreviewEmbedProps> = ({
 
       {/* WordPress iframe preview */}
       {isVisible && previewUrl && loadState !== 'error' ? (
-        <>
-          <iframe
-            ref={iframeRef}
-            src={previewUrl}
-            className="w-full h-full border-0 pointer-events-none"
-            style={{ 
-              transform: 'scale(0.4)', 
-              transformOrigin: 'top left',
-              width: '250%',
-              height: '250%'
-            }}
-            onLoad={handleIframeLoad}
-            onError={handleIframeError}
-            title={`Preview: ${component.title}`}
-            sandbox="allow-scripts allow-same-origin"
-          />
-          
-          {/* Badge overlay */}
-          {loadState === 'loaded' && (
-            <div className="absolute top-2 right-2 z-20">
-              <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-800 shadow-sm">
-                <Globe className="w-3 h-3 mr-1" />
-                Live
-              </Badge>
-            </div>
-          )}
-        </>
+        <iframe
+          ref={iframeRef}
+          src={previewUrl}
+          className="w-full h-full border-0 pointer-events-none"
+          style={{ 
+            transform: 'scale(0.35)', 
+            transformOrigin: 'top left',
+            width: '285%',
+            height: '285%'
+          }}
+          onLoad={handleIframeLoad}
+          onError={handleIframeError}
+          title={`Preview: ${component.title}`}
+          sandbox="allow-scripts allow-same-origin"
+        />
       ) : (
         renderFallback()
       )}
