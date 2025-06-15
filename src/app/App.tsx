@@ -61,12 +61,14 @@ function App() {
                   </ProtectedRoute>
                 } />
                 
-                {/* Admin Routes */}
+                {/* WordPress Integration - liberado para todos os usuários autenticados */}
                 <Route path="/wordpress" element={
-                  <ProtectedRoute adminOnly>
+                  <ProtectedRoute>
                     <WordPressIntegration />
                   </ProtectedRoute>
                 } />
+                
+                {/* Admin Routes */}
                 <Route path="/admin" element={
                   <ProtectedRoute adminOnly>
                     <AdminPanel />

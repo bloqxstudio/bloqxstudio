@@ -4,17 +4,6 @@ import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-// Helper function to check if a user is an admin
-const isUserAdmin = (user: User | null): boolean => {
-  if (!user) return false;
-  
-  // Log user metadata for debugging
-  console.log('User metadata:', user.user_metadata);
-  
-  // Check role in user_metadata
-  return user.user_metadata?.role === 'admin';
-};
-
 type AuthContextType = {
   session: Session | null;
   user: User | null;
@@ -35,18 +24,53 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isError, setIsError] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
 
+  // Função para verificar se o usuário é admin consultando o banco
+  const checkUserRole = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', userId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching user role:', error);
+        return false;
+      }
+
+      console.log('User role from database:', data?.role);
+      return data?.role === 'admin';
+    } catch (error) {
+      console.error('Unexpected error checking user role:', error);
+      return false;
+    }
+  };
+
   useEffect(() => {
     let mounted = true;
 
     // Set up auth state listener first
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (!mounted) return;
       
       console.log("Auth state changed", session?.user?.email);
-      console.log("User metadata:", session?.user?.user_metadata);
       setSession(session);
       setUser(session?.user ?? null);
-      setIsAdmin(session?.user ? isUserAdmin(session.user) : false);
+      
+      // Verificar papel de admin se usuário logado
+      if (session?.user) {
+        // Usar setTimeout para evitar problemas de callback
+        setTimeout(async () => {
+          if (mounted) {
+            const adminStatus = await checkUserRole(session.user.id);
+            console.log("Is admin from database:", adminStatus);
+            setIsAdmin(adminStatus);
+          }
+        }, 0);
+      } else {
+        setIsAdmin(false);
+      }
+      
       setIsLoading(false);
     });
 
@@ -67,11 +91,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           
           // Log user info for debugging
           console.log("Session user:", data.session?.user);
-          console.log("User metadata:", data.session?.user?.user_metadata);
           
-          const admin = data.session?.user ? isUserAdmin(data.session.user) : false;
-          console.log("Is admin:", admin);
-          setIsAdmin(admin);
+          // Verificar papel de admin se usuário logado
+          if (data.session?.user) {
+            const adminStatus = await checkUserRole(data.session.user.id);
+            console.log("Initial admin check:", adminStatus);
+            setIsAdmin(adminStatus);
+          } else {
+            setIsAdmin(false);
+          }
         }
       } catch (err) {
         console.error("Unexpected auth error:", err);
