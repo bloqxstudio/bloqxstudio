@@ -7,13 +7,31 @@ import { transformElementsToContainer, removeEmptyProperties, applyStandardStruc
 
 export const cleanElementorJson = (jsonString: string, removeStyles = false, wrapInContainer = true, applyStructure = false): string => {
   try {
+    // Handle empty or null input
+    if (!jsonString || jsonString.trim() === '') {
+      return JSON.stringify({
+        type: "elementor",
+        siteurl: "https://bloqxstudio.com/",
+        elements: [],
+        globals: {}
+      });
+    }
+
     // Validar primeiro
     if (!validateJson(jsonString)) {
-      throw new Error('Formato JSON inválido');
+      console.warn('Invalid JSON format, returning original');
+      return jsonString;
     }
 
     // Analisar o JSON
-    const jsonObj = JSON.parse(jsonString);
+    let jsonObj;
+    try {
+      jsonObj = JSON.parse(jsonString);
+    } catch (parseError) {
+      console.error('Failed to parse JSON:', parseError);
+      return jsonString;
+    }
+
     let elements = [];
     
     // Determinar onde estão os elementos com base na estrutura
@@ -23,29 +41,33 @@ export const cleanElementorJson = (jsonString: string, removeStyles = false, wra
     } else if (jsonObj.content && Array.isArray(jsonObj.content)) {
       // Formato 2: estrutura com "content" contendo elementos
       elements = jsonObj.content;
-    } else if (Array.isArray(jsonObj) && jsonObj.length > 0 && jsonObj[0].elType) {
+    } else if (Array.isArray(jsonObj) && jsonObj.length > 0 && jsonObj[0]?.elType) {
       // Formato 3: estrutura direta de elementos
       elements = jsonObj;
     } else if (jsonObj.content && jsonObj.page_settings) {
       // Exportação de página completa
       elements = [jsonObj.content];
+    } else if (Array.isArray(jsonObj)) {
+      // Pode ser um array de elementos
+      elements = jsonObj;
     } else {
-      // Tente encontrar elementos aninhados de alguma forma
-      if (Array.isArray(jsonObj) && jsonObj.length > 0) {
-        // Pode ser um array de elementos
-        elements = jsonObj;
-      } else {
-        throw new Error('Estrutura JSON incompatível');
-      }
+      // Se não conseguir determinar a estrutura, retornar o original
+      console.warn('Unrecognized JSON structure, returning original');
+      return jsonString;
     }
 
     // Aplicar a estrutura padrão ou apenas transformar elementos para container
-    if (applyStructure) {
-      // Aplicar a estrutura padrão com containers aninhados
-      elements = applyStandardStructure(elements);
-    } else {
-      // Transformar elementos para container com as configurações especificadas
-      elements = transformElementsToContainer(elements);
+    try {
+      if (applyStructure) {
+        // Aplicar a estrutura padrão com containers aninhados
+        elements = applyStandardStructure(elements);
+      } else {
+        // Transformar elementos para container com as configurações especificadas
+        elements = transformElementsToContainer(elements);
+      }
+    } catch (transformError) {
+      console.error('Error transforming elements:', transformError);
+      // Continue with original elements if transformation fails
     }
 
     // Formato básico e compacto
@@ -58,7 +80,13 @@ export const cleanElementorJson = (jsonString: string, removeStyles = false, wra
     };
 
     // Remover propriedades vazias para reduzir o tamanho
-    const optimizedCleaned = removeEmptyProperties(cleaned);
+    let optimizedCleaned;
+    try {
+      optimizedCleaned = removeEmptyProperties(cleaned);
+    } catch (removeError) {
+      console.error('Error removing empty properties:', removeError);
+      optimizedCleaned = cleaned;
+    }
 
     // Usar uma serialização mais compacta para reduzir o tamanho do JSON
     return JSON.stringify(optimizedCleaned);

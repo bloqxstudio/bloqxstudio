@@ -73,14 +73,11 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
 
   const getProcessedJson = () => {
     try {
-      return cleanElementorJson(
-        component.json_code || component.code || '[]',
-        false,
-        true,
-        false
-      );
+      const rawJson = component.json_code || component.code || '[]';
+      return cleanElementorJson(rawJson, false, true, false);
     } catch (error) {
       console.error('Error processing JSON for component preview:', error);
+      // Return the original JSON as fallback
       return component.json_code || component.code || '[]';
     }
   };

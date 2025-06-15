@@ -5,6 +5,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -274,12 +275,12 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
                 {isWordPressComponent && <Globe className="h-5 w-5 text-blue-600" />}
                 Component Preview: {component.title}
               </DialogTitle>
-              <p className="text-sm text-muted-foreground mt-1">
+              <DialogDescription className="text-sm text-muted-foreground mt-1">
                 {isWordPressComponent 
                   ? `Live site: ${postUrl}`
                   : 'Elementor component visualization'
                 }
-              </p>
+              </DialogDescription>
             </div>
             
             <div className="flex items-center gap-2">
