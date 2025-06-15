@@ -14,13 +14,13 @@ const UserManagementHeader = ({ onRefresh }: UserManagementHeaderProps) => {
       <Button asChild variant="ghost" size="sm" className="mb-4">
         <Link to="/admin">
           <ArrowLeft className="h-4 w-4 mr-1" />
-          Voltar para o Painel
+          Back to Panel
         </Link>
       </Button>
       
-      <h1 className="text-3xl font-bold tracking-tighter">Gerenciamento de Usuários</h1>
+      <h1 className="text-3xl font-bold tracking-tighter">User Management</h1>
       <p className="text-muted-foreground mt-1">
-        Administre usuários e funções
+        Manage users and roles
       </p>
     </div>
   );

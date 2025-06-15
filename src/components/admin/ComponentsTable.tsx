@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Component, Category } from '@/core/types';
@@ -25,11 +26,11 @@ const ComponentsTable = ({ components, categories, onDelete }: ComponentsTablePr
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Título</TableHead>
-            <TableHead>Categoria</TableHead>
-            <TableHead>Visibilidade</TableHead>
-            <TableHead>Data de Criação</TableHead>
-            <TableHead className="text-right">Ações</TableHead>
+            <TableHead>Title</TableHead>
+            <TableHead>Category</TableHead>
+            <TableHead>Visibility</TableHead>
+            <TableHead>Created Date</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -42,29 +43,29 @@ const ComponentsTable = ({ components, categories, onDelete }: ComponentsTablePr
               <TableCell>
                 {component.visibility === 'public' ? (
                   <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                    <Eye className="h-3 w-3 mr-1" /> Público
+                    <Eye className="h-3 w-3 mr-1" /> Public
                   </Badge>
                 ) : (
                   <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
-                    <EyeOff className="h-3 w-3 mr-1" /> Privado
+                    <EyeOff className="h-3 w-3 mr-1" /> Private
                   </Badge>
                 )}
               </TableCell>
               <TableCell>
-                {new Date(component.created_at).toLocaleDateString('pt-BR')}
+                {new Date(component.created_at).toLocaleDateString('en-US')}
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex items-center justify-end gap-2">
                   <Button asChild variant="ghost" size="sm">
                     <Link to={`/component/${component.id}`}>
                       <Eye className="h-4 w-4" />
-                      <span className="sr-only">Ver</span>
+                      <span className="sr-only">View</span>
                     </Link>
                   </Button>
                   <Button asChild variant="ghost" size="sm">
                     <Link to={`/components/edit/${component.id}`}>
                       <Edit className="h-4 w-4" />
-                      <span className="sr-only">Editar</span>
+                      <span className="sr-only">Edit</span>
                     </Link>
                   </Button>
                   <Button 
@@ -74,7 +75,7 @@ const ComponentsTable = ({ components, categories, onDelete }: ComponentsTablePr
                     className="text-destructive hover:text-destructive hover:bg-destructive/10"
                   >
                     <Trash2 className="h-4 w-4" />
-                    <span className="sr-only">Excluir</span>
+                    <span className="sr-only">Delete</span>
                   </Button>
                 </div>
               </TableCell>

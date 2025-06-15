@@ -15,7 +15,7 @@ const ComponentCreate = () => {
   // Check if user is logged in
   useEffect(() => {
     if (!user) {
-      toast.error('Você precisa estar logado para acessar esta página');
+      toast.error('You need to be logged in to access this page');
       navigate('/login');
     }
   }, [user, navigate]);
@@ -34,14 +34,14 @@ const ComponentCreate = () => {
     <PageWrapper>
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tighter">Criar Novo Componente</h1>
+          <h1 className="text-3xl font-bold tracking-tighter">Create New Component</h1>
           <p className="text-muted-foreground mt-1">
-            Cole um JSON do Elementor para começar
+            Paste an Elementor JSON to get started
           </p>
         </div>
         <Button variant="outline" size="sm" onClick={handleCancel}>
           <X className="h-4 w-4 mr-1" />
-          Cancelar
+          Cancel
         </Button>
       </div>
       

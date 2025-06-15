@@ -12,9 +12,9 @@ const AdminHeader = ({ onRefresh }: AdminHeaderProps) => {
   return (
     <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tighter">Painel de Administração</h1>
+        <h1 className="text-3xl font-bold tracking-tighter">Administration Panel</h1>
         <p className="text-muted-foreground mt-1">
-          Gerencie componentes, categorias e usuários.
+          Manage components, categories and users.
         </p>
       </div>
       
@@ -22,17 +22,17 @@ const AdminHeader = ({ onRefresh }: AdminHeaderProps) => {
         <Button asChild className="hover-lift" size="sm">
           <Link to="/components/new">
             <PlusCircle className="h-4 w-4 mr-1" />
-            Novo Componente
+            New Component
           </Link>
         </Button>
         <Button variant="outline" size="sm" onClick={onRefresh} className="gap-1">
           <RefreshCw className="h-4 w-4" />
-          Atualizar
+          Refresh
         </Button>
         <Button asChild variant="outline" size="sm">
           <Link to="/admin/users">
             <Users className="h-4 w-4 mr-1" />
-            Gerenciar Usuários
+            Manage Users
           </Link>
         </Button>
       </div>

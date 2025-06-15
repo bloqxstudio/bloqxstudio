@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Component, Category } from '@/core/types';
 import {
@@ -20,7 +21,7 @@ const ComponentsCard = ({ components, categories, isLoading, onDelete }: Compone
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Componentes ({components.length})</CardTitle>
+        <CardTitle>Components ({components.length})</CardTitle>
       </CardHeader>
       <CardContent>
         {isLoading ? (

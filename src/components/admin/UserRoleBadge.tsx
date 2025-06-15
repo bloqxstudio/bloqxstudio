@@ -11,7 +11,7 @@ const UserRoleBadge = ({ role }: UserRoleBadgeProps) => {
     return (
       <div className="flex items-center">
         <Shield className="h-4 w-4 text-primary mr-2" />
-        <span className="font-medium">Administrador</span>
+        <span className="font-medium">Administrator</span>
       </div>
     );
   }
@@ -19,7 +19,7 @@ const UserRoleBadge = ({ role }: UserRoleBadgeProps) => {
   return (
     <div className="flex items-center">
       <User className="h-4 w-4 text-muted-foreground mr-2" />
-      <span>Usuário</span>
+      <span>User</span>
     </div>
   );
 };

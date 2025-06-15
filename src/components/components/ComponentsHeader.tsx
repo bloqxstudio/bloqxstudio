@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Building, Globe } from 'lucide-react';
@@ -12,7 +13,7 @@ const ComponentsHeader: React.FC<ComponentsHeaderProps> = ({
   totalCount,
   components = []
 }) => {
-  // Calcular estatísticas por fonte
+  // Calculate statistics by source
   const sourceStats = React.useMemo(() => {
     const stats = {
       wordpress: 0,
@@ -35,7 +36,7 @@ const ComponentsHeader: React.FC<ComponentsHeaderProps> = ({
       <div>
         <div className="flex items-center gap-3 mb-3">
           <h1 className="text-2xl font-semibold tracking-tight">
-            Biblioteca de Componentes ({filteredCount}/{totalCount})
+            Component Library ({filteredCount}/{totalCount})
           </h1>
           
           
@@ -44,7 +45,7 @@ const ComponentsHeader: React.FC<ComponentsHeaderProps> = ({
         
         
         <p className="text-muted-foreground text-sm">
-          Acesse componentes de todos os seus sites WordPress conectados em um só lugar
+          Access components from all your connected WordPress sites in one place
         </p>
       </div>
     </div>;

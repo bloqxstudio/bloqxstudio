@@ -18,15 +18,15 @@ const Components = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { selectedComponents } = useSelectedComponents();
 
-  // Buscar componentes de todas as fontes
+  // Fetch components from all sources
   const { data: components = [], isLoading: isLoadingComponents, error, refetch } = useQuery({
     queryKey: ['all-components'],
     queryFn: getComponents,
-    staleTime: 5 * 60 * 1000, // 5 minutos
-    gcTime: 10 * 60 * 1000, // 10 minutos (anteriormente cacheTime)
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes (previously cacheTime)
   });
 
-  // Buscar categorias (mantido para compatibilidade com filtros)
+  // Fetch categories (kept for filter compatibility)
   const { data: categories = [] } = useQuery({
     queryKey: ['categories'],
     queryFn: getCategories,
@@ -79,7 +79,7 @@ const Components = () => {
     refetch();
   };
 
-  console.log('🎯 Components page renderizando:', {
+  console.log('🎯 Components page rendering:', {
     totalComponents: components.length,
     filteredComponents: filteredComponents.length,
     availableSources: availableSources.length,
@@ -96,7 +96,7 @@ const Components = () => {
         components={components}
       />
 
-      {/* Filtro de Fonte */}
+      {/* Source Filter */}
       <div className="mb-4">
         <SourceFilter
           selectedSource={selectedSource}

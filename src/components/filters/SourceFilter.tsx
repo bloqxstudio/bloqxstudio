@@ -36,13 +36,13 @@ const SourceFilter: React.FC<SourceFilterProps> = ({
       
       <Select value={selectedSource} onValueChange={onSourceChange}>
         <SelectTrigger className="w-[200px]">
-          <SelectValue placeholder="Selecione o site" />
+          <SelectValue placeholder="Select site" />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="all">
             <div className="flex items-center gap-2">
               <Globe className="h-4 w-4" />
-              <span>Todos os sites</span>
+              <span>All sites</span>
               <Badge variant="secondary" className="ml-2">
                 {availableSources.reduce((sum, source) => sum + source.count, 0)}
               </Badge>

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -18,12 +19,12 @@ const BasicInfoSection: React.FC<BasicInfoSectionProps> = ({ form }) => {
         name="title"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Título*</FormLabel>
+            <FormLabel>Title*</FormLabel>
             <FormControl>
-              <Input placeholder="Hero de lançamento" {...field} />
+              <Input placeholder="Launch Hero" {...field} />
             </FormControl>
             <FormDescription>
-              Nome descritivo do componente
+              Descriptive name of the component
             </FormDescription>
             <FormMessage />
           </FormItem>

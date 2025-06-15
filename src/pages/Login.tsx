@@ -28,9 +28,9 @@ const Login = () => {
       <main className="flex-grow container mx-auto px-4 py-12 flex items-center justify-center">
         <div className="w-full max-w-md">
           <div className="mb-8 text-center">
-            <h1 className="text-3xl font-bold mb-2">Entrar</h1>
+            <h1 className="text-3xl font-bold mb-2">Sign In</h1>
             <p className="text-muted-foreground">
-              Entre com sua conta para acessar os componentes
+              Sign in to your account to access components
             </p>
           </div>
           
@@ -38,9 +38,9 @@ const Login = () => {
           
           <div className="mt-6 text-center">
             <p className="text-sm text-muted-foreground">
-              Não tem uma conta?{' '}
+              Don't have an account?{' '}
               <Link to="/register" className="text-primary hover:underline">
-                Registre-se
+                Sign up
               </Link>
             </p>
           </div>

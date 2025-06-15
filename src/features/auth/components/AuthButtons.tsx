@@ -11,17 +11,17 @@ const AuthButtons = () => {
 
   const handleSignOut = async () => {
     await signOut();
-    toast.success('Logout realizado com sucesso!');
+    toast.success('Logout successful!');
   };
 
   if (!user) {
     return (
       <div className="flex items-center gap-2">
         <Button asChild variant="ghost" size="sm">
-          <Link to="/login">Entrar</Link>
+          <Link to="/login">Sign In</Link>
         </Button>
         <Button asChild size="sm">
-          <Link to="/register">Registrar</Link>
+          <Link to="/register">Sign Up</Link>
         </Button>
       </div>
     );
@@ -36,7 +36,7 @@ const AuthButtons = () => {
       </div>
       <Button variant="ghost" size="sm" onClick={handleSignOut}>
         <LogOut className="h-4 w-4 mr-1" />
-        <span className="hidden sm:inline">Sair</span>
+        <span className="hidden sm:inline">Sign Out</span>
       </Button>
     </div>
   );

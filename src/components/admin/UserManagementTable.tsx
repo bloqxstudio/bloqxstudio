@@ -26,9 +26,9 @@ const UserManagementTable = ({ users, onRoleUpdate, isUpdatingRole }: UserManage
         <TableHeader>
           <TableRow>
             <TableHead>Email</TableHead>
-            <TableHead>Função</TableHead>
-            <TableHead>Data de Criação</TableHead>
-            <TableHead className="text-right">Ações</TableHead>
+            <TableHead>Role</TableHead>
+            <TableHead>Created Date</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -39,7 +39,7 @@ const UserManagementTable = ({ users, onRoleUpdate, isUpdatingRole }: UserManage
                 <UserRoleBadge role={user.role} />
               </TableCell>
               <TableCell>
-                {new Date(user.created_at).toLocaleDateString('pt-BR')}
+                {new Date(user.created_at).toLocaleDateString('en-US')}
               </TableCell>
               <TableCell className="text-right">
                 <Button
@@ -49,7 +49,7 @@ const UserManagementTable = ({ users, onRoleUpdate, isUpdatingRole }: UserManage
                   disabled={isUpdatingRole}
                 >
                   <UserCog className="h-4 w-4 mr-1" />
-                  {user.role === 'admin' ? 'Remover Admin' : 'Tornar Admin'}
+                  {user.role === 'admin' ? 'Remove Admin' : 'Make Admin'}
                 </Button>
               </TableCell>
             </TableRow>
