@@ -1,11 +1,14 @@
 
 import React from 'react';
-import ComponentsWithCategories from '@/components/components/ComponentsWithCategories';
+import ComponentsWithCategories, { ComponentsFiltersBarWrapper } from '@/components/components/ComponentsWithCategories';
 import FullscreenPageWrapper from '@/components/layout/FullscreenPageWrapper';
 
 const Components = () => {
   return (
-    <FullscreenPageWrapper>
+    <FullscreenPageWrapper 
+      showFilters={true}
+      filtersContent={<ComponentsFiltersBarWrapper />}
+    >
       <ComponentsWithCategories />
     </FullscreenPageWrapper>
   );
