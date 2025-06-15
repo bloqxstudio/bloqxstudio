@@ -8,17 +8,27 @@ import InfiniteComponentsGrid from '@/components/components/InfiniteComponentsGr
 import SelectedComponentsSidebar from '@/components/selection/SelectedComponentsSidebar';
 import SelectionFloatingButton from '@/components/selection/SelectionFloatingButton';
 
-const ComponentsWithCategories = () => {
+interface ComponentsWithCategoriesProps {
+  searchTerm: string;
+  selectedCategory: string | null;
+  selectedSite: string | null;
+  selectedAlignments: AlignmentType[];
+  selectedColumns: ColumnsType[];
+  selectedElements: ElementType[];
+}
+
+const ComponentsWithCategories: React.FC<ComponentsWithCategoriesProps> = ({
+  searchTerm,
+  selectedCategory,
+  selectedSite,
+  selectedAlignments,
+  selectedColumns,
+  selectedElements
+}) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [selectedSite, setSelectedSite] = useState<string | null>(null);
-  const [selectedAlignments, setSelectedAlignments] = useState<AlignmentType[]>([]);
-  const [selectedColumns, setSelectedColumns] = useState<ColumnsType[]>([]);
-  const [selectedElements, setSelectedElements] = useState<ElementType[]>([]);
   const { selectedComponents } = useSelectedComponents();
 
-  // Use infinite scroll hook instead of regular hook
+  // Use infinite scroll hook com os props recebidos
   const {
     components,
     filteredComponents,
@@ -32,53 +42,6 @@ const ComponentsWithCategories = () => {
     selectedCategory,
     selectedSite,
   });
-
-  const handleAlignmentChange = (alignment: AlignmentType) => {
-    setSelectedAlignments(prev => 
-      prev.includes(alignment) 
-        ? prev.filter(a => a !== alignment)
-        : [...prev, alignment]
-    );
-  };
-
-  const handleColumnsChange = (columns: ColumnsType) => {
-    setSelectedColumns(prev => 
-      prev.includes(columns) 
-        ? prev.filter(c => c !== columns)
-        : [...prev, columns]
-    );
-  };
-
-  const handleElementChange = (element: ElementType) => {
-    setSelectedElements(prev => 
-      prev.includes(element) 
-        ? prev.filter(e => e !== element)
-        : [...prev, element]
-    );
-  };
-
-  const handleClearFilter = (filterType: 'alignment' | 'columns' | 'element') => {
-    switch (filterType) {
-      case 'alignment':
-        setSelectedAlignments([]);
-        break;
-      case 'columns':
-        setSelectedColumns([]);
-        break;
-      case 'element':
-        setSelectedElements([]);
-        break;
-    }
-  };
-
-  const handleClearAllFilters = () => {
-    setSearchTerm('');
-    setSelectedCategory(null);
-    setSelectedSite(null);
-    setSelectedAlignments([]);
-    setSelectedColumns([]);
-    setSelectedElements([]);
-  };
 
   const handleRetry = () => {
     window.location.reload();
@@ -158,87 +121,46 @@ const ComponentsWithCategories = () => {
   );
 };
 
-// Export the filters bar component so it can be used in the page
-export const ComponentsFiltersBarWrapper = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [selectedSite, setSelectedSite] = useState<string | null>(null);
-  const [selectedAlignments, setSelectedAlignments] = useState<AlignmentType[]>([]);
-  const [selectedColumns, setSelectedColumns] = useState<ColumnsType[]>([]);
-  const [selectedElements, setSelectedElements] = useState<ElementType[]>([]);
-
+// Export the filters bar component wrapper - agora apenas um wrapper que recebe props
+export const ComponentsFiltersBarWrapper: React.FC<{
+  searchTerm: string;
+  setSearchTerm: (term: string) => void;
+  selectedCategory: string | null;
+  selectedSite: string | null;
+  selectedAlignments: AlignmentType[];
+  selectedColumns: ColumnsType[];
+  selectedElements: ElementType[];
+  onAlignmentChange: (alignment: AlignmentType) => void;
+  onColumnsChange: (columns: ColumnsType) => void;
+  onElementChange: (element: ElementType) => void;
+  onClearFilter: (filterType: 'alignment' | 'columns' | 'element') => void;
+  onClearAllFilters: () => void;
+}> = (props) => {
   const {
     components,
     filteredComponents,
   } = useInfiniteWordPressComponents({
-    searchTerm,
-    selectedCategory,
-    selectedSite,
+    searchTerm: props.searchTerm,
+    selectedCategory: props.selectedCategory,
+    selectedSite: props.selectedSite,
   });
-
-  const handleAlignmentChange = (alignment: AlignmentType) => {
-    setSelectedAlignments(prev => 
-      prev.includes(alignment) 
-        ? prev.filter(a => a !== alignment)
-        : [...prev, alignment]
-    );
-  };
-
-  const handleColumnsChange = (columns: ColumnsType) => {
-    setSelectedColumns(prev => 
-      prev.includes(columns) 
-        ? prev.filter(c => c !== columns)
-        : [...prev, columns]
-    );
-  };
-
-  const handleElementChange = (element: ElementType) => {
-    setSelectedElements(prev => 
-      prev.includes(element) 
-        ? prev.filter(e => e !== element)
-        : [...prev, element]
-    );
-  };
-
-  const handleClearFilter = (filterType: 'alignment' | 'columns' | 'element') => {
-    switch (filterType) {
-      case 'alignment':
-        setSelectedAlignments([]);
-        break;
-      case 'columns':
-        setSelectedColumns([]);
-        break;
-      case 'element':
-        setSelectedElements([]);
-        break;
-    }
-  };
-
-  const handleClearAllFilters = () => {
-    setSearchTerm('');
-    setSelectedCategory(null);
-    setSelectedSite(null);
-    setSelectedAlignments([]);
-    setSelectedColumns([]);
-    setSelectedElements([]);
-  };
 
   return (
     <ComponentsFiltersBar
-      searchTerm={searchTerm}
-      setSearchTerm={setSearchTerm}
-      selectedCategory={selectedCategory}
-      selectedSite={selectedSite}
-      selectedAlignments={selectedAlignments}
-      selectedColumns={selectedColumns}
-      selectedElements={selectedElements}
-      onAlignmentChange={handleAlignmentChange}
-      onColumnsChange={handleColumnsChange}
-      onElementChange={handleElementChange}
-      onClearFilter={handleClearFilter}
+      searchTerm={props.searchTerm}
+      setSearchTerm={props.setSearchTerm}
+      selectedCategory={props.selectedCategory}
+      selectedSite={props.selectedSite}
+      selectedAlignments={props.selectedAlignments}
+      selectedColumns={props.selectedColumns}
+      selectedElements={props.selectedElements}
+      onAlignmentChange={props.onAlignmentChange}
+      onColumnsChange={props.onColumnsChange}
+      onElementChange={props.onElementChange}
+      onClearFilter={props.onClearFilter}
       filteredCount={filteredComponents.length}
       totalCount={components.length}
-      onClearAllFilters={handleClearAllFilters}
+      onClearAllFilters={props.onClearAllFilters}
     />
   );
 };
