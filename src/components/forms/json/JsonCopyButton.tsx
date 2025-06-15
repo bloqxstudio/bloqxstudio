@@ -1,15 +1,18 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Copy, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/features/auth';
+import { getStandardTransformedJson } from '@/utils/json';
 
 interface JsonCopyButtonProps {
   getJsonContent: () => string;
   variant?: 'default' | 'outline' | 'ghost';
   size?: 'sm' | 'default' | 'lg';
   showBadge?: boolean;
+  useStandardTransform?: boolean;
 }
 
 const JsonCopyButton: React.FC<JsonCopyButtonProps> = ({
@@ -17,6 +20,7 @@ const JsonCopyButton: React.FC<JsonCopyButtonProps> = ({
   variant = 'default',
   size = 'default',
   showBadge = false,
+  useStandardTransform = true,
 }) => {
   const [copied, setCopied] = useState(false);
   const { user } = useAuth();
@@ -27,11 +31,39 @@ const JsonCopyButton: React.FC<JsonCopyButtonProps> = ({
       return;
     }
 
-    const jsonContent = getJsonContent();
-    navigator.clipboard.writeText(jsonContent);
-    setCopied(true);
-    toast.success('Código copiado para a área de transferência!');
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      const rawJsonContent = getJsonContent();
+      
+      if (!rawJsonContent || rawJsonContent.trim() === '') {
+        toast.error('Nenhum conteúdo JSON para copiar');
+        return;
+      }
+
+      let finalJsonContent = rawJsonContent;
+
+      // Apply standard transformation if enabled
+      if (useStandardTransform) {
+        try {
+          finalJsonContent = getStandardTransformedJson(rawJsonContent);
+        } catch (transformError) {
+          console.warn('Standard transformation failed, using original:', transformError);
+          // Continue with original content if transformation fails
+        }
+      }
+
+      navigator.clipboard.writeText(finalJsonContent);
+      setCopied(true);
+      
+      const successMessage = useStandardTransform 
+        ? 'JSON padronizado copiado para a área de transferência!'
+        : 'Código copiado para a área de transferência!';
+      
+      toast.success(successMessage);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      console.error('Error copying JSON:', error);
+      toast.error('Erro ao copiar código');
+    }
   };
 
   return (

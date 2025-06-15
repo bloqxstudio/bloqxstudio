@@ -1,10 +1,9 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { useForm } from 'react-hook-form';
 import { Form } from '@/components/ui/form';
-import { cleanElementorJson, validateJson } from '@/utils/json';
+import { validateJson, getStandardTransformedJson } from '@/utils/json';
 import { toast } from 'sonner';
 import JsonFileUploader from './json/JsonFileUploader';
 import ClaudeJsonAnalyzer from './ClaudeJsonAnalyzer';
@@ -19,7 +18,7 @@ const JsonTransformer = () => {
   const [isValidJson, setIsValidJson] = useState(true);
   const [isValidating, setIsValidating] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [applyStructure, setApplyStructure] = useState(false);
+  const [applyStructure, setApplyStructure] = useState(true); // Default to true for standard transformation
   
   // Get language preference
   const language = localStorage.getItem('language') || 'en';
@@ -48,20 +47,14 @@ const JsonTransformer = () => {
     setIsProcessing(true);
     
     try {
-      // Pass the applyStructure parameter to the cleanElementorJson function
-      const cleanedJson = cleanElementorJson(currentJson, false, true, applyStructure);
-      form.setValue('jsonCode', cleanedJson);
+      // Use the centralized transformation function
+      const transformedJson = getStandardTransformedJson(currentJson);
+      form.setValue('jsonCode', transformedJson);
       
-      toast.success(applyStructure ? 
-        getTranslation(
-          'JSON structured and transformed successfully!',
-          'JSON estruturado e transformado com sucesso!'
-        ) : 
-        getTranslation(
-          'JSON transformed successfully!',
-          'JSON transformado com sucesso!'
-        )
-      );
+      toast.success(getTranslation(
+        'JSON transformed with standard structure successfully!',
+        'JSON transformado com estrutura padrão com sucesso!'
+      ));
     } catch (e) {
       console.error('Error processing JSON:', e);
       toast.error(getTranslation(
@@ -149,7 +142,7 @@ const JsonTransformer = () => {
           <JsonFileUploader onJsonLoaded={handleJsonLoaded} />
         </div>
         
-        {/* Structure toggle */}
+        {/* Structure toggle - now defaults to true */}
         <div className="flex items-center space-x-4 mb-4">
           <Switch
             id="apply-structure-toggle"
@@ -165,8 +158,8 @@ const JsonTransformer = () => {
         </div>
 
         {applyStructure && (
-          <div className="mb-4 p-3 border border-gray-200 rounded-md bg-gray-50">
-            <p className="text-sm text-gray-600">
+          <div className="mb-4 p-3 border border-green-200 rounded-md bg-green-50">
+            <p className="text-sm text-green-700">
               {getTranslation(
                 'Standard structure will be applied: Section → Padding → Row → Column → Content Groups → Widgets',
                 'A estrutura padrão será aplicada: Seção → Padding → Linha → Coluna → Grupos de Conteúdo → Widgets'

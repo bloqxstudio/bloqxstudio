@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Copy, Check, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/features/auth';
-import { cleanElementorJson } from '@/utils/json/cleaners';
+import { getStandardTransformedJson } from '@/utils/json';
 import { Component } from '@/core/types';
 
 interface ComponentCardActionsProps {
@@ -26,27 +26,27 @@ const ComponentCardActions: React.FC<ComponentCardActionsProps> = ({
     }
 
     try {
-      // Always copy the processed JSON code
-      const processedJson = cleanElementorJson(
-        component.json_code || component.code || '[]',
-        false,
-        true,
-        false
+      // Use the standardized transformation function
+      const transformedJson = getStandardTransformedJson(
+        component.json_code || component.code || '[]'
       );
 
-      await navigator.clipboard.writeText(processedJson);
+      await navigator.clipboard.writeText(transformedJson);
       setCopied(true);
-      toast.success('Code copied to clipboard!');
+      toast.success('Standardized JSON copied to clipboard!');
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
-      console.error('Error processing and copying:', error);
+      console.error('Error transforming and copying JSON:', error);
+      
+      // Fallback: try to copy original code
       try {
         await navigator.clipboard.writeText(component.json_code || component.code || '[]');
         setCopied(true);
-        toast.success('Code copied to clipboard!');
+        toast.success('Original code copied to clipboard!');
         setTimeout(() => setCopied(false), 2000);
       } catch (copyError) {
-        toast.error('Error copying code');
+        console.error('Fallback copy also failed:', copyError);
+        toast.error('Error copying code to clipboard');
       }
     }
   };
@@ -70,7 +70,7 @@ const ComponentCardActions: React.FC<ComponentCardActionsProps> = ({
         onClick={handleCopyCode}
         disabled={copied}
         className="flex-1"
-        title="Copy Code"
+        title="Copy Transformed JSON"
       >
         {copied ? (
           <>

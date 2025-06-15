@@ -14,6 +14,21 @@ export const generateBloqxkitElementorTemplate = (templateType = 'hero'): string
   return JSON.stringify(template, null, 2);
 };
 
+// Centralized function for standard JSON transformation
+export const getStandardTransformedJson = (jsonString: string): string => {
+  if (!jsonString || jsonString.trim() === '') {
+    throw new Error('Empty or invalid JSON input');
+  }
+
+  // Apply standard transformation rules used in JsonTransformer
+  return cleanElementorJson(
+    jsonString,
+    false,        // removeStyles = false (preserve styles)
+    true,         // wrapInContainer = true 
+    true          // applyStructure = true (apply standard structure)
+  );
+};
+
 // Re-export all utilities
 export {
   validateJson,
