@@ -20,7 +20,8 @@ import {
   User,
   Tag,
   Lock,
-  Globe
+  Globe,
+  ExternalLink
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import CodeViewer from '@/components/CodeViewer';
@@ -89,7 +90,18 @@ const ComponentDetail = () => {
     navigate(`/components/edit/${id}`);
   };
 
+  // Construir URL do componente baseado nas informações
+  const getComponentUrl = () => {
+    if (component?.source === 'wordpress' && component.source_site && component.slug) {
+      // Garantir que temos a URL completa do site
+      const cleanSiteUrl = component.source_site.replace(/^https?:\/\//, '').replace(/\/$/, '');
+      return `https://${cleanSiteUrl}/${component.slug}`;
+    }
+    return null;
+  };
+
   const imageSrc = component?.preview_image || '/placeholder.svg';
+  const componentUrl = getComponentUrl();
 
   return (
     <PageWrapper>
@@ -154,6 +166,31 @@ const ComponentDetail = () => {
                   <span>Visibilidade:</span>
                   <span>{component.visibility === 'public' ? 'Público' : 'Privado'}</span>
                 </div>
+                
+                {/* Exibir URL do componente se disponível */}
+                {componentUrl && (
+                  <div className="flex items-center space-x-2">
+                    <ExternalLink className="h-4 w-4 text-muted-foreground" />
+                    <span>Link do Post:</span>
+                    <a 
+                      href={componentUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-800 underline break-all"
+                    >
+                      {componentUrl}
+                    </a>
+                  </div>
+                )}
+
+                {component.source_site && (
+                  <div className="flex items-center space-x-2">
+                    <Globe className="h-4 w-4 text-muted-foreground" />
+                    <span>Site de Origem:</span>
+                    <span>{component.source_site}</span>
+                  </div>
+                )}
+
                 <div className="flex items-center space-x-2">
                   <Calendar className="h-4 w-4 text-muted-foreground" />
                   <span>Criado em:</span>

@@ -84,28 +84,6 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
     setPreviewOpen(true);
   };
 
-  const handleRegeneratePreview = async () => {
-    // Não regenerar para componentes WordPress
-    if (isWordPressComponent) {
-      toast.info('Componentes do WordPress são exibidos diretamente do site');
-      return;
-    }
-
-    toast.info('Regenerando preview...');
-    
-    try {
-      const newPreview = await regeneratePreview(component);
-      if (newPreview) {
-        toast.success('Preview regenerado com sucesso!');
-      } else {
-        toast.error('Não foi possível regenerar o preview');
-      }
-    } catch (error) {
-      console.error('Erro ao regenerar preview:', error);
-      toast.error('Erro ao regenerar preview');
-    }
-  };
-
   const getProcessedJson = () => {
     try {
       return cleanElementorJson(
@@ -158,16 +136,6 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
     return null;
   };
 
-  // Construir URL do componente baseado nas informações
-  const getComponentUrl = () => {
-    if (component.source === 'wordpress' && component.source_site && component.slug) {
-      // Remover protocol e trailing slash do source_site
-      const cleanSiteUrl = component.source_site.replace(/^https?:\/\//, '').replace(/\/$/, '');
-      return `https://${cleanSiteUrl}/${component.slug}`;
-    }
-    return null;
-  };
-
   return (
     <>
       <Card className="group hover:shadow-lg transition-all duration-200 border border-border/50 hover:border-border">
@@ -188,20 +156,6 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
               <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
                 {component.description}
               </p>
-            )}
-
-            {/* Exibir URL do componente se disponível */}
-            {getComponentUrl() && (
-              <div className="mb-2">
-                <a 
-                  href={getComponentUrl()} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-xs text-blue-600 hover:text-blue-800 underline"
-                >
-                  {getComponentUrl()}
-                </a>
-              </div>
             )}
 
             {component.slug && (
