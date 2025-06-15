@@ -54,10 +54,10 @@ export const getStandardTransformedJson = (jsonString: string): string => {
     // Process and transform elements to proper container structure
     const processedElements = transformElementsToContainer(elements);
 
-    // Create the EXACT Supabase/Elementor standard structure with COMPLETE settings
+    // Create the EXACT Supabase/Elementor standard structure with CORRECT siteurl
     const standardStructure = {
       type: "elementor",
-      siteurl: "https://superelements.io/wp-json/",
+      siteurl: "https://bloqxstudio.com/wp-json/",
       elements: [
         {
           id: generateElementorId(),
