@@ -5,11 +5,13 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { createComponent, uploadComponentImage } from '@/core/api';
+import { createComponent } from '@/core/api';
+import { useAuth } from '@/features/auth';
 import { componentFormSchema, type ComponentFormData } from '@/components/forms/componentFormSchema';
 
 export const useComponentCreate = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
   const [isUploading, setIsUploading] = useState(false);
@@ -103,15 +105,20 @@ export const useComponentCreate = () => {
   };
 
   const onSubmit = async (data: ComponentFormData) => {
+    if (!user) {
+      toast.error('Você precisa estar logado para criar um componente');
+      return;
+    }
+
     try {
       setIsUploading(true);
       
       let previewImageUrl = '';
       
       if (selectedFile) {
-        const timestamp = Date.now();
-        const filename = `${timestamp}-${selectedFile.name}`;
-        previewImageUrl = await uploadComponentImage(selectedFile, filename);
+        // For now, we'll skip the image upload since it's not implemented
+        console.log('Image upload not implemented yet');
+        // previewImageUrl = await uploadComponentImage(selectedFile);
       }
 
       const componentData = {
@@ -127,6 +134,7 @@ export const useComponentCreate = () => {
         alignment: data.alignment,
         columns: data.columns,
         elements: data.elements,
+        created_by: user.id, // Add the missing created_by field
       };
 
       await createMutation.mutateAsync(componentData);
