@@ -99,6 +99,8 @@ export type Database = {
           type: string | null
           updated_at: string
           visibility: string
+          wordpress_category_id: number | null
+          wordpress_category_name: string | null
         }
         Insert: {
           alignment?: string | null
@@ -117,6 +119,8 @@ export type Database = {
           type?: string | null
           updated_at?: string
           visibility?: string
+          wordpress_category_id?: number | null
+          wordpress_category_name?: string | null
         }
         Update: {
           alignment?: string | null
@@ -135,6 +139,8 @@ export type Database = {
           type?: string | null
           updated_at?: string
           visibility?: string
+          wordpress_category_id?: number | null
+          wordpress_category_name?: string | null
         }
         Relationships: []
       }
@@ -236,6 +242,53 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      wordpress_categories: {
+        Row: {
+          category_id: number
+          created_at: string
+          description: string | null
+          id: string
+          last_sync_at: string | null
+          name: string
+          post_count: number | null
+          slug: string
+          updated_at: string
+          wordpress_site_id: string | null
+        }
+        Insert: {
+          category_id: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          last_sync_at?: string | null
+          name: string
+          post_count?: number | null
+          slug: string
+          updated_at?: string
+          wordpress_site_id?: string | null
+        }
+        Update: {
+          category_id?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          last_sync_at?: string | null
+          name?: string
+          post_count?: number | null
+          slug?: string
+          updated_at?: string
+          wordpress_site_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wordpress_categories_wordpress_site_id_fkey"
+            columns: ["wordpress_site_id"]
+            isOneToOne: false
+            referencedRelation: "wordpress_sites"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       wordpress_sites: {
         Row: {

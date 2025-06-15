@@ -25,4 +25,7 @@ export interface Component {
   columns?: '1' | '2' | '3+';
   elements?: ('button' | 'video' | 'image' | 'list' | 'heading')[];
   content?: string;
+  // New WordPress category fields
+  wordpress_category_id?: number;
+  wordpress_category_name?: string;
 }
