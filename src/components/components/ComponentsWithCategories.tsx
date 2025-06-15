@@ -54,9 +54,9 @@ const ComponentsWithCategories = () => {
   });
 
   return (
-    <div className="min-h-screen flex flex-col w-full bg-background">
+    <div className="flex-1 flex flex-col w-full">
       <SidebarProvider>
-        <div className="flex h-screen w-full">
+        <div className="flex flex-1 w-full">
           <AppSidebar
             selectedCategory={selectedCategory}
             selectedSite={selectedSite}
