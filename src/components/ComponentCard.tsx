@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Copy, Check, Eye } from 'lucide-react';
+import { Copy, Check, Eye, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/features/auth';
 import { cleanElementorJson } from '@/utils/json/cleaners';
@@ -100,6 +100,14 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
                 </p>
               )}
             </div>
+
+            {component.slug && (
+              <div className="mb-2">
+                <Badge variant="outline" className="text-xs">
+                  /{component.slug}
+                </Badge>
+              </div>
+            )}
             
             {component.tags && component.tags.length > 0 && (
               <div className="flex flex-wrap gap-1 mb-3">

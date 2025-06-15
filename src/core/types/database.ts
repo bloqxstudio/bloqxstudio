@@ -19,6 +19,7 @@ export interface Component {
   columns?: '1' | '2' | '3+';
   elements?: ('button' | 'video' | 'image' | 'list' | 'heading')[];
   source?: 'local' | 'wordpress'; // Add source property to the base Component type
+  slug?: string; // WordPress post slug for URL construction
 }
 
 export interface Category {

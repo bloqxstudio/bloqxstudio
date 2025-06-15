@@ -4,6 +4,7 @@ import { Component } from '@/core/types';
 
 interface WordPressPost {
   id: number;
+  slug: string;
   title: { rendered: string };
   content: { rendered: string };
   date: string;
@@ -114,7 +115,7 @@ export const getComponents = async (): Promise<Component[]> => {
     // Converter posts do WordPress para o formato Component
     const components: Component[] = await Promise.all(
       posts.map(async (post, index) => {
-        console.log(`🔄 Processando post ${index + 1}: ${post.title.rendered}`);
+        console.log(`🔄 Processando post ${index + 1}: ${post.title.rendered} (slug: ${post.slug})`);
 
         // Extrair dados do Elementor
         const elementorData = extractElementorData(post);
@@ -146,10 +147,11 @@ export const getComponents = async (): Promise<Component[]> => {
           created_at: post.date,
           updated_at: post.modified,
           created_by: 'wordpress-import',
-          source: 'wordpress' as const
+          source: 'wordpress' as const,
+          slug: post.slug
         };
 
-        console.log(`✅ Componente processado: ${component.title} (${component.source})`);
+        console.log(`✅ Componente processado: ${component.title} (slug: ${component.slug})`);
         return component;
       })
     );
@@ -206,7 +208,8 @@ export const getComponentById = async (id: string): Promise<Component | null> =>
       created_at: post.date,
       updated_at: post.modified,
       created_by: 'wordpress-import',
-      source: 'wordpress' as const
+      source: 'wordpress' as const,
+      slug: post.slug
     };
 
     return component;

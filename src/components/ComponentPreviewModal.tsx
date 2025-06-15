@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -88,28 +87,19 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
     setIframeKey(prev => prev + 1);
   };
 
-  // Construir URL do post baseado no component
+  // Construir URL do post usando o slug real
   const getPostUrl = () => {
-    // Para componentes do superelements.io, usar o padrão de URL
-    if (component.source === 'wordpress' || component.id.startsWith('c')) {
-      return `https://superelements.io/${component.id}/`;
+    if (component.source === 'wordpress' && component.slug) {
+      return `https://superelements.io/${component.slug}/`;
     }
-    
-    // Se tem um ID numérico, tentar com o padrão c{id}
-    const numericId = component.id.replace(/[^0-9]/g, '');
-    if (numericId) {
-      return `https://superelements.io/c${numericId}/`;
-    }
-    
-    // Fallback para tentar com o ID original
-    return `https://superelements.io/${component.id}/`;
+    return null;
   };
 
   const postUrl = getPostUrl();
 
-  // Verificar se deve mostrar preview do post ou fallback
+  // Verificar se deve mostrar preview do post
   const shouldShowPostPreview = () => {
-    return component.source === 'wordpress' || component.id.includes('c') || !isNaN(Number(component.id.replace(/[^0-9]/g, '')));
+    return component.source === 'wordpress' && component.slug;
   };
 
   // Criar uma visualização melhorada do JSON
@@ -294,7 +284,7 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
                 Preview: {component.title}
               </DialogTitle>
               <p className="text-sm text-muted-foreground mt-1">
-                Visualização do componente renderizado
+                {component.slug ? `/${component.slug}` : 'Visualização do componente renderizado'}
               </p>
             </div>
             
@@ -318,7 +308,7 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
                 )}
               </Button>
               
-              {shouldShowPostPreview() && (
+              {shouldShowPostPreview() && postUrl && (
                 <Button
                   variant="outline"
                   size="sm"
@@ -417,7 +407,7 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
 
                   <iframe
                     key={`preview-${iframeKey}`}
-                    src={shouldShowPostPreview() ? postUrl : undefined}
+                    src={shouldShowPostPreview() ? postUrl || undefined : undefined}
                     className="w-full border-0"
                     style={{ height: currentViewport.height }}
                     onLoad={handleIframeLoad}
