@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -55,23 +56,23 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
 
   const currentViewport = viewportConfig[viewportSize];
 
-  // Verificar se é componente WordPress
+  // Check if it's a WordPress component
   const isWordPressComponent = component.source === 'wordpress' && component.slug;
   
-  // Construir URL real do post WordPress
+  // Build real WordPress post URL
   const getRealPostUrl = () => {
     if (!isWordPressComponent || !component.source_site || !component.slug) return null;
     
-    // Garantir que source_site tenha protocol
+    // Ensure source_site has protocol
     let siteUrl = component.source_site;
     if (!siteUrl.startsWith('http://') && !siteUrl.startsWith('https://')) {
       siteUrl = `https://${siteUrl}`;
     }
     
-    // Remover trailing slash
+    // Remove trailing slash
     siteUrl = siteUrl.replace(/\/$/, '');
     
-    // Construir URL completa do post
+    // Build complete post URL
     return `${siteUrl}/${component.slug}/`;
   };
 
@@ -92,11 +93,11 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
     try {
       await navigator.clipboard.writeText(processedJson);
       setCopied(true);
-      toast.success('JSON copiado para a área de transferência!');
+      toast.success('JSON copied to clipboard!');
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
-      console.error('Erro ao copiar JSON:', error);
-      toast.error('Erro ao copiar o JSON');
+      console.error('Error copying JSON:', error);
+      toast.error('Error copying JSON');
     }
   };
 
@@ -120,10 +121,10 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
       
       URL.revokeObjectURL(url);
       
-      toast.success('JSON baixado com sucesso!');
+      toast.success('JSON downloaded successfully!');
     } catch (error) {
-      console.error('Erro ao fazer download do JSON:', error);
-      toast.error('Erro ao fazer download do arquivo');
+      console.error('Error downloading JSON:', error);
+      toast.error('Error downloading file');
     }
   };
 
@@ -150,11 +151,11 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
           <div className="text-center p-8">
             <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
             <h3 className="font-semibold text-gray-900 mb-2">
-              Preview Indisponível
+              Component Preview Unavailable
             </h3>
             <p className="text-gray-600 max-w-sm">
-              Este componente não possui uma URL de preview disponível. 
-              Use o botão "Copiar JSON" para importar no Elementor.
+              This component doesn't have a preview URL available. 
+              Use the "Copy JSON" button to import into Elementor.
             </p>
           </div>
         </div>
@@ -206,7 +207,7 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
                   <div className="flex flex-col items-center gap-3 text-gray-600">
                     <Loader2 className="h-8 w-8 animate-spin" />
                     <div className="text-center">
-                      <p className="font-medium">Carregando site do WordPress...</p>
+                      <p className="font-medium">Loading component preview...</p>
                       <p className="text-sm text-gray-500">
                         {currentViewport.label} • {postUrl}
                       </p>
@@ -220,16 +221,16 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
                   <div className="text-center p-8">
                     <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
                     <h3 className="font-semibold text-gray-900 mb-2">
-                      Erro ao carregar o site
+                      Error loading component preview
                     </h3>
                     <p className="text-gray-600 mb-6 max-w-sm">
-                      Não foi possível carregar o post do WordPress. 
-                      Verifique se a URL está acessível.
+                      Unable to load the WordPress post. 
+                      Please check if the URL is accessible.
                     </p>
                     <div className="space-y-2">
                       <Button onClick={handleRefresh} size="sm">
                         <RefreshCw className="h-4 w-4 mr-2" />
-                        Tentar novamente
+                        Try again
                       </Button>
                       <div>
                         <Button 
@@ -238,7 +239,7 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
                           onClick={() => window.open(postUrl!, '_blank')}
                         >
                           <ExternalLink className="h-4 w-4 mr-2" />
-                          Abrir em nova aba
+                          Open in new tab
                         </Button>
                       </div>
                     </div>
@@ -247,13 +248,13 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
               )}
 
               <iframe
-                key={`preview-${iframeKey}`}
+                key={`component-preview-${iframeKey}`}
                 src={postUrl!}
                 className="w-full border-0 block"
                 style={{ height: currentViewport.height }}
                 onLoad={handleIframeLoad}
                 onError={handleIframeError}
-                title={`Preview: ${component.title}`}
+                title={`Component Preview: ${component.title}`}
                 sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
               />
             </div>
@@ -271,12 +272,12 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
             <div>
               <DialogTitle className="text-xl font-semibold flex items-center gap-2">
                 {isWordPressComponent && <Globe className="h-5 w-5 text-blue-600" />}
-                Preview: {component.title}
+                Component Preview: {component.title}
               </DialogTitle>
               <p className="text-sm text-muted-foreground mt-1">
                 {isWordPressComponent 
-                  ? `Site ao vivo: ${postUrl}`
-                  : 'Visualização do componente Elementor'
+                  ? `Live site: ${postUrl}`
+                  : 'Elementor component visualization'
                 }
               </p>
             </div>
@@ -315,12 +316,12 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
                 {copied ? (
                   <>
                     <Check className="h-4 w-4 mr-1" />
-                    Copiado!
+                    Copied!
                   </>
                 ) : (
                   <>
                     <Copy className="h-4 w-4 mr-1" />
-                    Copiar JSON
+                    Copy JSON
                   </>
                 )}
               </Button>
@@ -341,7 +342,7 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
                   onClick={() => window.open(postUrl, '_blank')}
                 >
                   <ExternalLink className="h-4 w-4 mr-1" />
-                  Abrir Site
+                  Open Site
                 </Button>
               )}
               

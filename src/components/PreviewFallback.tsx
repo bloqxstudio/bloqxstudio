@@ -18,15 +18,15 @@ interface PreviewFallbackProps {
 
 const PreviewFallback: React.FC<PreviewFallbackProps> = ({ component, className = '' }) => {
   const { gradientColors, elementIcons, layoutType } = useMemo(() => {
-    // Analisar JSON para extrair informações visuais
+    // Analyze JSON to extract visual information
     let jsonData: any = {};
     try {
       jsonData = JSON.parse(component.json_code || component.code || '[]');
     } catch (error) {
-      console.warn('Erro ao parsear JSON do componente:', error);
+      console.warn('Error parsing component JSON:', error);
     }
 
-    // Determinar cores baseadas na categoria e tags
+    // Determine colors based on category and tags
     const categoryColors: Record<string, string[]> = {
       'cabecalho': ['from-blue-500', 'to-blue-700'],
       'secoes-hero': ['from-purple-500', 'to-pink-600'],
@@ -41,7 +41,7 @@ const PreviewFallback: React.FC<PreviewFallbackProps> = ({ component, className 
 
     const gradientColors = categoryColors[component.category] || categoryColors.default;
 
-    // Determinar ícones baseados nos elementos presentes
+    // Determine icons based on present elements
     const elementIcons: React.ReactNode[] = [];
     const jsonString = JSON.stringify(jsonData);
     
@@ -61,12 +61,12 @@ const PreviewFallback: React.FC<PreviewFallbackProps> = ({ component, className 
       elementIcons.push(<List key="list" className="w-4 h-4" />);
     }
 
-    // Se não encontrou elementos específicos, usar ícone genérico
+    // If no specific elements found, use generic icon
     if (elementIcons.length === 0) {
       elementIcons.push(<Layout key="layout" className="w-4 h-4" />);
     }
 
-    // Determinar tipo de layout baseado na estrutura
+    // Determine layout type based on structure
     let layoutType = 'simple';
     if (jsonString.includes('column') && jsonString.includes('row')) {
       layoutType = 'grid';
@@ -79,7 +79,7 @@ const PreviewFallback: React.FC<PreviewFallbackProps> = ({ component, className 
 
   return (
     <div className={`relative w-full h-full bg-gradient-to-br ${gradientColors[0]} ${gradientColors[1]} ${className}`}>
-      {/* Padrão de fundo sutil */}
+      {/* Subtle background pattern */}
       <div className="absolute inset-0 opacity-10">
         <div 
           className="w-full h-full"
@@ -91,9 +91,9 @@ const PreviewFallback: React.FC<PreviewFallbackProps> = ({ component, className 
         />
       </div>
 
-      {/* Conteúdo do preview */}
+      {/* Component preview content */}
       <div className="relative z-10 p-4 h-full flex flex-col justify-between">
-        {/* Título do componente */}
+        {/* Component title */}
         <div className="text-white">
           <h3 className="font-semibold text-sm line-clamp-2 mb-2">
             {component.title}
@@ -110,7 +110,7 @@ const PreviewFallback: React.FC<PreviewFallbackProps> = ({ component, className 
           </div>
         </div>
 
-        {/* Representação visual do layout */}
+        {/* Visual layout representation */}
         <div className="flex-1 flex items-center justify-center py-4">
           {layoutType === 'grid' && (
             <div className="grid grid-cols-2 gap-2 w-full max-w-20">
@@ -134,7 +134,7 @@ const PreviewFallback: React.FC<PreviewFallbackProps> = ({ component, className 
           )}
         </div>
 
-        {/* Badge de categoria */}
+        {/* Category badge */}
         <div className="flex justify-between items-end">
           <span className="text-xs text-white/80 capitalize">
             {component.category.replace('-', ' ')}
@@ -143,7 +143,7 @@ const PreviewFallback: React.FC<PreviewFallbackProps> = ({ component, className 
         </div>
       </div>
 
-      {/* Indicador de preview gerado */}
+      {/* Generated component preview indicator */}
       <div className="absolute top-2 right-2">
         <div className="bg-white/20 backdrop-blur-sm rounded-full p-1">
           <div className="w-2 h-2 bg-white/60 rounded-full"></div>

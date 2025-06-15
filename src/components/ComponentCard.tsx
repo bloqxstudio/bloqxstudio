@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -33,23 +34,23 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
   const { generatePreview, getPreviewState } = usePreviewGenerator();
   const previewState = getPreviewState(component.id);
 
-  // Intersection observer ultra-otimizado para lazy loading
+  // Intersection observer ultra-optimized for lazy loading
   const { elementRef, isVisible } = useIntersectionObserver({
-    threshold: 0.05, // Trigger mais cedo para melhor UX
-    rootMargin: '100px', // Começar carregamento 100px antes
+    threshold: 0.05, // Trigger earlier for better UX
+    rootMargin: '100px', // Start loading 100px before
     freezeOnceVisible: true,
   });
 
-  // Verificar se é um componente do WordPress com URL válida
+  // Check if it's a WordPress component with valid URL
   const isWordPressComponent = component.source === 'wordpress';
   const hasRealWordPressLink = isWordPressComponent && component.wordpress_post_url;
 
-  // Lazy load preview de forma muito mais conservadora
+  // Lazy load component preview very conservatively
   useEffect(() => {
     if (isVisible && !shouldLoadPreview) {
       setShouldLoadPreview(true);
       
-      // Delay maior para evitar carregamento desnecessário durante scroll rápido
+      // Longer delay to avoid unnecessary loading during fast scroll
       const timer = setTimeout(() => {
         const shouldGeneratePreview = !isWordPressComponent &&
                                      !component.preview_image && 
@@ -60,7 +61,7 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
         if (shouldGeneratePreview) {
           generatePreview(component);
         }
-      }, 300); // Delay aumentado para 300ms
+      }, 300); // Increased delay to 300ms
 
       return () => clearTimeout(timer);
     }
@@ -73,16 +74,16 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
     }
 
     try {
-      // Para posts WordPress, copiar o link real
+      // For WordPress posts, copy the real link
       if (hasRealWordPressLink) {
         await navigator.clipboard.writeText(component.wordpress_post_url!);
         setCopied(true);
-        toast.success('Link do post copiado!');
+        toast.success('Post link copied!');
         setTimeout(() => setCopied(false), 2000);
         return;
       }
 
-      // Para outros componentes, copiar o JSON processado
+      // For other components, copy the processed JSON
       const processedJson = cleanElementorJson(
         component.json_code || component.code || '[]',
         false,
@@ -108,13 +109,13 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
   };
 
   const handlePreview = () => {
-    // Para posts WordPress com link real, abrir em nova aba
+    // For WordPress posts with real link, open in new tab
     if (hasRealWordPressLink) {
       window.open(component.wordpress_post_url, '_blank', 'noopener,noreferrer');
       return;
     }
 
-    // Para outros componentes, abrir modal de preview
+    // For other components, open component preview modal
     setPreviewOpen(true);
   };
 
@@ -127,13 +128,13 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
         false
       );
     } catch (error) {
-      console.error('Error processing JSON for preview:', error);
+      console.error('Error processing JSON for component preview:', error);
       return component.json_code || component.code || '[]';
     }
   };
 
   const getPreviewContent = () => {
-    // Placeholder mais atraente durante carregamento
+    // More attractive placeholder during loading
     if (!shouldLoadPreview) {
       return (
         <div className="w-full h-full bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 flex items-center justify-center animate-pulse">
@@ -144,7 +145,7 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
       );
     }
 
-    // Preview original tem prioridade absoluta
+    // Original component preview has absolute priority
     if (component.preview_image) {
       return (
         <div className="w-full h-full relative">
@@ -163,7 +164,7 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
       );
     }
 
-    // Usar preview embutido para outros casos
+    // Use embedded component preview for other cases
     return <ComponentPreviewEmbed component={component} />;
   };
 
@@ -231,9 +232,10 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
               size="sm"
               onClick={handlePreview}
               className="flex-1"
+              title={hasRealWordPressLink ? 'View Post' : isWordPressComponent ? 'View Site' : 'Component Preview'}
             >
               <Eye className="h-4 w-4 mr-1" />
-              {hasRealWordPressLink ? 'Ver Post' : isWordPressComponent ? 'View Site' : 'Preview'}
+              {hasRealWordPressLink ? 'View Post' : isWordPressComponent ? 'View Site' : 'Component Preview'}
             </Button>
             
             <Button
@@ -242,6 +244,7 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
               onClick={handleCopyCode}
               disabled={copied}
               className="flex-1"
+              title={hasRealWordPressLink ? 'Copy Link' : 'Copy Code'}
             >
               {copied ? (
                 <>
