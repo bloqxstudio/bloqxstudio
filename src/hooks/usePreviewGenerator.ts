@@ -7,7 +7,7 @@ interface PreviewGenerationResult {
   previewUrl: string | null;
   isGenerating: boolean;
   error: string | null;
-  method?: 'screenshot' | 'svg' | 'fallback';
+  method?: 'screenshot' | 'svg' | 'fallback' | 'error';
   isValidJson?: boolean;
 }
 
