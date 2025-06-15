@@ -124,8 +124,12 @@ export const getWordPressComponents = async (filters: WordPressFilters = {}): Pr
         }
       }
 
+      // Ensure proper source marking for WordPress components
+      const source = componentWithContent.slug && componentWithContent.slug.startsWith('wp-') ? 'wordpress' : 'manual';
+
       return {
         ...componentWithContent,
+        source, // Mark WordPress components correctly
         visibility: componentWithContent.visibility as 'public' | 'private',
         alignment: componentWithContent.alignment as 'left' | 'center' | 'right' | 'full' | undefined,
         columns: componentWithContent.columns as '1' | '2' | '3+' | undefined,
@@ -197,8 +201,12 @@ export const getWordPressComponent = async (id: string): Promise<WordPressApiRes
       }
     }
 
+    // Ensure proper source marking
+    const source = componentWithContent.slug && componentWithContent.slug.startsWith('wp-') ? 'wordpress' : 'manual';
+
     const wordpressComponent: WordPressComponent = {
       ...componentWithContent,
+      source, // Mark WordPress components correctly
       visibility: componentWithContent.visibility as 'public' | 'private',
       alignment: componentWithContent.alignment as 'left' | 'center' | 'right' | 'full' | undefined,
       columns: componentWithContent.columns as '1' | '2' | '3+' | undefined,

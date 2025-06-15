@@ -32,9 +32,14 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
   const { generatePreview, getPreviewState, regeneratePreview } = usePreviewGenerator();
   const previewState = getPreviewState(component.id);
 
-  // Gerar preview automaticamente se não houver imagem
+  // Verificar se é um componente do WordPress com URL válida
+  const isWordPressComponent = component.source === 'wordpress' && component.slug;
+  const wordpressUrl = isWordPressComponent ? `https://superelements.io/${component.slug}/` : null;
+
+  // Gerar preview automaticamente apenas se não for WordPress e não houver imagem
   useEffect(() => {
-    const shouldGeneratePreview = !component.preview_image && 
+    const shouldGeneratePreview = !isWordPressComponent &&
+                                 !component.preview_image && 
                                  !previewState.previewUrl && 
                                  !previewState.isGenerating && 
                                  !previewState.error;
@@ -42,7 +47,7 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
     if (shouldGeneratePreview) {
       generatePreview(component);
     }
-  }, [component, generatePreview, previewState]);
+  }, [component, generatePreview, previewState, isWordPressComponent]);
 
   const handleCopyCode = async () => {
     if (!user) {
@@ -81,6 +86,12 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
   };
 
   const handleRegeneratePreview = async () => {
+    // Não regenerar para componentes WordPress
+    if (isWordPressComponent) {
+      toast.info('Componentes do WordPress são exibidos diretamente do site');
+      return;
+    }
+
     toast.info('Regenerando preview...');
     
     try {
@@ -131,7 +142,27 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
       );
     }
 
-    // Estado de geração
+    // Para componentes WordPress, mostrar indicação de preview ao vivo
+    if (isWordPressComponent) {
+      return (
+        <div className="w-full h-full relative bg-gradient-to-br from-blue-50 to-purple-50">
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-center p-4">
+              <ExternalLink className="w-8 h-8 mx-auto mb-2 text-blue-600" />
+              <div className="text-sm font-medium text-blue-900">Preview ao Vivo</div>
+              <div className="text-xs text-blue-700">Clique para ver o site real</div>
+            </div>
+          </div>
+          <div className="absolute top-2 right-2">
+            <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-800">
+              🌐 WordPress
+            </Badge>
+          </div>
+        </div>
+      );
+    }
+
+    // Estado de geração para componentes locais
     if (previewState.isGenerating) {
       return (
         <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100">
@@ -261,7 +292,7 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
               className="flex-1"
             >
               <Eye className="h-4 w-4 mr-1" />
-              Preview
+              {isWordPressComponent ? 'Ver Site' : 'Preview'}
             </Button>
             
             <Button
