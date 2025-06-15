@@ -43,7 +43,6 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
 
   // Check if it's a WordPress component with valid URL
   const isWordPressComponent = component.source === 'wordpress';
-  const hasRealWordPressLink = isWordPressComponent && component.wordpress_post_url;
 
   // Lazy load component preview very conservatively
   useEffect(() => {
@@ -68,19 +67,7 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
   }, [isVisible, shouldLoadPreview, component, generatePreview, previewState, isWordPressComponent]);
 
   const handlePreview = () => {
-    // If we're on component detail page, always show modal
-    if (isComponentDetailPage) {
-      setPreviewOpen(true);
-      return;
-    }
-
-    // For WordPress posts with real link on other pages, open in new tab
-    if (hasRealWordPressLink) {
-      window.open(component.wordpress_post_url, '_blank', 'noopener,noreferrer');
-      return;
-    }
-
-    // For other components, open component preview modal
+    // Always open the preview modal
     setPreviewOpen(true);
   };
 
