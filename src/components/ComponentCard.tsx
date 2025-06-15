@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Copy, Check, Eye, ExternalLink, Loader2, RefreshCw, AlertCircle, Edit, RotateCcw } from 'lucide-react';
+import { Copy, Check, Eye, Loader2, RefreshCw, AlertCircle, Edit, RotateCcw } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/features/auth';
 import { cleanElementorJson } from '@/utils/json/cleaners';
@@ -34,7 +34,6 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
 
   // Verificar se é um componente do WordPress com URL válida
   const isWordPressComponent = component.source === 'wordpress' && component.slug;
-  const isSuperelementsComponent = component.source === 'superelements';
   const isOwnSite = component.source === 'wordpress' && component.wordpress_site_id;
 
   // Gerar preview automaticamente apenas se não for WordPress e não houver imagem
@@ -160,15 +159,6 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
   };
 
   const getSourceBadge = () => {
-    if (isSuperelementsComponent) {
-      return (
-        <Badge variant="outline" className="text-xs bg-blue-100 text-blue-700 border-blue-200">
-          <ExternalLink className="h-3 w-3 mr-1" />
-          Superelements
-        </Badge>
-      );
-    }
-
     if (isOwnSite) {
       return (
         <Badge variant="outline" className="text-xs bg-green-100 text-green-700 border-green-200">
@@ -219,7 +209,7 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
       );
     }
 
-    // Botões padrão para Superelements e outros
+    // Botões padrão para componentes WordPress
     return (
       <div className="flex gap-2 w-full">
         <Button

@@ -28,8 +28,6 @@ interface WordPressPost {
   };
 }
 
-const WORDPRESS_API_BASE = 'https://superelements.io/wp-json/wp/v2';
-
 // Função para extrair dados do Elementor do meta field
 const extractElementorData = (post: WordPressPost): string => {
   if (post.meta?._elementor_data) {
@@ -90,57 +88,6 @@ const extractTags = (title: string, content: string): string[] => {
   if (content.includes('elementor-widget-form')) tags.push('form');
   
   return [...new Set(tags)]; // Remove duplicatas
-};
-
-// Buscar componentes do Superelements
-const getSuperelementsComponents = async (): Promise<Component[]> => {
-  try {
-    const response = await fetch(
-      `${WORDPRESS_API_BASE}/posts?per_page=100&page=1&orderby=date&order=desc&_embed=1`,
-      {
-        headers: {
-          'Accept': 'application/json',
-        },
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error(`Erro na API do WordPress: ${response.status}`);
-    }
-
-    const posts: WordPressPost[] = await response.json();
-
-    return posts.map((post) => {
-      const elementorData = extractElementorData(post);
-      const featuredImage = post._embedded?.['wp:featuredmedia']?.[0]?.source_url || '';
-      const categories = post._embedded?.['wp:term']?.[0] || [];
-      const mappedCategory = mapWordPressCategory(categories);
-      const tags = extractTags(post.title.rendered, post.content.rendered);
-      const description = `Componente Elementor: ${post.title.rendered}`;
-
-      return {
-        id: `superelements-${post.id}`,
-        title: post.title.rendered || 'Sem título',
-        description,
-        category: mappedCategory,
-        code: elementorData,
-        json_code: elementorData,
-        preview_image: featuredImage,
-        tags,
-        type: 'elementor',
-        visibility: 'public' as const,
-        created_at: post.date,
-        updated_at: post.modified,
-        created_by: 'superelements',
-        source: 'superelements' as const,
-        source_site: 'Superelements',
-        slug: post.slug
-      };
-    });
-  } catch (error) {
-    console.error('Erro ao buscar componentes do Superelements:', error);
-    return [];
-  }
 };
 
 // Buscar componentes de um site WordPress conectado
@@ -211,13 +158,9 @@ const getWordPressSiteComponents = async (siteId: string, siteUrl: string, apiKe
 
 // Função principal para buscar todos os componentes
 export const getComponents = async (): Promise<Component[]> => {
-  console.log('🔍 Buscando componentes de todas as fontes...');
+  console.log('🔍 Buscando componentes dos sites WordPress conectados...');
   
   try {
-    // Buscar componentes do Superelements
-    const superelementsComponents = await getSuperelementsComponents();
-    console.log(`📊 ${superelementsComponents.length} componentes do Superelements`);
-
     // Buscar componentes dos sites conectados (somente se usuário autenticado)
     let connectedSitesComponents: Component[] = [];
     
@@ -235,73 +178,23 @@ export const getComponents = async (): Promise<Component[]> => {
         console.log(`📊 ${connectedSitesComponents.length} componentes de sites conectados`);
       }
     } catch (authError) {
-      console.log('Usuário não autenticado ou sem sites conectados, mostrando apenas Superelements');
+      console.log('Usuário não autenticado ou sem sites conectados');
     }
 
-    // Combinar todos os componentes
-    const allComponents = [...superelementsComponents, ...connectedSitesComponents];
-    console.log(`🎉 Total de ${allComponents.length} componentes carregados`);
+    console.log(`🎉 Total de ${connectedSitesComponents.length} componentes carregados`);
     
-    return allComponents;
+    return connectedSitesComponents;
 
   } catch (error) {
     console.error('💥 Erro ao buscar componentes:', error);
-    // Retornar apenas componentes do Superelements como fallback
-    return getSuperelementsComponents();
+    return [];
   }
 };
 
 // Função para buscar componente específico por ID
 export const getComponentById = async (id: string): Promise<Component | null> => {
   try {
-    // Verificar se é do Superelements
-    if (id.startsWith('superelements-')) {
-      const wpId = id.replace('superelements-', '');
-      
-      const response = await fetch(
-        `${WORDPRESS_API_BASE}/posts/${wpId}?_embed=1`,
-        {
-          headers: {
-            'Accept': 'application/json',
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Post não encontrado: ${response.status}`);
-      }
-
-      const post: WordPressPost = await response.json();
-      
-      // Converter para formato Component
-      const elementorData = extractElementorData(post);
-      const featuredImage = post._embedded?.['wp:featuredmedia']?.[0]?.source_url || '';
-      const categories = post._embedded?.['wp:term']?.[0] || [];
-      const mappedCategory = mapWordPressCategory(categories);
-      const tags = extractTags(post.title.rendered, post.content.rendered);
-      const description = `Componente Elementor: ${post.title.rendered}`;
-
-      return {
-        id: `superelements-${post.id}`,
-        title: post.title.rendered || 'Sem título',
-        description,
-        category: mappedCategory,
-        code: elementorData,
-        json_code: elementorData,
-        preview_image: featuredImage,
-        tags,
-        type: 'elementor',
-        visibility: 'public' as const,
-        created_at: post.date,
-        updated_at: post.modified,
-        created_by: 'superelements',
-        source: 'superelements' as const,
-        source_site: 'Superelements',
-        slug: post.slug
-      };
-    }
-
-    // Se for de um site conectado, buscar nos sites do usuário
+    // Buscar nos sites do usuário
     const userSites = await getUserWordPressSites();
     const siteId = id.split('-')[0];
     const postId = id.split('-').slice(1).join('-');

@@ -17,7 +17,7 @@ export interface Component {
   created_at: string;
   updated_at: string;
   created_by: string;
-  source?: 'local' | 'wordpress' | 'superelements';
+  source?: 'local' | 'wordpress';
   source_site?: string;
   wordpress_site_id?: string;
   slug?: string;

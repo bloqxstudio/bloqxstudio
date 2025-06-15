@@ -1,4 +1,3 @@
-
 import { useState, useMemo } from 'react';
 import { Component } from '@/core/types';
 
@@ -16,24 +15,19 @@ export const useComponentFilters = ({ components }: UseComponentFiltersProps) =>
   const [categoryFilter, setCategoryFilter] = useState('');
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
-  // Calcular fontes disponíveis
+  // Calcular fontes disponíveis (apenas WordPress)
   const availableSources = useMemo(() => {
     const sourceMap = new Map();
     
     components.forEach(component => {
-      const sourceKey = component.source === 'superelements' ? 'superelements' : 
-                       component.source === 'wordpress' ? component.source_site || 'WordPress' : 
-                       'local';
-      
-      const sourceId = component.source === 'superelements' ? 'superelements' :
-                      component.source === 'wordpress' ? component.wordpress_site_id || component.source_site :
-                      'local';
+      const sourceKey = component.source_site || 'WordPress';
+      const sourceId = component.wordpress_site_id || component.source_site || 'wordpress';
 
       if (!sourceMap.has(sourceId)) {
         sourceMap.set(sourceId, {
           id: sourceId,
           name: component.source_site || sourceKey,
-          type: component.source === 'superelements' ? 'superelements' : 'wordpress',
+          type: 'wordpress',
           count: 0
         });
       }
@@ -42,9 +36,6 @@ export const useComponentFilters = ({ components }: UseComponentFiltersProps) =>
     });
 
     return Array.from(sourceMap.values()).sort((a, b) => {
-      // Superelements primeiro, depois alfabética
-      if (a.type === 'superelements' && b.type !== 'superelements') return -1;
-      if (a.type !== 'superelements' && b.type === 'superelements') return 1;
       return a.name.localeCompare(b.name);
     });
   }, [components]);
@@ -54,9 +45,7 @@ export const useComponentFilters = ({ components }: UseComponentFiltersProps) =>
     return components.filter(component => {
       // Filtro por fonte
       if (selectedSource !== 'all') {
-        const componentSourceId = component.source === 'superelements' ? 'superelements' :
-                                 component.source === 'wordpress' ? component.wordpress_site_id || component.source_site :
-                                 'local';
+        const componentSourceId = component.wordpress_site_id || component.source_site || 'wordpress';
         
         if (componentSourceId !== selectedSource) {
           return false;
