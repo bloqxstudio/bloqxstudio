@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -232,10 +231,10 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
               size="sm"
               onClick={handlePreview}
               className="flex-1"
-              title={hasRealWordPressLink ? 'View Post' : isWordPressComponent ? 'View Site' : 'Component Preview'}
+              title={hasRealWordPressLink ? 'View Component' : isWordPressComponent ? 'View Site' : 'Component Preview'}
             >
               <Eye className="h-4 w-4 mr-1" />
-              {hasRealWordPressLink ? 'View Post' : isWordPressComponent ? 'View Site' : 'Component Preview'}
+              {hasRealWordPressLink ? 'View Component' : isWordPressComponent ? 'View Site' : 'Component Preview'}
             </Button>
             
             <Button
