@@ -1,13 +1,11 @@
 
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Copy, Check, Eye, ExternalLink } from 'lucide-react';
+import { Copy, Check, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/features/auth';
-import { useSelectedComponents } from '@/shared/contexts/SelectedComponentsContext';
 import { cleanElementorJson } from '@/utils/json/cleaners';
 import { Component } from '@/core/types';
 import ComponentPreviewModal from './ComponentPreviewModal';
@@ -26,11 +24,8 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
   showSelectButton = false,
 }) => {
   const { user } = useAuth();
-  const { toggleComponent, selectedComponents } = useSelectedComponents();
   const [copied, setCopied] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
-
-  const isComponentSelected = selectedComponents.some(c => c.id === component.id);
 
   const handleCopyCode = async () => {
     if (!user) {
@@ -55,10 +50,6 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
       console.error('Erro ao processar e copiar JSON:', error);
       toast.error('Erro ao processar o código');
     }
-  };
-
-  const handleToggleSelect = () => {
-    toggleComponent(component);
   };
 
   const handlePreview = () => {
@@ -96,16 +87,6 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
                 <span className="text-gray-400 text-sm">Sem preview</span>
               </div>
             )}
-            
-            {component.source === 'wordpress' && (
-              <Badge 
-                variant="secondary" 
-                className="absolute top-2 right-2 text-xs bg-blue-100 text-blue-700 border-blue-200"
-              >
-                <ExternalLink className="h-3 w-3 mr-1" />
-                WordPress
-              </Badge>
-            )}
           </div>
           
           <div className="p-4">
@@ -137,7 +118,7 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
           </div>
         </CardContent>
         
-        <CardFooter className="p-4 pt-0 space-y-2">
+        <CardFooter className="p-4 pt-0">
           <div className="flex gap-2 w-full">
             <Button
               variant="outline"
@@ -168,25 +149,6 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
                 </>
               )}
             </Button>
-          </div>
-          
-          <div className="flex gap-2 w-full">
-            <Button asChild variant="default" size="sm" className="flex-1">
-              <Link to={`/component/${component.id}`}>
-                Ver detalhes
-              </Link>
-            </Button>
-            
-            {showSelectButton && (
-              <Button
-                variant={isComponentSelected ? "default" : "outline"}
-                size="sm"
-                onClick={handleToggleSelect}
-                className="flex-1"
-              >
-                {isComponentSelected ? 'Selecionado' : 'Selecionar'}
-              </Button>
-            )}
           </div>
         </CardFooter>
       </Card>

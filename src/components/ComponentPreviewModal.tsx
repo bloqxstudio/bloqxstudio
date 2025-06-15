@@ -86,8 +86,17 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
     setIframeKey(prev => prev + 1);
   };
 
-  // Preview URL - por enquanto usando uma página de demonstração
-  // Em produção, isso seria uma página WordPress dedicada para preview
+  // Criar uma visualização melhorada do JSON
+  const formatJsonForDisplay = (json: string) => {
+    try {
+      const parsed = JSON.parse(json);
+      return JSON.stringify(parsed, null, 2);
+    } catch {
+      return json;
+    }
+  };
+
+  // Preview URL melhorado com formatação do JSON
   const previewUrl = `data:text/html;charset=utf-8,${encodeURIComponent(`
     <!DOCTYPE html>
     <html lang="pt-BR">
@@ -95,59 +104,117 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>Preview - ${component.title}</title>
+      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
       <style>
-        body {
+        * {
           margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+        body {
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          min-height: 100vh;
           padding: 20px;
-          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-          background: #f9f9f9;
         }
         .preview-container {
           background: white;
-          border-radius: 8px;
-          padding: 40px;
-          box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-          max-width: 1200px;
+          border-radius: 16px;
+          padding: 32px;
+          box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+          max-width: 1000px;
           margin: 0 auto;
+          min-height: calc(100vh - 40px);
         }
         .preview-header {
           text-align: center;
-          margin-bottom: 30px;
-          padding-bottom: 20px;
-          border-bottom: 1px solid #eee;
+          margin-bottom: 32px;
+          padding-bottom: 24px;
+          border-bottom: 2px solid #f1f5f9;
         }
         .preview-title {
-          color: #333;
-          font-size: 24px;
-          font-weight: 600;
-          margin: 0 0 10px 0;
+          color: #1e293b;
+          font-size: 28px;
+          font-weight: 700;
+          margin: 0 0 8px 0;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
         }
         .preview-subtitle {
-          color: #666;
-          font-size: 14px;
+          color: #64748b;
+          font-size: 16px;
+          font-weight: 500;
           margin: 0;
         }
         .json-preview {
-          background: #f8f8f8;
-          border: 1px solid #ddd;
-          border-radius: 6px;
-          padding: 20px;
-          font-family: 'Monaco', 'Consolas', monospace;
-          font-size: 12px;
-          color: #333;
+          background: #f8fafc;
+          border: 2px solid #e2e8f0;
+          border-radius: 12px;
+          padding: 24px;
+          font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Consolas', monospace;
+          font-size: 13px;
+          line-height: 1.6;
+          color: #334155;
           white-space: pre-wrap;
-          word-break: break-all;
-          max-height: 400px;
+          word-break: break-word;
+          max-height: 500px;
           overflow-y: auto;
+          box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
         }
         .preview-note {
-          background: #e3f2fd;
-          border: 1px solid #bbdefb;
-          border-radius: 6px;
-          padding: 15px;
-          margin: 20px 0;
-          color: #1565c0;
+          background: linear-gradient(135deg, #e0f2fe 0%, #f0f9ff 100%);
+          border: 2px solid #7dd3fc;
+          border-radius: 12px;
+          padding: 20px;
+          margin: 24px 0;
+          color: #0c4a6e;
           font-size: 14px;
+          line-height: 1.5;
+        }
+        .preview-note strong {
+          color: #0369a1;
+          font-weight: 600;
+        }
+        .stats-container {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          gap: 16px;
+          margin: 24px 0;
+        }
+        .stat-card {
+          background: #f8fafc;
+          border: 1px solid #e2e8f0;
+          border-radius: 8px;
+          padding: 16px;
+          text-align: center;
+        }
+        .stat-number {
+          font-size: 24px;
+          font-weight: 700;
+          color: #1e293b;
+          margin-bottom: 4px;
+        }
+        .stat-label {
+          font-size: 12px;
+          color: #64748b;
+          text-transform: uppercase;
+          font-weight: 500;
+        }
+        .json-preview::-webkit-scrollbar {
+          width: 8px;
+        }
+        .json-preview::-webkit-scrollbar-track {
+          background: #f1f5f9;
+          border-radius: 4px;
+        }
+        .json-preview::-webkit-scrollbar-thumb {
+          background: #cbd5e1;
+          border-radius: 4px;
+        }
+        .json-preview::-webkit-scrollbar-thumb:hover {
+          background: #94a3b8;
         }
       </style>
     </head>
@@ -155,19 +222,36 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
       <div class="preview-container">
         <div class="preview-header">
           <h1 class="preview-title">${component.title}</h1>
-          <p class="preview-subtitle">Preview do Componente Elementor</p>
+          <p class="preview-subtitle">JSON Otimizado para Elementor</p>
+        </div>
+        
+        <div class="stats-container">
+          <div class="stat-card">
+            <div class="stat-number">${Math.ceil(processedJson.length / 1024)}KB</div>
+            <div class="stat-label">Tamanho</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number">${(processedJson.match(/{"elType"/g) || []).length}</div>
+            <div class="stat-label">Elementos</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-number">${(processedJson.match(/"widgetType"/g) || []).length}</div>
+            <div class="stat-label">Widgets</div>
+          </div>
         </div>
         
         <div class="preview-note">
-          <strong>📋 JSON Otimizado:</strong> Este é o código JSON otimizado e pronto para ser colado no Elementor. 
-          Todos os elementos foram convertidos para containers e propriedades vazias foram removidas.
+          <strong>🎯 JSON Processado:</strong> Este código foi otimizado automaticamente para o Elementor. 
+          Todos os elementos foram convertidos para containers quando necessário e propriedades vazias foram removidas 
+          para garantir máxima compatibilidade.
         </div>
         
-        <div class="json-preview">${processedJson}</div>
+        <div class="json-preview">${formatJsonForDisplay(processedJson)}</div>
         
         <div class="preview-note">
-          <strong>💡 Como usar:</strong> Copie este JSON e cole no Elementor através da opção "Importar Template" 
-          ou cole diretamente em uma seção/container existente.
+          <strong>📋 Como usar:</strong> Copie este JSON usando o botão "Copiar JSON" no modal e cole no Elementor 
+          através da opção "Importar Template" ou cole diretamente em uma seção/container existente. 
+          O código está pronto para uso imediato.
         </div>
       </div>
     </body>
@@ -184,7 +268,7 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
                 Preview: {component.title}
               </DialogTitle>
               <p className="text-sm text-muted-foreground mt-1">
-                Visualização do componente otimizado para Elementor
+                Visualização do JSON otimizado para Elementor
               </p>
             </div>
             

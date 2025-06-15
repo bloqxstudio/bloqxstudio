@@ -6,6 +6,7 @@ interface SelectedComponentsContextType {
   selectedComponents: Component[];
   addComponent: (component: Component) => void;
   removeComponent: (componentId: string) => void;
+  toggleComponent: (component: Component) => void;
   clearSelectedComponents: () => void;
   isComponentSelected: (componentId: string) => boolean;
 }
@@ -39,6 +40,17 @@ export const SelectedComponentsProvider: React.FC<SelectedComponentsProviderProp
     setSelectedComponents(prev => prev.filter(c => c.id !== componentId));
   };
 
+  const toggleComponent = (component: Component) => {
+    setSelectedComponents(prev => {
+      const exists = prev.some(c => c.id === component.id);
+      if (exists) {
+        return prev.filter(c => c.id !== component.id);
+      } else {
+        return [...prev, component];
+      }
+    });
+  };
+
   const clearSelectedComponents = () => {
     setSelectedComponents([]);
   };
@@ -51,6 +63,7 @@ export const SelectedComponentsProvider: React.FC<SelectedComponentsProviderProp
     selectedComponents,
     addComponent,
     removeComponent,
+    toggleComponent,
     clearSelectedComponents,
     isComponentSelected,
   };
