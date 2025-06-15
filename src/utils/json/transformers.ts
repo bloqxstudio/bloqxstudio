@@ -1,45 +1,80 @@
-
 /**
  * JSON transformation utilities for Elementor components
  */
 
-// Função para transformar todos os elType para "container"
+// Função para transformar todos os elType para "container" com configurações completas
 export const transformElementsToContainer = (elements: any[]): any[] => {
   if (!elements || elements.length === 0) return [];
   
   return elements.map(element => {
     // Clonar o elemento para não modificar o original
-    const newElement = { ...element };
+    const newElement = { 
+      ...element,
+      id: element.id || generateElementorId()
+    };
     
     // Se o elemento for uma seção ou coluna, transformar em container
     if (newElement.elType === "section" || newElement.elType === "column") {
       newElement.elType = "container";
       
-      // Ajustar configurações para container de forma mais compacta
+      // Aplicar configurações completas de container
       if (newElement.settings) {
-        // Configurações específicas de container conforme solicitado
-        // Usar valores diretos em vez de objetos completos para reduzir tamanho
         const settings = { ...newElement.settings };
         
-        // Aplicar os valores específicos solicitados
-        settings.content_width = "boxed";
-        settings.flex_direction = "auto";
-        settings.flex_wrap = "disabled";
+        // Configurações essenciais do container
+        settings.content_width = settings.content_width || "boxed";
+        settings.flex_direction = settings.flex_direction || "column";
+        settings.flex_wrap = settings.flex_wrap || "nowrap";
+        settings.container_type = settings.container_type || "flex";
+        settings.content_position = settings.content_position || "center";
         
-        // Manter content_position se existir, ou definir um padrão
-        if (!settings.content_position) {
-          settings.content_position = "center";
+        // Configurações de gap se não existir
+        if (!settings.flex_gap) {
+          settings.flex_gap = { 
+            unit: "px", 
+            size: 10,
+            column: "10",
+            row: "10",
+            isLinked: true
+          };
         }
         
-        // Definir flex_gap de forma simplificada apenas se não existir
-        if (!settings.flex_gap) {
-          settings.flex_gap = { unit: "px", size: 10 };
+        // Configurações responsivas básicas
+        if (!settings.flex_direction_tablet) {
+          settings.flex_direction_tablet = "column";
+        }
+        
+        if (!settings.flex_gap_tablet) {
+          settings.flex_gap_tablet = {
+            column: "0",
+            row: "2",
+            isLinked: false,
+            unit: "rem",
+            size: 0
+          };
+        }
+        
+        if (!settings.flex_gap_mobile) {
+          settings.flex_gap_mobile = {
+            isLinked: true,
+            unit: "rem"
+          };
         }
         
         // Preservar cores diretas no elemento
         preserveDirectColors(settings);
         
         newElement.settings = settings;
+      } else {
+        // Se não há settings, criar configurações básicas
+        newElement.settings = {
+          content_width: "boxed",
+          flex_direction: "column",
+          flex_wrap: "nowrap",
+          container_type: "flex",
+          content_position: "center",
+          flex_gap: { unit: "px", size: 10, column: "10", row: "10", isLinked: true }
+        };
       }
     } else if (newElement.settings) {
       // Para outros tipos de elementos, também preservar cores diretas
@@ -53,6 +88,11 @@ export const transformElementsToContainer = (elements: any[]): any[] => {
     
     return newElement;
   });
+};
+
+// Generate unique ID for Elementor elements
+const generateElementorId = (): string => {
+  return Math.random().toString(36).substr(2, 7);
 };
 
 // Nova função para aplicar a estrutura padrão com containers aninhados

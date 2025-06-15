@@ -29,12 +29,16 @@ const ComponentCardActions: React.FC<ComponentCardActionsProps> = ({
       // Get the raw JSON from the component
       const sourceJson = component.json_code || component.code || '[]';
       
-      // Apply the EXACT same transformation as JsonTransformer
+      console.log('Original JSON:', sourceJson);
+      
+      // Apply the EXACT same transformation as JsonTransformer for perfect Elementor compatibility
       const elementorStandardJson = getStandardTransformedJson(sourceJson);
+      
+      console.log('Transformed JSON:', elementorStandardJson);
 
       await navigator.clipboard.writeText(elementorStandardJson);
       setCopied(true);
-      toast.success('Elementor-compatible JSON copied! Perfect for pasting into Elementor.');
+      toast.success('JSON Elementor padrão copiado! Perfeito para colar no Elementor com estrutura completa.');
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
       console.error('Error generating Elementor JSON:', error);
@@ -43,11 +47,11 @@ const ComponentCardActions: React.FC<ComponentCardActionsProps> = ({
       try {
         await navigator.clipboard.writeText(component.json_code || component.code || '[]');
         setCopied(true);
-        toast.success('Original code copied to clipboard!');
+        toast.success('Código original copiado para a área de transferência!');
         setTimeout(() => setCopied(false), 2000);
       } catch (copyError) {
         console.error('Fallback copy also failed:', copyError);
-        toast.error('Error copying code to clipboard');
+        toast.error('Erro ao copiar código');
       }
     }
   };
@@ -76,7 +80,7 @@ const ComponentCardActions: React.FC<ComponentCardActionsProps> = ({
         {copied ? (
           <>
             <Check className="h-4 w-4 mr-1" />
-            Copied!
+            Copiado!
           </>
         ) : (
           <>

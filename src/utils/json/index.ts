@@ -8,7 +8,7 @@ import { transformElementsToContainer, removeStyleProperties, removeEmptyPropert
 import { getTemplate } from './templates';
 import { mergeComponentsJson } from './mergeJson';
 
-// Generate unique ID for Elementor elements
+// Generate unique ID for Elementor elements (7 characters alphanumeric)
 const generateElementorId = (): string => {
   return Math.random().toString(36).substr(2, 7);
 };
@@ -51,13 +51,13 @@ export const getStandardTransformedJson = (jsonString: string): string => {
       elements = [parsedJson];
     }
 
-    // Transform elements to proper container structure
-    const transformedElements = transformElementsToContainer(elements);
+    // Process and transform elements to proper container structure
+    const processedElements = transformElementsToContainer(elements);
 
-    // Create the EXACT Supabase/Elementor standard structure
+    // Create the EXACT Supabase/Elementor standard structure with COMPLETE settings
     const standardStructure = {
       type: "elementor",
-      siteurl: "https://superelements.io/wp-json/", // Using Superelements as the product URL
+      siteurl: "https://superelements.io/wp-json/",
       elements: [
         {
           id: generateElementorId(),
@@ -69,47 +69,119 @@ export const getStandardTransformedJson = (jsonString: string): string => {
             padding: {
               unit: "px",
               top: "85",
-              right: "0", 
+              right: "0",
               bottom: "85",
               left: "0",
               isLinked: false
             },
             padding_tablet: {
-              unit: "px",
-              top: "60",
-              right: "20",
-              bottom: "60", 
-              left: "20",
+              unit: "rem",
+              top: "4",
+              right: "1",
+              bottom: "4",
+              left: "1",
               isLinked: false
             },
             padding_mobile: {
-              unit: "px",
-              top: "40",
-              right: "15",
-              bottom: "40",
-              left: "15", 
+              unit: "rem",
               isLinked: false
             },
-            content_width: "boxed",
-            boxed_width: {
+            flex_direction: "row",
+            flex_align_items: "stretch",
+            flex_gap: {
+              size: 10,
+              column: "10",
+              row: "10",
               unit: "px",
-              size: 1200,
-              sizes: []
+              isLinked: true
             },
-            flex_direction: "column",
-            flex_wrap: "nowrap",
-            content_position: "center"
+            container_type: "flex",
+            content_width: "boxed",
+            width: { unit: "%" },
+            width_tablet: { unit: "px" },
+            width_mobile: { unit: "px" },
+            boxed_width: { unit: "px" },
+            boxed_width_tablet: { unit: "px" },
+            boxed_width_mobile: { unit: "px" },
+            min_height: { unit: "px" },
+            min_height_tablet: { unit: "px" },
+            min_height_mobile: { unit: "px" },
+            flex_direction_tablet: "column",
+            flex__is_row: "row",
+            flex__is_column: "column",
+            flex_justify_content_tablet: "center",
+            flex_align_items_tablet: "center",
+            flex_gap_tablet: {
+              column: "0",
+              row: "4",
+              isLinked: false,
+              unit: "rem",
+              size: 0
+            },
+            flex_gap_mobile: {
+              isLinked: true,
+              unit: "rem"
+            },
+            grid_outline: "yes",
+            grid_columns_grid: { unit: "fr", size: 3 },
+            grid_columns_grid_tablet: { unit: "fr" },
+            grid_columns_grid_mobile: { unit: "fr", size: 1 },
+            grid_rows_grid: { unit: "fr", size: 2 },
+            grid_rows_grid_tablet: { unit: "fr" },
+            grid_rows_grid_mobile: { unit: "fr" },
+            grid_gaps: { isLinked: true, unit: "px" },
+            grid_gaps_tablet: { isLinked: true, unit: "px" },
+            grid_gaps_mobile: { isLinked: true, unit: "px" },
+            grid_auto_flow: "row",
+            grid_auto_flow_tablet: "row",
+            grid_auto_flow_mobile: "row",
+            grid__is_row: "row",
+            grid__is_column: "column",
+            background_color: "",
+            background_color_stop: { unit: "%", size: 0 },
+            background_color_b: "#f2295b",
+            background_color_b_stop: { unit: "%", size: 100 },
+            background_gradient_type: "linear",
+            background_gradient_angle: { unit: "deg", size: 180 },
+            background_gradient_position: "center center",
+            background_xpos: { unit: "px", size: 0 },
+            background_xpos_tablet: { unit: "px", size: 0 },
+            background_xpos_mobile: { unit: "px", size: 0 },
+            background_ypos: { unit: "px", size: 0 },
+            background_ypos_tablet: { unit: "px", size: 0 },
+            background_ypos_mobile: { unit: "px", size: 0 },
+            background_bg_width: { unit: "%", size: 100 },
+            background_bg_width_tablet: { unit: "px" },
+            background_bg_width_mobile: { unit: "px" },
+            background_slideshow_loop: "yes",
+            background_slideshow_slide_duration: 5000,
+            background_slideshow_slide_transition: "fade",
+            background_slideshow_transition_duration: 500,
+            background_slideshow_ken_burns_zoom_direction: "in",
+            margin: { unit: "px", isLinked: true },
+            margin_tablet: { unit: "px", isLinked: true },
+            margin_mobile: { unit: "px", isLinked: true },
+            _flex_grow: 1,
+            _flex_shrink: 1,
+            _offset_orientation_h: "start",
+            _offset_x: { unit: "px", size: 0 },
+            _offset_x_tablet: { unit: "px" },
+            _offset_x_mobile: { unit: "px" },
+            _offset_x_end: { unit: "px", size: 0 },
+            _offset_x_end_tablet: { unit: "px" },
+            _offset_x_end_mobile: { unit: "px" },
+            _offset_orientation_v: "start",
+            _offset_y: { unit: "px", size: 0 },
+            _offset_y_tablet: { unit: "px" },
+            _offset_y_mobile: { unit: "px" }
           },
-          elements: transformedElements
+          elements: processedElements
         }
       ]
     };
 
-    // Clean and optimize the structure
-    const cleanedStructure = removeEmptyProperties(standardStructure);
-
-    // Return as compact JSON string (no pretty formatting for production use)
-    return JSON.stringify(cleanedStructure);
+    // Return as compact JSON string (matching Supabase format)
+    return JSON.stringify(standardStructure);
 
   } catch (error) {
     console.error('Error in getStandardTransformedJson:', error);
