@@ -1,7 +1,8 @@
 
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { getComponents, getCategories } from '@/core/api';
+import { getComponents } from '@/core/api/components';
+import { getCategories } from '@/core/api';
 import { useComponentFilters } from '@/hooks/useComponentFilters';
 import { useSelectedComponents } from '@/shared/contexts/SelectedComponentsContext';
 import PageWrapper from '@/components/layout/PageWrapper';
@@ -16,11 +17,15 @@ const Components = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { selectedComponents } = useSelectedComponents();
 
+  // Buscar componentes diretamente do WordPress
   const { data: components = [], isLoading: isLoadingComponents, error, refetch } = useQuery({
-    queryKey: ['components'],
+    queryKey: ['wordpress-components'],
     queryFn: getComponents,
+    staleTime: 5 * 60 * 1000, // 5 minutos
+    cacheTime: 10 * 60 * 1000, // 10 minutos
   });
 
+  // Buscar categorias (mantido para compatibilidade com filtros)
   const { data: categories = [] } = useQuery({
     queryKey: ['categories'],
     queryFn: getCategories,
@@ -70,6 +75,13 @@ const Components = () => {
     refetch();
   };
 
+  console.log('🎯 Components page renderizando:', {
+    totalComponents: components.length,
+    filteredComponents: filteredComponents.length,
+    isLoading: isLoadingComponents,
+    hasError: !!error
+  });
+
   return (
     <PageWrapper>
       <ComponentsHeader 
@@ -98,7 +110,6 @@ const Components = () => {
         isLoading={isLoadingComponents}
         error={error}
         handleRetry={handleRetry}
-        user={null}
       />
 
       {selectedComponents.length > 0 && (
