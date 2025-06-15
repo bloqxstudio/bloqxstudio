@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Copy, Check, Eye, ExternalLink, Loader2, RefreshCw, AlertCircle, Edit, Sync } from 'lucide-react';
+import { Copy, Check, Eye, ExternalLink, Loader2, RefreshCw, AlertCircle, Edit, RotateCcw } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/features/auth';
 import { cleanElementorJson } from '@/utils/json/cleaners';
@@ -212,7 +212,7 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
             onClick={handleSync}
             className="flex-1"
           >
-            <Sync className="h-4 w-4 mr-1" />
+            <RotateCcw className="h-4 w-4 mr-1" />
             Sync
           </Button>
         </div>
