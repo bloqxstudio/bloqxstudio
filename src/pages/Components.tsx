@@ -62,10 +62,6 @@ const Components = () => {
     window.location.reload();
   }, []);
 
-  const handleCategoryChange = useCallback((category: string | null) => {
-    setSelectedCategory(category);
-  }, []);
-
   const handleSiteChange = useCallback((site: string | null) => {
     setSelectedSite(site);
   }, []);
@@ -84,9 +80,7 @@ const Components = () => {
       <div className="min-h-screen flex w-full bg-background">
         {/* Unified Responsive Sidebar */}
         <MainSidebar
-          selectedCategory={selectedCategory}
           selectedSite={selectedSite}
-          onCategoryChange={handleCategoryChange}
           onSiteChange={handleSiteChange}
         />
 

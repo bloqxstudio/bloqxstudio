@@ -1,7 +1,7 @@
+
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getUserWordPressSites } from '@/core/api/wordpress-sites';
-import { getUserWordPressCategories } from '@/core/api/wordpress-categories';
 import { useAuth } from '@/features/auth';
 import { useIsMobile } from '@/hooks/use-mobile';
 import {
@@ -15,73 +15,48 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubItem,
-  SidebarMenuSubButton,
   useSidebar,
 } from '@/components/ui/sidebar';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronDown, ChevronRight } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Component, Layers, Bot, Video, Globe, MoreVertical, UserCircle } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
 interface MainSidebarProps {
-  selectedCategory?: string | null;
   selectedSite?: string | null;
-  onCategoryChange?: (category: string | null) => void;
   onSiteChange?: (site: string | null) => void;
 }
 
 export const MainSidebar = ({
-  selectedCategory = null,
   selectedSite = null,
-  onCategoryChange = () => {},
   onSiteChange = () => {},
 }: MainSidebarProps) => {
-  const { user, isAdmin } = useAuth();
+  const { user } = useAuth();
   const location = useLocation();
   const isMobile = useIsMobile();
   const { setOpenMobile } = useSidebar();
 
-  // Fetch WordPress sites and categories
+  // Fetch WordPress sites
   const { data: sites = [], isLoading: sitesLoading } = useQuery({
     queryKey: ['wordpress-sites'],
     queryFn: getUserWordPressSites,
     staleTime: 15 * 60 * 1000,
   });
 
-  const { data: categories = [], isLoading: categoriesLoading } = useQuery({
-    queryKey: ['wordpress-categories'],
-    queryFn: getUserWordPressCategories,
-    staleTime: 15 * 60 * 1000,
-  });
-
-  const [expandedSite, setExpandedSite] = React.useState<string | null>(null);
-  const [expandedCategories, setExpandedCategories] = React.useState(false);
-
-  const handleSiteToggle = (siteId: string) => {
-    setExpandedSite(expandedSite === siteId ? null : siteId);
-  };
-
   const handleSiteSelect = (siteId: string) => {
     onSiteChange(selectedSite === siteId ? null : siteId);
-    onCategoryChange(null); // Clear category when changing site
     if (isMobile) {
-      setOpenMobile(false); // Close sidebar on mobile after selection
+      setOpenMobile(false);
     }
   };
 
-  const handleCategorySelect = (categoryId: string) => {
-    onCategoryChange(selectedCategory === categoryId ? null : categoryId);
-    onSiteChange(null); // Clear site when changing category
-    if (isMobile) {
-      setOpenMobile(false); // Close sidebar on mobile after selection
-    }
-  };
-
-  const handleClearFilters = () => {
-    onCategoryChange(null);
+  const handleAllComponentsClick = () => {
     onSiteChange(null);
     if (isMobile) {
       setOpenMobile(false);
@@ -95,6 +70,10 @@ export const MainSidebar = ({
   };
 
   const isActive = (path: string) => location.pathname === path;
+
+  // Get user display name and avatar
+  const displayName = user?.email ? user.email.split('@')[0] : 'Usuário';
+  const emailInitial = user?.email ? user.email[0].toUpperCase() : 'U';
 
   return (
     <Sidebar variant="sidebar" collapsible="offcanvas">
@@ -114,174 +93,109 @@ export const MainSidebar = ({
       <SidebarContent>
         {/* Main Navigation */}
         <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+          <SidebarGroupLabel>Navegação</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive('/components')}>
-                  <Link to="/components" onClick={handleNavigationClick}>
-                    <span>All Components</span>
+                <SidebarMenuButton 
+                  onClick={handleAllComponentsClick}
+                  isActive={isActive('/components') && !selectedSite}
+                >
+                  <Component className="h-4 w-4" />
+                  <span>All components</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={isActive('/super-elements-basic')}>
+                  <Link to="/super-elements-basic" onClick={handleNavigationClick}>
+                    <Layers className="h-4 w-4" />
+                    <span>Super elements basic</span>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
 
-              {user && (
-                <>
-                  {isAdmin && (
-                    <>
-                      <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={isActive('/wordpress')}>
-                          <Link to="/wordpress" onClick={handleNavigationClick}>
-                            <span>WordPress</span>
-                          </Link>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                      
-                      <SidebarMenuItem>
-                        <SidebarMenuButton asChild isActive={isActive('/admin')}>
-                          <Link to="/admin" onClick={handleNavigationClick}>
-                            <span>Admin Panel</span>
-                          </Link>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    </>
-                  )}
-                </>
-              )}
+              <SidebarMenuItem>
+                <SidebarMenuButton disabled>
+                  <Bot className="h-4 w-4" />
+                  <span>Agents</span>
+                  <Badge variant="outline" className="ml-auto text-xs">
+                    Coming soon
+                  </Badge>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              <SidebarMenuItem>
+                <SidebarMenuButton disabled>
+                  <Video className="h-4 w-4" />
+                  <span>Videos</span>
+                  <Badge variant="outline" className="ml-auto text-xs">
+                    Coming soon
+                  </Badge>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* Active Filters */}
-        {(selectedCategory || selectedSite) && (
-          <SidebarGroup>
-            <SidebarGroupLabel>Active Filters</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <div className="px-2 space-y-2">
-                {selectedSite && (
-                  <Badge variant="secondary" className="w-full justify-center">
-                    Site Selected
-                  </Badge>
-                )}
-                {selectedCategory && (
-                  <Badge variant="secondary" className="w-full justify-center">
-                    Category Selected
-                  </Badge>
-                )}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleClearFilters}
-                  className="w-full"
-                >
-                  Clear All Filters
-                </Button>
-              </div>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
-
-        {/* WordPress Sites */}
+        {/* My Libraries */}
         <SidebarGroup>
-          <SidebarGroupLabel>WordPress Sites</SidebarGroupLabel>
+          <SidebarGroupLabel>My Libraries</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {sitesLoading ? (
                 <SidebarMenuItem>
-                  <div className="px-2 py-1 text-sm text-muted-foreground">Loading sites...</div>
+                  <div className="px-2 py-1 text-sm text-muted-foreground">Carregando sites...</div>
                 </SidebarMenuItem>
               ) : sites.length === 0 ? (
                 <SidebarMenuItem>
-                  <div className="px-2 py-1 text-sm text-muted-foreground">No sites found</div>
+                  <div className="px-2 py-1 text-sm text-muted-foreground">Nenhum site conectado</div>
                 </SidebarMenuItem>
               ) : (
                 sites.map((site) => (
-                  <Collapsible
-                    key={site.id}
-                    open={expandedSite === site.id}
-                    onOpenChange={() => handleSiteToggle(site.id)}
-                  >
-                    <SidebarMenuItem>
-                      <CollapsibleTrigger asChild>
-                        <SidebarMenuButton>
-                          {expandedSite === site.id ? (
-                            <ChevronDown className="h-4 w-4" />
-                          ) : (
-                            <ChevronRight className="h-4 w-4" />
-                          )}
-                          <span className="truncate">{site.site_name || site.site_url}</span>
-                        </SidebarMenuButton>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent>
-                        <SidebarMenuSub>
-                          <SidebarMenuSubItem>
-                            <SidebarMenuSubButton
-                              onClick={() => handleSiteSelect(site.id)}
-                              className={selectedSite === site.id ? 'bg-accent' : ''}
-                            >
-                              <span>All from {site.site_name || site.site_url}</span>
-                            </SidebarMenuSubButton>
-                          </SidebarMenuSubItem>
-                        </SidebarMenuSub>
-                      </CollapsibleContent>
-                    </SidebarMenuItem>
-                  </Collapsible>
+                  <SidebarMenuItem key={site.id}>
+                    <SidebarMenuButton
+                      onClick={() => handleSiteSelect(site.id)}
+                      isActive={selectedSite === site.id}
+                    >
+                      <Globe className="h-4 w-4" />
+                      <span className="truncate">{site.site_name || site.site_url}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
                 ))
               )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
-
-        {/* Categories */}
-        <SidebarGroup>
-          <SidebarGroupLabel>Categories</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <Collapsible open={expandedCategories} onOpenChange={setExpandedCategories}>
-              <CollapsibleTrigger asChild>
-                <SidebarMenuButton>
-                  {expandedCategories ? (
-                    <ChevronDown className="h-4 w-4" />
-                  ) : (
-                    <ChevronRight className="h-4 w-4" />
-                  )}
-                  <span>Browse by Category</span>
-                </SidebarMenuButton>
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <SidebarMenu>
-                  {categoriesLoading ? (
-                    <SidebarMenuItem>
-                      <div className="px-2 py-1 text-sm text-muted-foreground">Loading categories...</div>
-                    </SidebarMenuItem>
-                  ) : categories.length === 0 ? (
-                    <SidebarMenuItem>
-                      <div className="px-2 py-1 text-sm text-muted-foreground">No categories found</div>
-                    </SidebarMenuItem>
-                  ) : (
-                    categories.map((category) => (
-                      <SidebarMenuItem key={category.id}>
-                        <SidebarMenuButton
-                          onClick={() => handleCategorySelect(category.id)}
-                          isActive={selectedCategory === category.id}
-                        >
-                          <span className="truncate">{category.name}</span>
-                          <Badge variant="outline" className="ml-auto">
-                            {category.post_count || 0}
-                          </Badge>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    ))
-                  )}
-                </SidebarMenu>
-              </CollapsibleContent>
-            </Collapsible>
-          </SidebarGroupContent>
-        </SidebarGroup>
       </SidebarContent>
 
       <SidebarFooter className="border-t border-border">
-        <div className="p-2 text-center">
-          <p className="text-xs text-muted-foreground">Super Elements</p>
+        <div className="flex items-center justify-between p-2">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <Avatar className="h-8 w-8 flex-shrink-0">
+              <AvatarImage src={undefined} alt={displayName} />
+              <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                {emailInitial}
+              </AvatarFallback>
+            </Avatar>
+            <span className="text-sm font-medium truncate">{displayName}</span>
+          </div>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="p-1 hover:bg-accent rounded-md transition-colors">
+                <MoreVertical className="h-4 w-4" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuItem asChild>
+                <Link to="/profile" onClick={handleNavigationClick} className="cursor-pointer flex w-full items-center">
+                  <UserCircle className="mr-2 h-4 w-4" />
+                  <span>My Account</span>
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </SidebarFooter>
     </Sidebar>
