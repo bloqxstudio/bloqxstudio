@@ -1,8 +1,9 @@
+
 /**
  * Property processing utilities for cleaning and managing JSON properties
  */
 
-// Function to recursively remove empty properties
+// Função para remover propriedades vazias recursivamente
 export const removeEmptyProperties = (obj: any): any => {
   if (obj === null || typeof obj !== 'object') {
     return obj;
@@ -16,23 +17,23 @@ export const removeEmptyProperties = (obj: any): any => {
   const result: Record<string, any> = {};
   
   Object.keys(obj).forEach(key => {
-    // Preserve color properties even if they seem empty
+    // Preservar propriedades de cores mesmo se parecerem vazias
     const isColorProperty = key.includes('color') || key.includes('_color');
     
-    // Ignore properties starting with '__', except __globals__ when necessary to preserve colors
+    // Ignorar propriedades que começam com '__', exceto __globals__ quando é necessário preservar cores
     if (key.startsWith('__') && (!isColorProperty || !key.includes('__globals__'))) {
       return;
     }
     
     const value = obj[key];
     
-    // Check if it's an empty object
+    // Verificar se é um objeto vazio
     if (value && typeof value === 'object') {
       if (Object.keys(value).length === 0) {
-        return; // Skip empty objects
+        return; // Pular objetos vazios
       }
       
-      // Process objects that have properties like unit, size, etc. but all values are empty
+      // Processar objetos que têm propriedades como unit, size, etc. mas todos os valores são vazios
       if (
         value.unit !== undefined && 
         Object.keys(value).every(k => 
@@ -40,28 +41,28 @@ export const removeEmptyProperties = (obj: any): any => {
           (k !== 'unit' && (value[k] === '' || value[k] === undefined || value[k] === null))
         )
       ) {
-        return; // Skip objects that only have meaningful unit property
+        return; // Pular objetos que só têm a propriedade unit com valor significativo
       }
       
-      // For arrays and objects that have all empty properties
+      // Para arrays e objetos que têm todas as propriedades vazias
       if (Array.isArray(value) && value.length === 0) {
-        return; // Skip empty arrays
+        return; // Pular arrays vazios
       }
       
-      // Process recursively
+      // Processar recursivamente
       const cleaned = removeEmptyProperties(value);
       
-      // Check if cleaning result is not empty
+      // Verificar se o resultado da limpeza não está vazio
       if (cleaned && typeof cleaned === 'object' && Object.keys(cleaned).length === 0) {
-        return; // Skip result if it's empty
+        return; // Pular o resultado se estiver vazio
       }
       
       result[key] = cleaned;
     } else if (value !== '' && value !== null && value !== undefined) {
-      // Keep non-empty primitive values
+      // Manter valores primitivos não vazios
       result[key] = value;
     } else if (isColorProperty) {
-      // Preserve color properties even if value is empty
+      // Preservar propriedades de cores mesmo se o valor for vazio
       result[key] = value;
     }
   });

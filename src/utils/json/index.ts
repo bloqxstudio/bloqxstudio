@@ -4,7 +4,10 @@
  */
 import { validateJson, validateElementorJson } from './validators';
 import { cleanElementorJson } from './cleaners';
-import { transformElementsToContainer, removeStyleProperties, removeEmptyProperties } from './transformers';
+import { transformElementsToContainer, flattenElements } from './elementProcessor';
+import { applyStandardStructure } from './structureProcessor';
+import { removeEmptyProperties } from './propertyProcessor';
+import { removeStyleProperties } from './styleProcessor';
 import { getTemplate } from './templates';
 import { mergeComponentsJson } from './mergeJson';
 
@@ -51,8 +54,20 @@ export const getStandardTransformedJson = (jsonString: string): string => {
       elements = [parsedJson];
     }
 
-    // Process and transform elements to proper container structure
-    const processedElements = transformElementsToContainer(elements);
+    // Apply the robust transformation logic
+    console.log('Applying robust transformation to elements:', elements.length);
+    
+    // Step 1: Transform elements to proper container structure
+    const transformedElements = transformElementsToContainer(elements);
+    
+    // Step 2: Apply standard structure with nested containers
+    const structuredElements = applyStandardStructure(transformedElements);
+    
+    // Step 3: Remove unwanted style properties
+    const cleanedElements = removeStyleProperties(structuredElements);
+    
+    // Step 4: Remove empty properties
+    const finalElements = removeEmptyProperties(cleanedElements);
 
     // Create the EXACT Supabase/Elementor standard structure with CORRECT siteurl
     const standardStructure = {
@@ -175,10 +190,15 @@ export const getStandardTransformedJson = (jsonString: string): string => {
             _offset_y_tablet: { unit: "px" },
             _offset_y_mobile: { unit: "px" }
           },
-          elements: processedElements
+          elements: finalElements
         }
       ]
     };
+
+    console.log('Robust transformation completed. Final structure:', {
+      hasElements: standardStructure.elements.length > 0,
+      nestedLevels: standardStructure.elements[0]?.elements?.length || 0
+    });
 
     // Return as compact JSON string (matching Supabase format)
     return JSON.stringify(standardStructure);
@@ -195,6 +215,8 @@ export {
   validateElementorJson,
   cleanElementorJson,
   transformElementsToContainer,
+  flattenElements,
+  applyStandardStructure,
   removeEmptyProperties,
   removeStyleProperties,
   mergeComponentsJson

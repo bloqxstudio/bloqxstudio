@@ -4,14 +4,14 @@
  */
 import { flattenElements } from './elementProcessor';
 
-// Function to apply standard structure with nested containers
+// Função para aplicar a estrutura padrão com containers aninhados
 export const applyStandardStructure = (elements: any[]): any[] => {
   if (!elements || elements.length === 0) return [];
 
-  // Collect all original elements
+  // Recolher todos os elementos originais
   const allElements = flattenElements(elements);
   
-  // Create standard structure
+  // Criar a estrutura padrão
   const structuredComponent = [
     {
       elType: "container", // Section
@@ -67,7 +67,7 @@ export const applyStandardStructure = (elements: any[]): any[] => {
                     flex_direction: "column",
                     flex_gap: {
                       unit: "px",
-                      size: 24, // Default gap (multiple of 8)
+                      size: 24, // Gap padrão (múltiplo de 8)
                       sizes: []
                     },
                     content_position: "center"
@@ -85,17 +85,17 @@ export const applyStandardStructure = (elements: any[]): any[] => {
   return structuredComponent;
 };
 
-// Function to organize widgets in content groups when necessary
+// Função para organizar widgets em grupos de conteúdo quando necessário
 const organizeWidgetsInContentGroups = (widgets: any[]): any[] => {
-  // Simplification: put everything in a single content group
-  // In a more complete implementation, we would analyze widget types
-  // and group them more intelligently
+  // Simplificação: colocar tudo em um único grupo de conteúdo
+  // Em uma implementação mais completa, analisaríamos os tipos de widgets
+  // e os agruparíamos de forma mais inteligente
   
   if (widgets.length <= 1) {
     return widgets;
   }
   
-  // For this basic implementation, group all widgets in one content group
+  // Para esta implementação básica, vamos agrupar todos os widgets em um content group
   return [{
     elType: "container", // Content Group
     settings: {
@@ -107,7 +107,7 @@ const organizeWidgetsInContentGroups = (widgets: any[]): any[] => {
         sizes: []
       },
       content_position: "center",
-      text_align: "center" // Center text by default
+      text_align: "center" // Centralizar texto por padrão
     },
     elements: widgets
   }];
