@@ -129,7 +129,7 @@ export const useComponentCreate = () => {
         code: data.jsonCode, // Use the JSON directly
         json_code: data.jsonCode, // Store the same JSON
         preview_image: previewImageUrl,
-        type: 'elementor',
+        type: 'elementor' as const, // Fix the type error
         visibility: data.visibility,
         alignment: data.alignment,
         columns: data.columns,

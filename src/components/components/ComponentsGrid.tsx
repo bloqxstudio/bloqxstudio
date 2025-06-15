@@ -44,7 +44,7 @@ const ComponentsGrid: React.FC<ComponentsGridProps> = ({
       <div className="flex justify-center py-12">
         <div className="flex flex-col items-center">
           <Loader2 className="h-12 w-12 animate-spin text-primary" />
-          <p className="mt-4 text-muted-foreground">Loading Superelements components...</p>
+          <p className="mt-4 text-muted-foreground">Carregando componentes Superelements...</p>
         </div>
       </div>
     );
@@ -58,12 +58,12 @@ const ComponentsGrid: React.FC<ComponentsGridProps> = ({
           <div className="rounded-full bg-red-100 p-3 mb-4">
             <Filter className="h-6 w-6 text-red-500" />
           </div>
-          <h3 className="text-lg font-semibold mb-2">Error loading components</h3>
+          <h3 className="text-lg font-semibold mb-2">Erro ao carregar componentes</h3>
           <p className="text-muted-foreground max-w-md mb-4">
-            There was a problem fetching components from Superelements. Check your connection and try again.
+            Houve um problema ao buscar componentes do Superelements. Verifique sua conexão e tente novamente.
           </p>
           <Button onClick={handleRetry} variant="outline">
-            Try again
+            Tentar novamente
           </Button>
         </CardContent>
       </Card>
@@ -78,9 +78,9 @@ const ComponentsGrid: React.FC<ComponentsGridProps> = ({
           <div className="rounded-full bg-primary/10 p-3 mb-4">
             <Filter className="h-6 w-6 text-primary" />
           </div>
-          <h3 className="text-lg font-semibold mb-2">No components found</h3>
+          <h3 className="text-lg font-semibold mb-2">Nenhum componente encontrado</h3>
           <p className="text-muted-foreground max-w-md mb-4">
-            We couldn't find any Superelements components with the applied filters. Try adjusting your search.
+            Não encontramos componentes Superelements com os filtros aplicados. Tente ajustar sua busca.
           </p>
         </CardContent>
       </Card>
@@ -90,7 +90,7 @@ const ComponentsGrid: React.FC<ComponentsGridProps> = ({
   console.log(`🎨 Rendering grid with ${filteredComponents.length} components`);
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6 gap-4">
       {filteredComponents.map((component, index) => {
         console.log(`🔧 Rendering card ${index + 1}:`, {
           id: component.id,

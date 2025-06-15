@@ -2,13 +2,14 @@
 import React, { useState } from 'react';
 import { useWordPressDirectComponents } from '@/hooks/useWordPressDirectComponents';
 import { useSelectedComponents } from '@/shared/contexts/SelectedComponentsContext';
-import PageWrapper from '@/components/layout/PageWrapper';
+import FullscreenPageWrapper from '@/components/layout/FullscreenPageWrapper';
 import ComponentsHeader from '@/components/components/ComponentsHeader';
 import ComponentsGrid from '@/components/components/ComponentsGrid';
-import WordPressCategoriesSidebar from '@/components/categories/WordPressCategoriesSidebar';
 import ComponentSearch from '@/components/filters/ComponentSearch';
 import SelectedComponentsSidebar from '@/components/selection/SelectedComponentsSidebar';
 import SelectionFloatingButton from '@/components/selection/SelectionFloatingButton';
+import { AppSidebar } from '@/components/layout/AppSidebar';
+import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 
 const ComponentsWithCategories = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -50,77 +51,77 @@ const ComponentsWithCategories = () => {
   });
 
   return (
-    <PageWrapper>
-      <div className="flex h-full">
-        {/* Left Sidebar - Categories */}
-        <WordPressCategoriesSidebar
-          selectedCategory={selectedCategory}
-          selectedSite={selectedSite}
-          onCategoryChange={setSelectedCategory}
-          onSiteChange={setSelectedSite}
-        />
-
-        {/* Main Content */}
-        <div className="flex-1 flex flex-col min-w-0">
-          {/* Header */}
-          <div className="p-6 border-b bg-white">
-            <ComponentsHeader 
-              filteredCount={filteredComponents.length}
-              totalCount={components.length}
-              components={components}
-            />
-
-            {/* Search */}
-            <div className="mt-4">
-              <ComponentSearch
-                searchTerm={searchTerm}
-                setSearchTerm={setSearchTerm}
-                onClearSearch={() => setSearchTerm('')}
-                placeholder="Search components by title, description, or tags..."
+    <div className="min-h-screen flex flex-col w-full bg-background">
+      <SidebarProvider>
+        <div className="flex h-screen w-full">
+          <AppSidebar
+            selectedCategory={selectedCategory}
+            selectedSite={selectedSite}
+            onCategoryChange={setSelectedCategory}
+            onSiteChange={setSelectedSite}
+          />
+          
+          <SidebarInset className="flex flex-col flex-1 min-w-0">
+            {/* Header fixo */}
+            <div className="border-b bg-white p-6 flex-shrink-0">
+              <ComponentsHeader 
+                filteredCount={filteredComponents.length}
+                totalCount={components.length}
+                components={components}
               />
+
+              {/* Search */}
+              <div className="mt-4">
+                <ComponentSearch
+                  searchTerm={searchTerm}
+                  setSearchTerm={setSearchTerm}
+                  onClearSearch={() => setSearchTerm('')}
+                  placeholder="Buscar componentes por título, descrição ou tags..."
+                />
+              </div>
+
+              {/* Active Filters */}
+              {(selectedCategory || selectedSite || searchTerm) && (
+                <div className="mt-4 flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Filtros ativos:</span>
+                  {searchTerm && (
+                    <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
+                      Busca: {searchTerm}
+                    </span>
+                  )}
+                  {selectedSite && (
+                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                      Site selecionado
+                    </span>
+                  )}
+                  {selectedCategory && (
+                    <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
+                      Categoria selecionada
+                    </span>
+                  )}
+                  <button
+                    onClick={handleClearFilters}
+                    className="text-xs text-muted-foreground hover:text-foreground underline ml-2"
+                  >
+                    Limpar todos
+                  </button>
+                </div>
+              )}
             </div>
 
-            {/* Active Filters */}
-            {(selectedCategory || selectedSite || searchTerm) && (
-              <div className="mt-4 flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">Active filters:</span>
-                {searchTerm && (
-                  <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
-                    Search: {searchTerm}
-                  </span>
-                )}
-                {selectedSite && (
-                  <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
-                    Site selected
-                  </span>
-                )}
-                {selectedCategory && (
-                  <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
-                    Category selected
-                  </span>
-                )}
-                <button
-                  onClick={handleClearFilters}
-                  className="text-xs text-muted-foreground hover:text-foreground underline ml-2"
-                >
-                  Clear all
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Components Grid */}
-          <div className="flex-1 p-6">
-            <ComponentsGrid 
-              components={components}
-              filteredComponents={filteredComponents}
-              isLoading={isLoading}
-              error={error}
-              handleRetry={handleRetry}
-            />
-          </div>
+            {/* Components Grid - área rolável */}
+            <div className="flex-1 overflow-auto p-6">
+              <ComponentsGrid 
+                components={components}
+                filteredComponents={filteredComponents}
+                isLoading={isLoading}
+                error={error}
+                handleRetry={handleRetry}
+              />
+            </div>
+          </SidebarInset>
         </div>
-      </div>
+      </SidebarProvider>
 
       {selectedComponents.length > 0 && (
         <SelectionFloatingButton />
@@ -130,7 +131,7 @@ const ComponentsWithCategories = () => {
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
       />
-    </PageWrapper>
+    </div>
   );
 };
 
