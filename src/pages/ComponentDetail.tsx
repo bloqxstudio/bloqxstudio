@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import CodeViewer from '@/components/CodeViewer';
+import { getStandardTransformedJson } from '@/utils/json';
 
 const PageWrapper = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -67,23 +68,72 @@ const ComponentDetail = () => {
 
   const handleCopyCode = () => {
     if (!component) return;
-    navigator.clipboard.writeText(component.json_code || component.code);
-    toast.success('Código copiado para a área de transferência!');
+    
+    try {
+      // Use json_code if available, otherwise fall back to code
+      const sourceJson = component.json_code || component.code || '[]';
+      console.log('ComponentDetail copying from component:', sourceJson);
+      
+      // Apply the EXACT same transformation as other copy buttons
+      const elementorStandardJson = getStandardTransformedJson(sourceJson);
+      console.log('ComponentDetail transformed JSON:', elementorStandardJson);
+
+      navigator.clipboard.writeText(elementorStandardJson);
+      toast.success('JSON Elementor padrão copiado! Perfeito para colar no Elementor.');
+    } catch (error) {
+      console.error('Error copying and transforming JSON:', error);
+      
+      // Fallback: copy original code
+      try {
+        const fallbackCode = component.json_code || component.code;
+        navigator.clipboard.writeText(fallbackCode);
+        toast.success('Código original copiado para a área de transferência!');
+      } catch (fallbackError) {
+        console.error('Fallback copy also failed:', fallbackError);
+        toast.error('Erro ao copiar código');
+      }
+    }
   };
 
   const handleDownload = () => {
     if (!component) return;
-    const codeContent = component.json_code || component.code;
-    const filename = `${component.title.toLowerCase().replace(/\s+/g, '-')}.json`;
-    const blob = new Blob([codeContent], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    toast.success(`${filename} baixado com sucesso`);
+    
+    try {
+      // Use the same transformation logic for download
+      const sourceJson = component.json_code || component.code || '[]';
+      const elementorStandardJson = getStandardTransformedJson(sourceJson);
+      
+      const filename = `${component.title.toLowerCase().replace(/\s+/g, '-')}.json`;
+      const blob = new Blob([elementorStandardJson], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast.success(`${filename} Elementor padrão baixado com sucesso`);
+    } catch (error) {
+      console.error('Error downloading JSON:', error);
+      
+      // Fallback: download original code
+      try {
+        const fallbackCode = component.json_code || component.code;
+        const filename = `${component.title.toLowerCase().replace(/\s+/g, '-')}.json`;
+        const blob = new Blob([fallbackCode], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast.success(`${filename} baixado com sucesso`);
+      } catch (fallbackError) {
+        console.error('Fallback download also failed:', fallbackError);
+        toast.error('Erro ao baixar arquivo');
+      }
+    }
   };
 
   const handleEdit = () => {
@@ -263,7 +313,10 @@ const ComponentDetail = () => {
             </CardHeader>
             <CardContent>
               {showCode && (
-                <CodeViewer code={component.json_code || component.code} />
+                <CodeViewer 
+                  code={component.json_code || component.code} 
+                  useStandardTransform={true}
+                />
               )}
             </CardContent>
           </Card>
@@ -271,11 +324,11 @@ const ComponentDetail = () => {
           <div className="flex justify-end space-x-2">
             <Button variant="outline" onClick={handleCopyCode}>
               <Copy className="h-4 w-4 mr-2" />
-              Copiar Código
+              Copiar JSON Elementor
             </Button>
             <Button onClick={handleDownload}>
               <Download className="h-4 w-4 mr-2" />
-              Baixar JSON
+              Baixar JSON Elementor
             </Button>
           </div>
         </>

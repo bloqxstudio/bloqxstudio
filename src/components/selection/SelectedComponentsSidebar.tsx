@@ -19,6 +19,7 @@ import {
   DialogFooter
 } from '@/components/ui/dialog';
 import type { Component } from '@/core/types';
+import { getStandardTransformedJson } from '@/utils/json';
 
 interface SelectedComponentsSidebarProps {
   isOpen: boolean;
@@ -45,13 +46,36 @@ const SelectedComponentsSidebar: React.FC<SelectedComponentsSidebarProps> = ({ i
       return;
     }
     
-    // Use json_code if available, otherwise fall back to code
-    const codeContent = component.json_code || component.code;
-    navigator.clipboard.writeText(codeContent);
-    toast.success(getTranslation(
-      'Code copied to clipboard!', 
-      'Código copiado para a área de transferência!'
-    ));
+    try {
+      // Use json_code if available, otherwise fall back to code
+      const sourceJson = component.json_code || component.code || '[]';
+      console.log('Sidebar copying from component:', sourceJson);
+      
+      // Apply the EXACT same transformation as other copy buttons
+      const elementorStandardJson = getStandardTransformedJson(sourceJson);
+      console.log('Sidebar transformed JSON:', elementorStandardJson);
+
+      navigator.clipboard.writeText(elementorStandardJson);
+      toast.success(getTranslation(
+        'Elementor standard JSON copied! Perfect for pasting in Elementor.', 
+        'JSON Elementor padrão copiado! Perfeito para colar no Elementor.'
+      ));
+    } catch (error) {
+      console.error('Error copying and transforming JSON:', error);
+      
+      // Fallback: copy original code
+      try {
+        const fallbackCode = component.json_code || component.code;
+        navigator.clipboard.writeText(fallbackCode);
+        toast.success(getTranslation(
+          'Original code copied to clipboard!', 
+          'Código original copiado para a área de transferência!'
+        ));
+      } catch (fallbackError) {
+        console.error('Fallback copy also failed:', fallbackError);
+        toast.error(getTranslation('Error copying code', 'Erro ao copiar código'));
+      }
+    }
   };
   
   const handleDownload = (e: React.MouseEvent, component: Component) => {
@@ -63,23 +87,52 @@ const SelectedComponentsSidebar: React.FC<SelectedComponentsSidebarProps> = ({ i
       return;
     }
     
-    const codeContent = component.json_code || component.code;
-    const filename = `${component.title.toLowerCase().replace(/\s+/g, '-')}.json`;
-    
-    // Create blob and download it
-    const blob = new Blob([codeContent], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    toast.success(getTranslation(
-      `Downloaded ${filename}`, 
-      `${filename} baixado com sucesso`
-    ));
+    try {
+      // Use the same transformation logic for download
+      const sourceJson = component.json_code || component.code || '[]';
+      const elementorStandardJson = getStandardTransformedJson(sourceJson);
+      
+      const filename = `${component.title.toLowerCase().replace(/\s+/g, '-')}.json`;
+      
+      // Create blob and download it
+      const blob = new Blob([elementorStandardJson], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast.success(getTranslation(
+        `Elementor standard ${filename} downloaded successfully`, 
+        `${filename} Elementor padrão baixado com sucesso`
+      ));
+    } catch (error) {
+      console.error('Error downloading JSON:', error);
+      
+      // Fallback: download original code
+      try {
+        const fallbackCode = component.json_code || component.code;
+        const filename = `${component.title.toLowerCase().replace(/\s+/g, '-')}.json`;
+        const blob = new Blob([fallbackCode], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        toast.success(getTranslation(
+          `Downloaded ${filename}`, 
+          `${filename} baixado com sucesso`
+        ));
+      } catch (fallbackError) {
+        console.error('Fallback download also failed:', fallbackError);
+        toast.error(getTranslation('Error downloading file', 'Erro ao baixar arquivo'));
+      }
+    }
   };
 
   const handleRemoveComponent = (e: React.MouseEvent, componentId: string) => {
@@ -138,7 +191,7 @@ const SelectedComponentsSidebar: React.FC<SelectedComponentsSidebarProps> = ({ i
                           variant="outline" 
                           className="h-7 w-7 p-1 hover-lift"
                           onClick={(e) => handleCopyCode(e, component)}
-                          title={getTranslation('Copy to Elementor', 'Copiar para Elementor')}
+                          title={getTranslation('Copy Elementor JSON', 'Copiar JSON Elementor')}
                         >
                           <Copy className="h-3.5 w-3.5" />
                         </Button>
@@ -147,7 +200,7 @@ const SelectedComponentsSidebar: React.FC<SelectedComponentsSidebarProps> = ({ i
                           variant="outline" 
                           className="h-7 w-7 p-1 hover-lift"
                           onClick={(e) => handleDownload(e, component)}
-                          title={getTranslation('Download component', 'Baixar componente')}
+                          title={getTranslation('Download Elementor JSON', 'Baixar JSON Elementor')}
                         >
                           <Download className="h-3.5 w-3.5" />
                         </Button>

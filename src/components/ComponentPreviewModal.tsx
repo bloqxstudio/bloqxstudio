@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -25,6 +26,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Component } from '@/core/types';
+import { getStandardTransformedJson } from '@/utils/json';
 
 interface ComponentPreviewModalProps {
   isOpen: boolean;
@@ -136,25 +138,48 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
 
   const handleCopyJson = async () => {
     try {
-      await navigator.clipboard.writeText(processedJson);
+      // Always use the component's original JSON and apply standard transformation
+      const sourceJson = component.json_code || component.code || '[]';
+      console.log('Modal copying JSON from component:', sourceJson);
+      
+      // Apply the EXACT same transformation as other copy buttons
+      const elementorStandardJson = getStandardTransformedJson(sourceJson);
+      console.log('Modal transformed JSON:', elementorStandardJson);
+
+      await navigator.clipboard.writeText(elementorStandardJson);
       setCopied(true);
-      toast.success('JSON copied to clipboard!');
+      toast.success('JSON Elementor padrão copiado! Perfeito para colar no Elementor.');
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
       console.error('Error copying JSON:', error);
-      toast.error('Error copying JSON');
+      
+      // Fallback: try to copy original code
+      try {
+        const fallbackJson = component.json_code || component.code || '[]';
+        await navigator.clipboard.writeText(fallbackJson);
+        setCopied(true);
+        toast.success('JSON original copiado para a área de transferência!');
+        setTimeout(() => setCopied(false), 2000);
+      } catch (copyError) {
+        console.error('Fallback copy also failed:', copyError);
+        toast.error('Erro ao copiar JSON');
+      }
     }
   };
 
   const handleDownloadJson = () => {
     try {
+      // Use the same transformation logic for download
+      const sourceJson = component.json_code || component.code || '[]';
+      const elementorStandardJson = getStandardTransformedJson(sourceJson);
+      
       const fileName = component.title
         .toLowerCase()
         .replace(/[^a-z0-9\s]/g, '')
         .replace(/\s+/g, '-')
         .substring(0, 50);
       
-      const blob = new Blob([processedJson], { type: 'application/json' });
+      const blob = new Blob([elementorStandardJson], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       
       const link = document.createElement('a');
@@ -166,10 +191,10 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
       
       URL.revokeObjectURL(url);
       
-      toast.success('JSON downloaded successfully!');
+      toast.success('JSON Elementor padrão baixado com sucesso!');
     } catch (error) {
       console.error('Error downloading JSON:', error);
-      toast.error('Error downloading file');
+      toast.error('Erro ao baixar arquivo');
     }
   };
 
@@ -372,7 +397,7 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
                 {copied ? (
                   <>
                     <Check className="h-4 w-4 mr-1" />
-                    Copied!
+                    Copiado!
                   </>
                 ) : (
                   <>
