@@ -47,13 +47,13 @@ const JsonTransformer = () => {
     setIsProcessing(true);
     
     try {
-      // Use the centralized transformation function
+      // Use the SAME centralized transformation function for consistency
       const transformedJson = getStandardTransformedJson(currentJson);
       form.setValue('jsonCode', transformedJson);
       
       toast.success(getTranslation(
-        'JSON transformed with standard structure successfully!',
-        'JSON transformado com estrutura padrão com sucesso!'
+        'JSON transformed with BloqxKit standard structure successfully!',
+        'JSON transformado com estrutura padrão BloqxKit com sucesso!'
       ));
     } catch (e) {
       console.error('Error processing JSON:', e);
@@ -151,8 +151,8 @@ const JsonTransformer = () => {
           />
           <Label htmlFor="apply-structure-toggle" className="font-medium">
             {getTranslation(
-              'Apply Standard Structure',
-              'Aplicar Estrutura Padrão'
+              'Apply BloqxKit Standard Structure',
+              'Aplicar Estrutura Padrão BloqxKit'
             )}
           </Label>
         </div>
@@ -161,8 +161,8 @@ const JsonTransformer = () => {
           <div className="mb-4 p-3 border border-green-200 rounded-md bg-green-50">
             <p className="text-sm text-green-700">
               {getTranslation(
-                'Standard structure will be applied: Section → Padding → Row → Column → Content Groups → Widgets',
-                'A estrutura padrão será aplicada: Seção → Padding → Linha → Coluna → Grupos de Conteúdo → Widgets'
+                'BloqxKit standard structure will be applied: Section → Padding → Row → Column → Content Groups → Widgets. Perfect for Elementor.',
+                'A estrutura padrão BloqxKit será aplicada: Seção → Padding → Linha → Coluna → Grupos de Conteúdo → Widgets. Perfeito para o Elementor.'
               )}
             </p>
           </div>

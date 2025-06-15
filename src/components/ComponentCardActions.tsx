@@ -26,14 +26,14 @@ const ComponentCardActions: React.FC<ComponentCardActionsProps> = ({
     }
 
     try {
-      // Use the standardized transformation function
+      // Use the EXACT same transformation as JsonTransformer
       const transformedJson = getStandardTransformedJson(
         component.json_code || component.code || '[]'
       );
 
       await navigator.clipboard.writeText(transformedJson);
       setCopied(true);
-      toast.success('Standardized JSON copied to clipboard!');
+      toast.success('BloqxKit standard JSON copied to clipboard! Ready for Elementor.');
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
       console.error('Error transforming and copying JSON:', error);
@@ -70,7 +70,7 @@ const ComponentCardActions: React.FC<ComponentCardActionsProps> = ({
         onClick={handleCopyCode}
         disabled={copied}
         className="flex-1"
-        title="Copy Transformed JSON"
+        title="Copy BloqxKit Standard JSON"
       >
         {copied ? (
           <>
@@ -80,7 +80,7 @@ const ComponentCardActions: React.FC<ComponentCardActionsProps> = ({
         ) : (
           <>
             <Copy className="h-4 w-4 mr-1" />
-            Copy
+            Copy JSON
           </>
         )}
       </Button>
