@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Component, Category } from '@/core/types';
 import { extractCompleteStyles } from '@/utils/elementor/styleExtractor';
@@ -124,12 +125,12 @@ export const getWordPressComponents = async (filters: WordPressFilters = {}): Pr
         }
       }
 
-      // Ensure proper source marking for WordPress components
-      const source = componentWithContent.slug && componentWithContent.slug.startsWith('wp-') ? 'wordpress' : 'manual';
+      // Ensure proper source marking for WordPress components - fix the type issue
+      const source: 'local' | 'wordpress' = componentWithContent.slug && componentWithContent.slug.startsWith('wp-') ? 'wordpress' : 'local';
 
       return {
         ...componentWithContent,
-        source, // Mark WordPress components correctly
+        source, // Now correctly typed
         visibility: componentWithContent.visibility as 'public' | 'private',
         alignment: componentWithContent.alignment as 'left' | 'center' | 'right' | 'full' | undefined,
         columns: componentWithContent.columns as '1' | '2' | '3+' | undefined,
@@ -201,12 +202,12 @@ export const getWordPressComponent = async (id: string): Promise<WordPressApiRes
       }
     }
 
-    // Ensure proper source marking
-    const source = componentWithContent.slug && componentWithContent.slug.startsWith('wp-') ? 'wordpress' : 'manual';
+    // Ensure proper source marking - fix the type issue
+    const source: 'local' | 'wordpress' = componentWithContent.slug && componentWithContent.slug.startsWith('wp-') ? 'wordpress' : 'local';
 
     const wordpressComponent: WordPressComponent = {
       ...componentWithContent,
-      source, // Mark WordPress components correctly
+      source, // Now correctly typed
       visibility: componentWithContent.visibility as 'public' | 'private',
       alignment: componentWithContent.alignment as 'left' | 'center' | 'right' | 'full' | undefined,
       columns: componentWithContent.columns as '1' | '2' | '3+' | undefined,
