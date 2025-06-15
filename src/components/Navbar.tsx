@@ -7,7 +7,6 @@ import { SidebarTrigger } from '@/components/ui/sidebar';
 import { useAuth } from '@/features/auth';
 import { useSelectedComponents } from '@/shared/contexts/SelectedComponentsContext';
 import { useIsMobile } from '@/hooks/use-mobile';
-import UserMenu from './UserMenu';
 import AuthButtons from './AuthButtons';
 
 const Navbar = () => {
@@ -72,7 +71,7 @@ const Navbar = () => {
             </Badge>
           )}
           
-          {user ? <UserMenu /> : <AuthButtons />}
+          {!user && <AuthButtons />}
         </div>
       </div>
     </nav>
