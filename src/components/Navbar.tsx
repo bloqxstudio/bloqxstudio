@@ -3,17 +3,25 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { SidebarTrigger } from '@/components/ui/sidebar';
+import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar';
 import { useAuth } from '@/features/auth';
 import { useSelectedComponents } from '@/shared/contexts/SelectedComponentsContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import AuthButtons from './AuthButtons';
 
 const Navbar = () => {
-  const { user, isAdmin } = useAuth();
+  const { user } = useAuth();
   const { selectedComponents } = useSelectedComponents();
   const location = useLocation();
   const isMobile = useIsMobile();
+
+  // Check if we're within a SidebarProvider context
+  let sidebarContext = null;
+  try {
+    sidebarContext = useSidebar();
+  } catch (error) {
+    // Not within a SidebarProvider, that's okay
+  }
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -21,8 +29,8 @@ const Navbar = () => {
     <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 w-full">
       <div className="flex justify-between h-16 px-4">
         <div className="flex items-center space-x-4">
-          {/* Mobile Sidebar Trigger - Only visible on mobile */}
-          <SidebarTrigger className="md:hidden" />
+          {/* Mobile Sidebar Trigger - Only visible on mobile and when sidebar context exists */}
+          {sidebarContext && <SidebarTrigger className="md:hidden" />}
           
           {/* Logo - Visible on both mobile and desktop */}
           <Link to="/components" className="flex items-center">
