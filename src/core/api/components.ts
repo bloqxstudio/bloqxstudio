@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { Component, NewComponent, UpdateComponent } from '@/core/types/database';
 import { syncWordPressSiteCategories } from '@/core/api/wordpress-categories';
@@ -33,7 +34,7 @@ export const getComponents = async (): Promise<Component[]> => {
       });
     }
 
-    return data || [];
+    return data as Component[] || [];
   } catch (error) {
     console.error('Error fetching components:', error);
     throw error;
@@ -49,7 +50,7 @@ export const getComponent = async (id: string): Promise<Component> => {
       .single();
 
     if (error) throw error;
-    return data;
+    return data as Component;
   } catch (error) {
     console.error('Error fetching component:', error);
     throw error;
@@ -65,7 +66,7 @@ export const createComponent = async (component: NewComponent): Promise<Componen
       .single();
 
     if (error) throw error;
-    return data;
+    return data as Component;
   } catch (error) {
     console.error('Error creating component:', error);
     throw error;
@@ -82,7 +83,7 @@ export const updateComponent = async (id: string, updates: UpdateComponent): Pro
       .single();
 
     if (error) throw error;
-    return data;
+    return data as Component;
   } catch (error) {
     console.error('Error updating component:', error);
     throw error;

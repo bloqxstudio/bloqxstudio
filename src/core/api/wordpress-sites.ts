@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export interface WordPressSite {
@@ -418,3 +417,6 @@ export const importComponentToWordPress = async (
     throw error;
   }
 };
+
+// Export the sync function from wordpress-categories
+export { syncWordPressSiteCategories } from './wordpress-categories';
