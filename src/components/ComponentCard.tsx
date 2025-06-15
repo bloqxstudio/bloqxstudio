@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Copy, Check, Eye, ExternalLink, Loader2, RefreshCw, AlertCircle } from 'lucide-react';
+import { Copy, Check, Eye, ExternalLink, Loader2, RefreshCw, AlertCircle, Edit, Sync } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/features/auth';
 import { cleanElementorJson } from '@/utils/json/cleaners';
@@ -33,6 +34,8 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
 
   // Verificar se é um componente do WordPress com URL válida
   const isWordPressComponent = component.source === 'wordpress' && component.slug;
+  const isSuperelementsComponent = component.source === 'superelements';
+  const isOwnSite = component.source === 'wordpress' && component.wordpress_site_id;
 
   // Gerar preview automaticamente apenas se não for WordPress e não houver imagem
   useEffect(() => {
@@ -81,6 +84,18 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
 
   const handlePreview = () => {
     setPreviewOpen(true);
+  };
+
+  const handleEdit = () => {
+    // Implementar navegação para edição do componente próprio
+    console.log('Editar componente:', component.id);
+    toast.info('Funcionalidade de edição em desenvolvimento');
+  };
+
+  const handleSync = async () => {
+    // Implementar sincronização do componente
+    console.log('Sincronizar componente:', component.id);
+    toast.info('Sincronizando componente...');
   };
 
   const handleRegeneratePreview = async () => {
@@ -144,6 +159,102 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
     return <ComponentPreviewEmbed component={component} />;
   };
 
+  const getSourceBadge = () => {
+    if (isSuperelementsComponent) {
+      return (
+        <Badge variant="outline" className="text-xs bg-blue-100 text-blue-700 border-blue-200">
+          <ExternalLink className="h-3 w-3 mr-1" />
+          Superelements
+        </Badge>
+      );
+    }
+
+    if (isOwnSite) {
+      return (
+        <Badge variant="outline" className="text-xs bg-green-100 text-green-700 border-green-200">
+          <Edit className="h-3 w-3 mr-1" />
+          {component.source_site}
+        </Badge>
+      );
+    }
+
+    return null;
+  };
+
+  const getActionButtons = () => {
+    if (isOwnSite) {
+      // Botões para sites próprios
+      return (
+        <div className="flex gap-2 w-full">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handlePreview}
+            className="flex-1"
+          >
+            <Eye className="h-4 w-4 mr-1" />
+            Visualizar
+          </Button>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleEdit}
+            className="flex-1"
+          >
+            <Edit className="h-4 w-4 mr-1" />
+            Editar
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleSync}
+            className="flex-1"
+          >
+            <Sync className="h-4 w-4 mr-1" />
+            Sync
+          </Button>
+        </div>
+      );
+    }
+
+    // Botões padrão para Superelements e outros
+    return (
+      <div className="flex gap-2 w-full">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handlePreview}
+          className="flex-1"
+        >
+          <Eye className="h-4 w-4 mr-1" />
+          {isWordPressComponent ? 'Ver Site' : 'Visualizar'}
+        </Button>
+        
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleCopyCode}
+          disabled={copied}
+          className="flex-1"
+        >
+          {copied ? (
+            <>
+              <Check className="h-4 w-4 mr-1" />
+              Copiado!
+            </>
+          ) : (
+            <>
+              <Copy className="h-4 w-4 mr-1" />
+              Copiar
+            </>
+          )}
+        </Button>
+      </div>
+    );
+  };
+
   return (
     <>
       <Card className="group hover:shadow-lg transition-all duration-200 border border-border/50 hover:border-border">
@@ -153,16 +264,18 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
           </div>
           
           <div className="p-4">
-            <div className="mb-2">
-              <h3 className="font-semibold text-base line-clamp-2 group-hover:text-primary transition-colors">
+            <div className="flex items-start justify-between mb-2">
+              <h3 className="font-semibold text-base line-clamp-2 group-hover:text-primary transition-colors flex-1">
                 {component.title}
               </h3>
-              {component.description && (
-                <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
-                  {component.description}
-                </p>
-              )}
+              {getSourceBadge()}
             </div>
+
+            {component.description && (
+              <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
+                {component.description}
+              </p>
+            )}
 
             {component.slug && (
               <div className="mb-2">
@@ -190,37 +303,7 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
         </CardContent>
         
         <CardFooter className="p-4 pt-0">
-          <div className="flex gap-2 w-full">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handlePreview}
-              className="flex-1"
-            >
-              <Eye className="h-4 w-4 mr-1" />
-              {isWordPressComponent ? 'Ver Site' : 'Visualizar'}
-            </Button>
-            
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleCopyCode}
-              disabled={copied}
-              className="flex-1"
-            >
-              {copied ? (
-                <>
-                  <Check className="h-4 w-4 mr-1" />
-                  Copiado!
-                </>
-              ) : (
-                <>
-                  <Copy className="h-4 w-4 mr-1" />
-                  Copiar
-                </>
-              )}
-            </Button>
-          </div>
+          {getActionButtons()}
         </CardFooter>
       </Card>
 

@@ -1,6 +1,7 @@
 
 // API para buscar componentes diretamente do WordPress
 import { Component } from '@/core/types';
+import { getUserWordPressSites } from './wordpress-sites';
 
 interface WordPressPost {
   id: number;
@@ -91,11 +92,9 @@ const extractTags = (title: string, content: string): string[] => {
   return [...new Set(tags)]; // Remove duplicatas
 };
 
-export const getComponents = async (): Promise<Component[]> => {
-  console.log('🔍 Buscando componentes diretamente da API do WordPress...');
-  
+// Buscar componentes do Superelements
+const getSuperelementsComponents = async (): Promise<Component[]> => {
   try {
-    // Buscar posts com dados embedded (featured media e categorias)
     const response = await fetch(
       `${WORDPRESS_API_BASE}/posts?per_page=100&page=1&orderby=date&order=desc&_embed=1`,
       {
@@ -110,71 +109,224 @@ export const getComponents = async (): Promise<Component[]> => {
     }
 
     const posts: WordPressPost[] = await response.json();
-    console.log('📊 Posts recebidos do WordPress:', posts.length);
 
-    // Converter posts do WordPress para o formato Component
-    const components: Component[] = await Promise.all(
-      posts.map(async (post, index) => {
-        console.log(`🔄 Processando post ${index + 1}: ${post.title.rendered} (slug: ${post.slug})`);
+    return posts.map((post) => {
+      const elementorData = extractElementorData(post);
+      const featuredImage = post._embedded?.['wp:featuredmedia']?.[0]?.source_url || '';
+      const categories = post._embedded?.['wp:term']?.[0] || [];
+      const mappedCategory = mapWordPressCategory(categories);
+      const tags = extractTags(post.title.rendered, post.content.rendered);
+      const description = `Componente Elementor: ${post.title.rendered}`;
 
-        // Extrair dados do Elementor
-        const elementorData = extractElementorData(post);
-        
-        // Obter imagem destacada
-        const featuredImage = post._embedded?.['wp:featuredmedia']?.[0]?.source_url || '';
-        
-        // Obter categorias
-        const categories = post._embedded?.['wp:term']?.[0] || [];
-        const mappedCategory = mapWordPressCategory(categories);
-        
-        // Extrair tags
-        const tags = extractTags(post.title.rendered, post.content.rendered);
-        
-        // Criar descrição baseada no título
-        const description = `Componente Elementor: ${post.title.rendered}`;
+      return {
+        id: `superelements-${post.id}`,
+        title: post.title.rendered || 'Sem título',
+        description,
+        category: mappedCategory,
+        code: elementorData,
+        json_code: elementorData,
+        preview_image: featuredImage,
+        tags,
+        type: 'elementor',
+        visibility: 'public' as const,
+        created_at: post.date,
+        updated_at: post.modified,
+        created_by: 'superelements',
+        source: 'superelements' as const,
+        source_site: 'Superelements',
+        slug: post.slug
+      };
+    });
+  } catch (error) {
+    console.error('Erro ao buscar componentes do Superelements:', error);
+    return [];
+  }
+};
 
-        const component: Component = {
-          id: `wp-${post.id}`,
-          title: post.title.rendered || 'Sem título',
-          description,
-          category: mappedCategory,
-          code: elementorData,
-          json_code: elementorData,
-          preview_image: featuredImage,
-          tags,
-          type: 'elementor',
-          visibility: 'public' as const,
-          created_at: post.date,
-          updated_at: post.modified,
-          created_by: 'wordpress-import',
-          source: 'wordpress' as const,
-          slug: post.slug
-        };
+// Buscar componentes de um site WordPress conectado
+const getWordPressSiteComponents = async (siteId: string, siteUrl: string, apiKey: string, siteName: string): Promise<Component[]> => {
+  try {
+    const cleanUrl = siteUrl.replace(/\/$/, '');
+    
+    // Parse auth info
+    let authHeader;
+    if (apiKey.includes(':')) {
+      const [username, password] = apiKey.split(':');
+      const basicAuthToken = btoa(`${username}:${password}`);
+      authHeader = `Basic ${basicAuthToken}`;
+    } else {
+      authHeader = `Bearer ${apiKey}`;
+    }
 
-        console.log(`✅ Componente processado: ${component.title} (slug: ${component.slug})`);
-        return component;
-      })
+    const response = await fetch(
+      `${cleanUrl}/wp-json/wp/v2/posts?per_page=50&_embed=1`,
+      {
+        headers: {
+          'Authorization': authHeader,
+          'Accept': 'application/json',
+        },
+      }
     );
 
-    console.log(`🎉 Total de ${components.length} componentes carregados do WordPress`);
-    return components;
+    if (!response.ok) {
+      console.warn(`Erro ao buscar componentes do site ${siteName}: ${response.status}`);
+      return [];
+    }
+
+    const posts: WordPressPost[] = await response.json();
+
+    return posts.map((post) => {
+      const elementorData = extractElementorData(post);
+      const featuredImage = post._embedded?.['wp:featuredmedia']?.[0]?.source_url || '';
+      const categories = post._embedded?.['wp:term']?.[0] || [];
+      const mappedCategory = mapWordPressCategory(categories);
+      const tags = extractTags(post.title.rendered, post.content.rendered);
+      const description = `Componente de ${siteName}: ${post.title.rendered}`;
+
+      return {
+        id: `${siteId}-${post.id}`,
+        title: post.title.rendered || 'Sem título',
+        description,
+        category: mappedCategory,
+        code: elementorData,
+        json_code: elementorData,
+        preview_image: featuredImage,
+        tags,
+        type: 'elementor',
+        visibility: 'public' as const,
+        created_at: post.date,
+        updated_at: post.modified,
+        created_by: siteId,
+        source: 'wordpress' as const,
+        source_site: siteName,
+        slug: post.slug,
+        wordpress_site_id: siteId
+      };
+    });
+  } catch (error) {
+    console.error(`Erro ao buscar componentes do site ${siteName}:`, error);
+    return [];
+  }
+};
+
+// Função principal para buscar todos os componentes
+export const getComponents = async (): Promise<Component[]> => {
+  console.log('🔍 Buscando componentes de todas as fontes...');
+  
+  try {
+    // Buscar componentes do Superelements
+    const superelementsComponents = await getSuperelementsComponents();
+    console.log(`📊 ${superelementsComponents.length} componentes do Superelements`);
+
+    // Buscar componentes dos sites conectados (somente se usuário autenticado)
+    let connectedSitesComponents: Component[] = [];
+    
+    try {
+      const userSites = await getUserWordPressSites();
+      console.log(`🔗 ${userSites.length} sites conectados encontrados`);
+
+      if (userSites.length > 0) {
+        const siteComponentPromises = userSites.map(site =>
+          getWordPressSiteComponents(site.id, site.site_url, site.api_key, site.site_name || site.site_url)
+        );
+
+        const siteComponentsArrays = await Promise.all(siteComponentPromises);
+        connectedSitesComponents = siteComponentsArrays.flat();
+        console.log(`📊 ${connectedSitesComponents.length} componentes de sites conectados`);
+      }
+    } catch (authError) {
+      console.log('Usuário não autenticado ou sem sites conectados, mostrando apenas Superelements');
+    }
+
+    // Combinar todos os componentes
+    const allComponents = [...superelementsComponents, ...connectedSitesComponents];
+    console.log(`🎉 Total de ${allComponents.length} componentes carregados`);
+    
+    return allComponents;
 
   } catch (error) {
-    console.error('💥 Erro ao buscar componentes do WordPress:', error);
-    return [];
+    console.error('💥 Erro ao buscar componentes:', error);
+    // Retornar apenas componentes do Superelements como fallback
+    return getSuperelementsComponents();
   }
 };
 
 // Função para buscar componente específico por ID
 export const getComponentById = async (id: string): Promise<Component | null> => {
   try {
-    // Extrair ID numérico do WordPress (remover prefixo wp-)
-    const wpId = id.replace('wp-', '');
+    // Verificar se é do Superelements
+    if (id.startsWith('superelements-')) {
+      const wpId = id.replace('superelements-', '');
+      
+      const response = await fetch(
+        `${WORDPRESS_API_BASE}/posts/${wpId}?_embed=1`,
+        {
+          headers: {
+            'Accept': 'application/json',
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Post não encontrado: ${response.status}`);
+      }
+
+      const post: WordPressPost = await response.json();
+      
+      // Converter para formato Component
+      const elementorData = extractElementorData(post);
+      const featuredImage = post._embedded?.['wp:featuredmedia']?.[0]?.source_url || '';
+      const categories = post._embedded?.['wp:term']?.[0] || [];
+      const mappedCategory = mapWordPressCategory(categories);
+      const tags = extractTags(post.title.rendered, post.content.rendered);
+      const description = `Componente Elementor: ${post.title.rendered}`;
+
+      return {
+        id: `superelements-${post.id}`,
+        title: post.title.rendered || 'Sem título',
+        description,
+        category: mappedCategory,
+        code: elementorData,
+        json_code: elementorData,
+        preview_image: featuredImage,
+        tags,
+        type: 'elementor',
+        visibility: 'public' as const,
+        created_at: post.date,
+        updated_at: post.modified,
+        created_by: 'superelements',
+        source: 'superelements' as const,
+        source_site: 'Superelements',
+        slug: post.slug
+      };
+    }
+
+    // Se for de um site conectado, buscar nos sites do usuário
+    const userSites = await getUserWordPressSites();
+    const siteId = id.split('-')[0];
+    const postId = id.split('-').slice(1).join('-');
+    const site = userSites.find(s => s.id === siteId);
+
+    if (!site) {
+      throw new Error('Site não encontrado');
+    }
+
+    const cleanUrl = site.site_url.replace(/\/$/, '');
     
+    let authHeader;
+    if (site.api_key.includes(':')) {
+      const [username, password] = site.api_key.split(':');
+      const basicAuthToken = btoa(`${username}:${password}`);
+      authHeader = `Basic ${basicAuthToken}`;
+    } else {
+      authHeader = `Bearer ${site.api_key}`;
+    }
+
     const response = await fetch(
-      `${WORDPRESS_API_BASE}/posts/${wpId}?_embed=1`,
+      `${cleanUrl}/wp-json/wp/v2/posts/${postId}?_embed=1`,
       {
         headers: {
+          'Authorization': authHeader,
           'Accept': 'application/json',
         },
       }
@@ -186,16 +338,15 @@ export const getComponentById = async (id: string): Promise<Component | null> =>
 
     const post: WordPressPost = await response.json();
     
-    // Converter para formato Component
     const elementorData = extractElementorData(post);
     const featuredImage = post._embedded?.['wp:featuredmedia']?.[0]?.source_url || '';
     const categories = post._embedded?.['wp:term']?.[0] || [];
     const mappedCategory = mapWordPressCategory(categories);
     const tags = extractTags(post.title.rendered, post.content.rendered);
-    const description = `Componente Elementor: ${post.title.rendered}`;
+    const description = `Componente de ${site.site_name || site.site_url}: ${post.title.rendered}`;
 
-    const component: Component = {
-      id: `wp-${post.id}`,
+    return {
+      id: `${siteId}-${post.id}`,
       title: post.title.rendered || 'Sem título',
       description,
       category: mappedCategory,
@@ -207,12 +358,12 @@ export const getComponentById = async (id: string): Promise<Component | null> =>
       visibility: 'public' as const,
       created_at: post.date,
       updated_at: post.modified,
-      created_by: 'wordpress-import',
+      created_by: siteId,
       source: 'wordpress' as const,
-      slug: post.slug
+      source_site: site.site_name || site.site_url,
+      slug: post.slug,
+      wordpress_site_id: siteId
     };
-
-    return component;
   } catch (error) {
     console.error('Erro ao buscar componente por ID:', error);
     return null;

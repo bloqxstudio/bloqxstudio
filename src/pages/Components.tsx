@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getComponents } from '@/core/api/components';
@@ -8,6 +9,7 @@ import PageWrapper from '@/components/layout/PageWrapper';
 import ComponentsHeader from '@/components/components/ComponentsHeader';
 import ComponentsGrid from '@/components/components/ComponentsGrid';
 import ComponentFilterBar from '@/components/filters/ComponentFilterBar';
+import SourceFilter from '@/components/filters/SourceFilter';
 import SelectedComponentsSidebar from '@/components/selection/SelectedComponentsSidebar';
 import SelectionFloatingButton from '@/components/selection/SelectionFloatingButton';
 import type { AlignmentType, ColumnsType, ElementType } from '@/components/ComponentFilters';
@@ -16,9 +18,9 @@ const Components = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { selectedComponents } = useSelectedComponents();
 
-  // Buscar componentes diretamente do WordPress
+  // Buscar componentes de todas as fontes
   const { data: components = [], isLoading: isLoadingComponents, error, refetch } = useQuery({
-    queryKey: ['wordpress-components'],
+    queryKey: ['all-components'],
     queryFn: getComponents,
     staleTime: 5 * 60 * 1000, // 5 minutos
     gcTime: 10 * 60 * 1000, // 10 minutos (anteriormente cacheTime)
@@ -35,9 +37,12 @@ const Components = () => {
     setSearchQuery,
     searchTerm,
     setSearchTerm,
+    selectedSource,
+    setSelectedSource,
     selectedAlignments,
     selectedColumns,
     selectedElements,
+    availableSources,
     handleAlignmentChange,
     handleColumnsChange,
     handleElementChange,
@@ -77,6 +82,8 @@ const Components = () => {
   console.log('🎯 Components page renderizando:', {
     totalComponents: components.length,
     filteredComponents: filteredComponents.length,
+    availableSources: availableSources.length,
+    selectedSource,
     isLoading: isLoadingComponents,
     hasError: !!error
   });
@@ -88,6 +95,15 @@ const Components = () => {
         totalCount={components.length}
         components={components}
       />
+
+      {/* Filtro de Fonte */}
+      <div className="mb-4">
+        <SourceFilter
+          selectedSource={selectedSource}
+          onSourceChange={setSelectedSource}
+          availableSources={availableSources}
+        />
+      </div>
       
       <ComponentFilterBar
         selectedAlignments={selectedAlignments as AlignmentType[]}
