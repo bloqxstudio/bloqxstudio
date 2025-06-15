@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -13,6 +12,8 @@ import {
   Tablet, 
   Smartphone, 
   Download,
+  Copy,
+  Check,
   Loader2,
   AlertCircle,
   RefreshCw,
@@ -40,6 +41,7 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [hasError, setHasError] = useState(false);
   const [iframeKey, setIframeKey] = useState(0);
+  const [copied, setCopied] = useState(false);
 
   const viewportConfig = {
     desktop: { width: '100%', height: '600px', label: 'Desktop' },
@@ -55,8 +57,21 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
       setIsLoading(true);
       setHasError(false);
       setIframeKey(prev => prev + 1);
+      setCopied(false);
     }
   }, [isOpen]);
+
+  const handleCopyJson = async () => {
+    try {
+      await navigator.clipboard.writeText(processedJson);
+      setCopied(true);
+      toast.success('JSON copiado para a área de transferência!');
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      console.error('Erro ao copiar JSON:', error);
+      toast.error('Erro ao copiar o JSON');
+    }
+  };
 
   const handleDownloadJson = () => {
     try {
@@ -130,6 +145,25 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
             </div>
             
             <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCopyJson}
+                disabled={copied}
+              >
+                {copied ? (
+                  <>
+                    <Check className="h-4 w-4 mr-1" />
+                    Copiado!
+                  </>
+                ) : (
+                  <>
+                    <Copy className="h-4 w-4 mr-1" />
+                    Copiar JSON
+                  </>
+                )}
+              </Button>
+              
               <Button
                 variant="outline"
                 size="sm"
