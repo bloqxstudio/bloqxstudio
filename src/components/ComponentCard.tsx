@@ -1,192 +1,203 @@
 
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Component } from '@/core/types';
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Copy, Download, Eye, Tag, Plus, Check, ExternalLink } from 'lucide-react';
+import { Copy, Check, Eye, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
+import { useAuth } from '@/features/auth';
 import { useSelectedComponents } from '@/shared/contexts/SelectedComponentsContext';
+import { cleanElementorJson } from '@/utils/json/cleaners';
+import { Component } from '@/core/types';
+import ComponentPreviewModal from './ComponentPreviewModal';
 
 interface ComponentCardProps {
   component: Component;
-  className?: string;
+  onSelect?: (component: Component) => void;
+  isSelected?: boolean;
+  showSelectButton?: boolean;
 }
 
-const ComponentCard: React.FC<ComponentCardProps> = ({ component, className }) => {
-  const [isHovered, setIsHovered] = useState(false);
-  const { 
-    addComponent, 
-    removeComponent, 
-    isComponentSelected 
-  } = useSelectedComponents();
+const ComponentCard: React.FC<ComponentCardProps> = ({
+  component,
+  onSelect,
+  isSelected = false,
+  showSelectButton = false,
+}) => {
+  const { user } = useAuth();
+  const { toggleComponent, selectedComponents } = useSelectedComponents();
+  const [copied, setCopied] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
-  const isSelected = isComponentSelected(component.id);
-  
-  // Get language preference
-  const language = localStorage.getItem('language') || 'en';
-  
-  const getTranslation = (en: string, pt: string) => {
-    return language === 'pt' ? pt : en;
-  };
+  const isComponentSelected = selectedComponents.some(c => c.id === component.id);
 
-  const handleCopyCode = (e: React.MouseEvent) => {
-    e.preventDefault();
-    
-    const codeContent = component.json_code || component.code;
-    navigator.clipboard.writeText(codeContent);
-    toast.success(getTranslation(
-      'Code copied to clipboard!', 
-      'Código copiado para a área de transferência!'
-    ));
-  };
-  
-  const handleDownload = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    const codeContent = component.json_code || component.code;
-    const filename = `${component.title.toLowerCase().replace(/\s+/g, '-')}.json`;
-    
-    const blob = new Blob([codeContent], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    toast.success(getTranslation(
-      `Downloaded ${filename}`, 
-      `${filename} baixado com sucesso`
-    ));
-  };
+  const handleCopyCode = async () => {
+    if (!user) {
+      toast.error('Você precisa estar logado para copiar o código');
+      return;
+    }
 
-  const handleSelectToggle = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+    try {
+      // Processar JSON com cleanElementorJson antes de copiar
+      const processedJson = cleanElementorJson(
+        component.json_code || component.code || '[]',
+        false, // não remover estilos
+        true,  // wrap em container
+        false  // não aplicar estrutura padrão
+      );
 
-    if (isSelected) {
-      removeComponent(component.id);
-      toast.info(getTranslation(
-        `Component "${component.title}" removed from selection`,
-        `Componente "${component.title}" removido da seleção`
-      ));
-    } else {
-      addComponent(component);
-      toast.success(getTranslation(
-        `Component "${component.title}" added to selection`,
-        `Componente "${component.title}" adicionado à seleção`
-      ));
+      await navigator.clipboard.writeText(processedJson);
+      setCopied(true);
+      toast.success('JSON otimizado copiado! Pronto para colar no Elementor');
+      setTimeout(() => setCopied(false), 2000);
+    } catch (error) {
+      console.error('Erro ao processar e copiar JSON:', error);
+      toast.error('Erro ao processar o código');
     }
   };
 
-  const imageSrc = component.preview_image || '/placeholder.svg';
-  const tags = component.tags || [];
+  const handleToggleSelect = () => {
+    toggleComponent(component);
+  };
+
+  const handlePreview = () => {
+    setPreviewOpen(true);
+  };
+
+  const getProcessedJson = () => {
+    try {
+      return cleanElementorJson(
+        component.json_code || component.code || '[]',
+        false, // não remover estilos
+        true,  // wrap em container
+        false  // não aplicar estrutura padrão
+      );
+    } catch (error) {
+      console.error('Erro ao processar JSON para preview:', error);
+      return component.json_code || component.code || '[]';
+    }
+  };
 
   return (
-    <Card 
-      className={`component-card overflow-hidden ${className}`}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      <Link to={`/component/${component.id}`}>
-        <CardHeader className="p-0 relative h-[200px] overflow-hidden group">
-          <img 
-            src={imageSrc} 
-            alt={component.title}
-            className={`w-full h-full object-cover transition-transform duration-700 ${isHovered ? 'scale-105' : 'scale-100'}`}
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.src = '/placeholder.svg';
-            }}
-          />
-          <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-            <Button variant="secondary" size="sm" className="gap-1">
-              <Eye className="h-4 w-4" />
-              {getTranslation('View details', 'Ver detalhes')}
+    <>
+      <Card className="group hover:shadow-lg transition-all duration-200 border border-border/50 hover:border-border">
+        <CardContent className="p-0">
+          <div className="aspect-video bg-gray-50 rounded-t-lg overflow-hidden relative">
+            {component.preview_image ? (
+              <img
+                src={component.preview_image}
+                alt={component.title}
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
+                loading="lazy"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+                <span className="text-gray-400 text-sm">Sem preview</span>
+              </div>
+            )}
+            
+            {component.source === 'wordpress' && (
+              <Badge 
+                variant="secondary" 
+                className="absolute top-2 right-2 text-xs bg-blue-100 text-blue-700 border-blue-200"
+              >
+                <ExternalLink className="h-3 w-3 mr-1" />
+                WordPress
+              </Badge>
+            )}
+          </div>
+          
+          <div className="p-4">
+            <div className="mb-2">
+              <h3 className="font-semibold text-base line-clamp-2 group-hover:text-primary transition-colors">
+                {component.title}
+              </h3>
+              {component.description && (
+                <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
+                  {component.description}
+                </p>
+              )}
+            </div>
+            
+            {component.tags && component.tags.length > 0 && (
+              <div className="flex flex-wrap gap-1 mb-3">
+                {component.tags.slice(0, 3).map((tag) => (
+                  <Badge key={tag} variant="outline" className="text-xs">
+                    {tag}
+                  </Badge>
+                ))}
+                {component.tags.length > 3 && (
+                  <Badge variant="outline" className="text-xs">
+                    +{component.tags.length - 3}
+                  </Badge>
+                )}
+              </div>
+            )}
+          </div>
+        </CardContent>
+        
+        <CardFooter className="p-4 pt-0 space-y-2">
+          <div className="flex gap-2 w-full">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handlePreview}
+              className="flex-1"
+            >
+              <Eye className="h-4 w-4 mr-1" />
+              Preview
+            </Button>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleCopyCode}
+              disabled={copied}
+              className="flex-1"
+            >
+              {copied ? (
+                <>
+                  <Check className="h-4 w-4 mr-1" />
+                  Copiado!
+                </>
+              ) : (
+                <>
+                  <Copy className="h-4 w-4 mr-1" />
+                  Copiar
+                </>
+              )}
             </Button>
           </div>
           
-          {/* Superelements badge */}
-          <div className="absolute top-2 left-2 flex gap-1">
-            <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-              <ExternalLink className="h-3 w-3 mr-1" /> Superelements
-            </Badge>
-          </div>
-          
-          {/* Selection indicator */}
-          {isSelected && (
-            <div className="absolute top-2 right-2">
-              <Badge className="bg-green-500 text-white">
-                <Check className="h-3 w-3 mr-1" /> {getTranslation('Selected', 'Selecionado')}
-              </Badge>
-            </div>
-          )}
-        </CardHeader>
-        <CardContent className="p-4">
-          <h3 className="font-medium text-lg truncate">{component.title}</h3>
-          <p className="text-muted-foreground text-sm line-clamp-2 h-10 mt-1">
-            {component.description}
-          </p>
-        </CardContent>
-      </Link>
-      <CardFooter className="p-4 pt-0 flex items-center justify-between gap-2">
-        <div className="flex items-center gap-1 flex-wrap">
-          <Tag className="h-3 w-3 text-muted-foreground" />
-          {tags.slice(0, 2).map((tag, i) => (
-            <Badge key={i} variant="secondary" className="text-xs px-2 py-0 h-5">
-              {tag}
-            </Badge>
-          ))}
-          {tags.length > 2 && (
-            <Badge variant="outline" className="text-xs px-1 py-0 h-5">
-              +{tags.length - 2}
-            </Badge>
-          )}
-        </div>
-        <div className="flex gap-1">
-          <Button 
-            size="sm" 
-            variant="outline" 
-            className="hover-lift p-1 h-8 w-8"
-            onClick={handleCopyCode}
-            title={getTranslation('Copy to Elementor', 'Copiar para Elementor')}
-          >
-            <Copy className="h-3.5 w-3.5" />
-          </Button>
-          <Button 
-            size="sm" 
-            variant="outline" 
-            className="hover-lift p-1 h-8 w-8"
-            onClick={handleDownload}
-            title={getTranslation('Download component', 'Baixar componente')}
-          >
-            <Download className="h-3.5 w-3.5" />
-          </Button>
-          <Button
-            size="sm"
-            variant={isSelected ? "default" : "outline"}
-            className={`hover-lift ${isSelected ? "bg-green-600 hover:bg-green-700" : ""}`}
-            onClick={handleSelectToggle}
-            title={isSelected ? 
-              getTranslation('Remove from selection', 'Remover da seleção') : 
-              getTranslation('Add to selection', 'Adicionar à seleção')}
-          >
-            {isSelected ? (
-              <Check className="h-3.5 w-3.5 mr-1" />
-            ) : (
-              <Plus className="h-3.5 w-3.5 mr-1" />
+          <div className="flex gap-2 w-full">
+            <Button asChild variant="default" size="sm" className="flex-1">
+              <Link to={`/component/${component.id}`}>
+                Ver detalhes
+              </Link>
+            </Button>
+            
+            {showSelectButton && (
+              <Button
+                variant={isComponentSelected ? "default" : "outline"}
+                size="sm"
+                onClick={handleToggleSelect}
+                className="flex-1"
+              >
+                {isComponentSelected ? 'Selecionado' : 'Selecionar'}
+              </Button>
             )}
-            {isSelected ? 
-              getTranslation('Selected', 'Selecionado') : 
-              getTranslation('Select', 'Selecionar')}
-          </Button>
-        </div>
-      </CardFooter>
-    </Card>
+          </div>
+        </CardFooter>
+      </Card>
+
+      <ComponentPreviewModal
+        isOpen={previewOpen}
+        onClose={() => setPreviewOpen(false)}
+        component={component}
+        processedJson={getProcessedJson()}
+      />
+    </>
   );
 };
 
