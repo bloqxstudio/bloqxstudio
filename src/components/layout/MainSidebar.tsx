@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getUserWordPressSites } from '@/core/api/wordpress-sites';
@@ -28,17 +27,17 @@ import { ChevronDown, ChevronRight } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
 interface MainSidebarProps {
-  selectedCategory: string | null;
-  selectedSite: string | null;
-  onCategoryChange: (category: string | null) => void;
-  onSiteChange: (site: string | null) => void;
+  selectedCategory?: string | null;
+  selectedSite?: string | null;
+  onCategoryChange?: (category: string | null) => void;
+  onSiteChange?: (site: string | null) => void;
 }
 
 export const MainSidebar = ({
-  selectedCategory,
-  selectedSite,
-  onCategoryChange,
-  onSiteChange,
+  selectedCategory = null,
+  selectedSite = null,
+  onCategoryChange = () => {},
+  onSiteChange = () => {},
 }: MainSidebarProps) => {
   const { user, isAdmin } = useAuth();
   const location = useLocation();
@@ -210,7 +209,7 @@ export const MainSidebar = ({
                           ) : (
                             <ChevronRight className="h-4 w-4" />
                           )}
-                          <span className="truncate">{site.name}</span>
+                          <span className="truncate">{site.site_name || site.site_url}</span>
                         </SidebarMenuButton>
                       </CollapsibleTrigger>
                       <CollapsibleContent>
@@ -220,7 +219,7 @@ export const MainSidebar = ({
                               onClick={() => handleSiteSelect(site.id)}
                               className={selectedSite === site.id ? 'bg-accent' : ''}
                             >
-                              <span>All from {site.name}</span>
+                              <span>All from {site.site_name || site.site_url}</span>
                             </SidebarMenuSubButton>
                           </SidebarMenuSubItem>
                         </SidebarMenuSub>
@@ -267,7 +266,7 @@ export const MainSidebar = ({
                         >
                           <span className="truncate">{category.name}</span>
                           <Badge variant="outline" className="ml-auto">
-                            {category.component_count || 0}
+                            {category.post_count || 0}
                           </Badge>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
