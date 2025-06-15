@@ -5,9 +5,9 @@ import { Toaster } from 'sonner';
 import { AuthProvider } from '@/features/auth';
 import { SelectedComponentsProvider } from '@/shared/contexts/SelectedComponentsContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import AuthRedirect from '@/components/AuthRedirect';
 
 // Pages
-import Index from '@/pages/Index';
 import Components from '@/pages/Components';
 import ComponentDetail from '@/pages/ComponentDetail';
 import ComponentCreate from '@/pages/ComponentCreate';
@@ -44,7 +44,7 @@ function App() {
           <Router>
             <div className="min-h-screen bg-background">
               <Routes>
-                <Route path="/" element={<Index />} />
+                <Route path="/" element={<AuthRedirect />} />
                 <Route path="/components" element={<Components />} />
                 <Route path="/component/:id" element={<ComponentDetail />} />
                 <Route path="/login" element={<Login />} />
