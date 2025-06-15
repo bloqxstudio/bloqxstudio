@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -19,8 +20,7 @@ import {
   RefreshCw,
   ExternalLink,
   ZoomIn,
-  ZoomOut,
-  Focus
+  ZoomOut
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Component } from '@/core/types';
@@ -46,12 +46,11 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
   const [iframeKey, setIframeKey] = useState(0);
   const [copied, setCopied] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
-  const [focusMode, setFocusMode] = useState(false);
 
   const viewportConfig = {
-    desktop: { width: '1400px', height: '800px', label: 'Desktop', mockupStyle: 'browser' },
-    tablet: { width: '768px', height: '600px', label: 'Tablet', mockupStyle: 'tablet' },
-    mobile: { width: '375px', height: '600px', label: 'Mobile', mockupStyle: 'phone' },
+    desktop: { width: '1400px', height: '800px', label: 'Desktop' },
+    tablet: { width: '768px', height: '600px', label: 'Tablet' },
+    mobile: { width: '375px', height: '600px', label: 'Mobile' },
   };
 
   const currentViewport = viewportConfig[viewportSize];
@@ -80,18 +79,15 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
 
   const handleDownloadJson = () => {
     try {
-      // Criar um nome de arquivo limpo baseado no título
       const fileName = component.title
         .toLowerCase()
         .replace(/[^a-z0-9\s]/g, '')
         .replace(/\s+/g, '-')
         .substring(0, 50);
       
-      // Criar blob com o JSON processado
       const blob = new Blob([processedJson], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       
-      // Criar link temporário para download
       const link = document.createElement('a');
       link.href = url;
       link.download = `${fileName}-elementor.json`;
@@ -99,7 +95,6 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
       link.click();
       document.body.removeChild(link);
       
-      // Limpar URL
       URL.revokeObjectURL(url);
       
       toast.success('JSON baixado com sucesso!');
@@ -123,84 +118,6 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
     setIsLoading(true);
     setHasError(false);
     setIframeKey(prev => prev + 1);
-  };
-
-  const getMockupClasses = () => {
-    const baseClasses = "relative transition-all duration-300 mx-auto";
-    
-    switch (currentViewport.mockupStyle) {
-      case 'browser':
-        return `${baseClasses} rounded-lg shadow-2xl bg-white`;
-      case 'tablet':
-        return `${baseClasses} rounded-2xl shadow-2xl bg-black p-4`;
-      case 'phone':
-        return `${baseClasses} rounded-3xl shadow-2xl bg-black p-2`;
-      default:
-        return baseClasses;
-    }
-  };
-
-  const getMockupFrame = () => {
-    switch (currentViewport.mockupStyle) {
-      case 'browser':
-        return (
-          <div className="bg-gray-200 px-4 py-3 rounded-t-lg border-b">
-            <div className="flex items-center gap-2">
-              <div className="flex gap-1.5">
-                <div className="w-3 h-3 rounded-full bg-red-400"></div>
-                <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
-                <div className="w-3 h-3 rounded-full bg-green-400"></div>
-              </div>
-              <div className="flex-1 ml-4">
-                <div className="bg-white rounded px-3 py-1 text-xs text-gray-500 max-w-md">
-                  {component.source === 'wordpress' && component.slug 
-                    ? `https://superelements.io/${component.slug}/`
-                    : 'Preview do Componente'
-                  }
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-      case 'tablet':
-        return (
-          <div className="absolute top-2 left-1/2 transform -translate-x-1/2 w-12 h-1 bg-gray-400 rounded-full"></div>
-        );
-      case 'phone':
-        return (
-          <div className="absolute top-1 left-1/2 transform -translate-x-1/2">
-            <div className="w-16 h-1 bg-gray-400 rounded-full"></div>
-          </div>
-        );
-      default:
-        return null;
-    }
-  };
-
-  const getBackgroundPattern = () => {
-    return (
-      <div className="absolute inset-0 opacity-5">
-        <div 
-          className="w-full h-full"
-          style={{
-            backgroundImage: `radial-gradient(circle, #000 1px, transparent 1px)`,
-            backgroundSize: '20px 20px',
-          }}
-        />
-      </div>
-    );
-  };
-
-  const handleFocusMode = () => {
-    setFocusMode(!focusMode);
-  };
-
-  const handleZoomIn = () => {
-    setZoomLevel(Math.min(2, zoomLevel + 0.1));
-  };
-
-  const handleZoomOut = () => {
-    setZoomLevel(Math.max(0.5, zoomLevel - 0.1));
   };
 
   const getPostUrl = () => {
@@ -227,15 +144,6 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
             </div>
             
             <div className="flex items-center gap-2">
-              <Button
-                variant={focusMode ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setFocusMode(!focusMode)}
-              >
-                <Focus className="h-4 w-4 mr-1" />
-                Foco
-              </Button>
-              
               <div className="flex items-center gap-1 border rounded-md p-1">
                 <Button
                   variant="ghost"
@@ -346,20 +254,20 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
         </div>
 
         <div className="px-6 pb-6 flex-1 min-h-0">
-          <div 
-            className={`
-              relative rounded-lg overflow-auto border-0 h-full
-              ${focusMode 
-                ? 'bg-black/90' 
-                : 'bg-gradient-to-br from-gray-100 via-gray-50 to-blue-50/30'
-              }
-            `}
-          >
-            {getBackgroundPattern()}
+          <div className="relative rounded-lg overflow-auto border-0 h-full bg-gradient-to-br from-gray-100 via-gray-50 to-blue-50/30">
+            <div className="absolute inset-0 opacity-5">
+              <div 
+                className="w-full h-full"
+                style={{
+                  backgroundImage: `radial-gradient(circle, #000 1px, transparent 1px)`,
+                  backgroundSize: '20px 20px',
+                }}
+              />
+            </div>
             
             <div className="relative z-10 p-8 h-full flex items-center justify-center">
               <div 
-                className={getMockupClasses()}
+                className="relative transition-all duration-300 mx-auto rounded-lg shadow-2xl bg-white"
                 style={{ 
                   width: currentViewport.width,
                   minWidth: viewportSize === 'desktop' ? currentViewport.width : 'auto',
@@ -367,7 +275,21 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
                   transformOrigin: 'center'
                 }}
               >
-                {getMockupFrame()}
+                {/* Browser frame */}
+                <div className="bg-gray-200 px-4 py-3 rounded-t-lg border-b">
+                  <div className="flex items-center gap-2">
+                    <div className="flex gap-1.5">
+                      <div className="w-3 h-3 rounded-full bg-red-400"></div>
+                      <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
+                      <div className="w-3 h-3 rounded-full bg-green-400"></div>
+                    </div>
+                    <div className="flex-1 ml-4">
+                      <div className="bg-white rounded px-3 py-1 text-xs text-gray-500 max-w-md">
+                        {postUrl || 'Preview do Componente'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 
                 <div className="relative overflow-hidden rounded-b-lg">
                   {isLoading && (
@@ -406,11 +328,7 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
                   <iframe
                     key={`preview-${iframeKey}`}
                     src={postUrl || undefined}
-                    className={`
-                      w-full border-0 block
-                      ${currentViewport.mockupStyle === 'browser' ? '' : 'rounded-lg'}
-                      ${focusMode ? 'ring-2 ring-blue-500 ring-opacity-50' : ''}
-                    `}
+                    className="w-full border-0 block"
                     style={{ height: currentViewport.height }}
                     onLoad={handleIframeLoad}
                     onError={handleIframeError}
@@ -418,10 +336,6 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
                     sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
                   />
                 </div>
-                
-                {focusMode && (
-                  <div className="absolute -inset-2 bg-gradient-to-r from-blue-500/50 to-purple-500/50 rounded-lg -z-10 blur-xl opacity-75"></div>
-                )}
               </div>
             </div>
           </div>
