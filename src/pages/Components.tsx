@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import { useOptimizedWordPressComponents } from '@/hooks/useOptimizedWordPressComponents';
 import { useSelectedComponents } from '@/shared/contexts/SelectedComponentsContext';
@@ -5,7 +6,6 @@ import { useQuery } from '@tanstack/react-query';
 import { getUserWordPressSites } from '@/core/api/wordpress-sites';
 import { getUserWordPressCategories } from '@/core/api/wordpress-categories';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
-import { useIsMobile } from '@/hooks/use-mobile';
 import { MainSidebar } from '@/components/layout/MainSidebar';
 import { ContentHeader } from '@/components/layout/ContentHeader';
 import OptimizedInfiniteGrid from '@/components/components/OptimizedInfiniteGrid';
@@ -18,7 +18,6 @@ const Components = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedSite, setSelectedSite] = useState<string | null>(null);
   const { selectedComponents } = useSelectedComponents();
-  const isMobile = useIsMobile();
 
   // Fetch sites and categories for the header
   const { data: sites = [] } = useQuery({
@@ -33,7 +32,7 @@ const Components = () => {
     staleTime: 15 * 60 * 1000,
   });
 
-  // Use hook otimizado com carregamento paralelo
+  // Use optimized hook with parallel loading
   const {
     components,
     filteredComponents,
@@ -48,7 +47,7 @@ const Components = () => {
     selectedSite,
   });
 
-  // Memoized handlers para evitar re-renders
+  // Memoized handlers to avoid re-renders
   const handleSearchChange = useCallback((newSearchTerm: string) => {
     setSearchTerm(newSearchTerm);
   }, []);
@@ -71,21 +70,19 @@ const Components = () => {
     setSelectedSite(site);
   }, []);
 
-  console.log('🎯 Components page rendering (responsive layout):', {
+  console.log('🎯 Components page rendering (unified responsive layout):', {
     totalComponents: components.length,
     filteredComponents: filteredComponents.length,
     selectedCategory,
     selectedSite,
     isLoading,
     hasError: !!error,
-    isMobile,
   });
 
-  // Desktop Layout (unchanged)
-  if (!isMobile) {
-    return (
+  return (
+    <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background">
-        {/* Fixed Left Sidebar */}
+        {/* Unified Responsive Sidebar */}
         <MainSidebar
           selectedCategory={selectedCategory}
           selectedSite={selectedSite}
@@ -94,7 +91,7 @@ const Components = () => {
         />
 
         {/* Main Content Area */}
-        <div className="flex-1 flex flex-col min-w-0">
+        <SidebarInset className="flex flex-col flex-1 min-w-0">
           {/* Content Header */}
           <ContentHeader 
             onSearchChange={handleSearchChange}
@@ -107,9 +104,11 @@ const Components = () => {
 
           {/* Active Filters */}
           {(selectedCategory || selectedSite || searchTerm) && (
-            <div className="bg-white border-b border-border px-6 py-3">
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-muted-foreground">Active filters:</span>
+            <div className="bg-white border-b border-border px-4 md:px-6 py-3">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-sm text-muted-foreground">
+                  {searchTerm || selectedSite || selectedCategory ? 'Active filters:' : ''}
+                </span>
                 {searchTerm && (
                   <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
                     Search: {searchTerm}
@@ -127,7 +126,7 @@ const Components = () => {
                 )}
                 <button
                   onClick={handleClearFilters}
-                  className="text-xs text-muted-foreground hover:text-foreground underline ml-2"
+                  className="text-xs text-muted-foreground hover:text-foreground underline ml-auto md:ml-2"
                 >
                   Clear all
                 </button>
@@ -136,89 +135,7 @@ const Components = () => {
           )}
 
           {/* Components Grid */}
-          <div className="flex-1 overflow-auto p-6">
-            <OptimizedInfiniteGrid 
-              components={components}
-              filteredComponents={filteredComponents}
-              isLoading={isLoading}
-              error={error}
-              handleRetry={handleRetry}
-              fetchNextPage={fetchNextPage}
-              hasNextPage={hasNextPage}
-              isFetchingNextPage={isFetchingNextPage}
-            />
-          </div>
-        </div>
-
-        {/* Selection Components */}
-        {selectedComponents.length > 0 && (
-          <SelectionFloatingButton />
-        )}
-
-        <SelectedComponentsSidebar
-          isOpen={sidebarOpen}
-          onClose={() => setSidebarOpen(false)}
-        />
-      </div>
-    );
-  }
-
-  // Mobile Layout (new responsive implementation)
-  return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-background">
-        {/* Mobile Sidebar (overlay) */}
-        <MainSidebar
-          selectedCategory={selectedCategory}
-          selectedSite={selectedSite}
-          onCategoryChange={handleCategoryChange}
-          onSiteChange={handleSiteChange}
-        />
-
-        {/* Main Content Area */}
-        <SidebarInset className="flex flex-col flex-1 min-w-0">
-          {/* Content Header */}
-          <ContentHeader 
-            onSearchChange={handleSearchChange}
-            searchPlaceholder="Search components..."
-            selectedSiteId={selectedSite}
-            sites={sites}
-            selectedCategory={selectedCategory}
-            categories={categories}
-          />
-
-          {/* Active Filters */}
-          {(selectedCategory || selectedSite || searchTerm) && (
-            <div className="bg-white border-b border-border px-4 py-3">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-sm text-muted-foreground">Filters:</span>
-                {searchTerm && (
-                  <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
-                    Search: {searchTerm}
-                  </span>
-                )}
-                {selectedSite && (
-                  <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
-                    Site
-                  </span>
-                )}
-                {selectedCategory && (
-                  <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
-                    Category
-                  </span>
-                )}
-                <button
-                  onClick={handleClearFilters}
-                  className="text-xs text-muted-foreground hover:text-foreground underline"
-                >
-                  Clear all
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Components Grid */}
-          <div className="flex-1 overflow-auto p-4">
+          <div className="flex-1 overflow-auto p-4 md:p-6">
             <OptimizedInfiniteGrid 
               components={components}
               filteredComponents={filteredComponents}

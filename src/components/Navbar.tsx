@@ -10,22 +10,6 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import UserMenu from './UserMenu';
 import AuthButtons from './AuthButtons';
 
-// Safe sidebar trigger that only renders if within SidebarProvider
-const SafeSidebarTrigger = () => {
-  try {
-    // Dynamic import to avoid the error if not in provider context
-    const { useSidebar } = require('@/components/ui/sidebar');
-    
-    // Try to use the hook - if it fails, we're not in a provider
-    const sidebarContext = useSidebar();
-    
-    return <SidebarTrigger className="md:hidden" />;
-  } catch (error) {
-    // If we're not in a SidebarProvider context, don't render anything
-    return null;
-  }
-};
-
 const Navbar = () => {
   const { user, isAdmin } = useAuth();
   const { selectedComponents } = useSelectedComponents();
@@ -38,11 +22,12 @@ const Navbar = () => {
     <nav className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-50 w-full">
       <div className="flex justify-between h-16 px-4">
         <div className="flex items-center space-x-4">
-          {/* Mobile Sidebar Trigger */}
-          <SafeSidebarTrigger />
+          {/* Mobile Sidebar Trigger - Only visible on mobile */}
+          <SidebarTrigger className="md:hidden" />
           
+          {/* Logo - Visible on both mobile and desktop */}
           <Link to="/components" className="flex items-center">
-            <svg width="120" height="34" viewBox="0 0 939 268" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg width={isMobile ? "100" : "120"} height={isMobile ? "28" : "34"} viewBox="0 0 939 268" fill="none" xmlns="http://www.w3.org/2000/svg">
               <rect y="0.484375" width="264.83" height="267.205" rx="22.1681" fill="#D2F525"/>
               <path d="M140.958 139.398C137.052 143.226 129.338 146.357 123.814 146.357H67.9592C62.4357 146.357 61.1118 143.226 65.0175 139.398L126.148 79.481C130.054 75.6527 137.768 72.52 143.291 72.52H199.147C204.67 72.52 205.994 75.6527 202.088 79.481L140.958 139.398Z" fill="#282828"/>
               <path d="M140.873 192.197C136.968 196.026 129.253 199.158 123.73 199.158H67.8747C62.3513 199.158 61.0273 196.026 64.933 192.197L126.061 132.28C129.967 128.452 137.681 125.321 143.205 125.321H199.06C204.584 125.321 205.907 128.452 202.002 132.28L140.873 192.197Z" fill="#282828"/>
@@ -50,41 +35,39 @@ const Navbar = () => {
             </svg>
           </Link>
           
-          {/* Desktop Navigation - Hidden on mobile */}
-          {!isMobile && (
-            <div className="hidden md:flex items-center space-x-4">
-              <Button 
-                variant={isActive('/components') ? 'default' : 'ghost'} 
-                asChild 
-                size="sm"
-              >
-                <Link to="/components">Biblioteca</Link>
-              </Button>
-              
-              {isAdmin && (
-                <>
-                  <Button 
-                    variant={isActive('/wordpress') ? 'default' : 'ghost'} 
-                    asChild 
-                    size="sm"
-                  >
-                    <Link to="/wordpress">WordPress</Link>
-                  </Button>
-                  
-                  <Button variant={isActive('/admin') ? 'default' : 'ghost'} asChild size="sm">
-                    <Link to="/admin">Admin</Link>
-                  </Button>
-                </>
-              )}
-            </div>
-          )}
+          {/* Desktop Navigation - Hidden on mobile, shown on desktop */}
+          <div className="hidden md:flex items-center space-x-4">
+            <Button 
+              variant={isActive('/components') ? 'default' : 'ghost'} 
+              asChild 
+              size="sm"
+            >
+              <Link to="/components">Biblioteca</Link>
+            </Button>
+            
+            {user && isAdmin && (
+              <>
+                <Button 
+                  variant={isActive('/wordpress') ? 'default' : 'ghost'} 
+                  asChild 
+                  size="sm"
+                >
+                  <Link to="/wordpress">WordPress</Link>
+                </Button>
+                
+                <Button variant={isActive('/admin') ? 'default' : 'ghost'} asChild size="sm">
+                  <Link to="/admin">Admin</Link>
+                </Button>
+              </>
+            )}
+          </div>
         </div>
 
         <div className="flex items-center space-x-4">
           {/* Selected Components Badge - Responsive */}
           {selectedComponents.length > 0 && (
-            <Badge variant="secondary" className={isMobile ? "flex text-xs" : "hidden sm:flex"}>
-              {selectedComponents.length} {isMobile ? '' : 'selecionado'}
+            <Badge variant="secondary" className="flex text-xs">
+              {selectedComponents.length} {!isMobile && 'selecionado'}
               {!isMobile && selectedComponents.length !== 1 ? 's' : ''}
             </Badge>
           )}
