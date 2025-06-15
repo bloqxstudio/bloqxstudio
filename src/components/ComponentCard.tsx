@@ -10,7 +10,7 @@ import { cleanElementorJson } from '@/utils/json/cleaners';
 import { Component } from '@/core/types';
 import { usePreviewGenerator } from '@/hooks/usePreviewGenerator';
 import ComponentPreviewModal from './ComponentPreviewModal';
-import PreviewFallback from './PreviewFallback';
+import ComponentPreviewEmbed from './ComponentPreviewEmbed';
 
 interface ComponentCardProps {
   component: Component;
@@ -34,7 +34,6 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
 
   // Verificar se é um componente do WordPress com URL válida
   const isWordPressComponent = component.source === 'wordpress' && component.slug;
-  const wordpressUrl = isWordPressComponent ? `https://superelements.io/${component.slug}/` : null;
 
   // Gerar preview automaticamente apenas se não for WordPress e não houver imagem
   useEffect(() => {
@@ -121,9 +120,9 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
     }
   };
 
-  // Determinar qual preview usar
+  // Usar preview original se disponível, senão usar preview embutido
   const getPreviewContent = () => {
-    // Preview original tem prioridade
+    // Preview original tem prioridade absoluta
     if (component.preview_image) {
       return (
         <div className="w-full h-full relative">
@@ -142,100 +141,8 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
       );
     }
 
-    // Para componentes WordPress, mostrar indicação de preview ao vivo
-    if (isWordPressComponent) {
-      return (
-        <div className="w-full h-full relative bg-gradient-to-br from-blue-50 to-purple-50">
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="text-center p-4">
-              <ExternalLink className="w-8 h-8 mx-auto mb-2 text-blue-600" />
-              <div className="text-sm font-medium text-blue-900">Preview ao Vivo</div>
-              <div className="text-xs text-blue-700">Clique para ver o site real</div>
-            </div>
-          </div>
-          <div className="absolute top-2 right-2">
-            <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-800">
-              🌐 WordPress
-            </Badge>
-          </div>
-        </div>
-      );
-    }
-
-    // Estado de geração para componentes locais
-    if (previewState.isGenerating) {
-      return (
-        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100">
-          <div className="flex flex-col items-center gap-3 text-blue-600">
-            <Loader2 className="w-8 h-8 animate-spin" />
-            <div className="text-center">
-              <div className="text-sm font-medium">Gerando preview...</div>
-              <div className="text-xs opacity-75">Criando visualização</div>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    // Preview gerado com sucesso
-    if (previewState.previewUrl) {
-      return (
-        <div className="w-full h-full relative group">
-          <img
-            src={previewState.previewUrl}
-            alt={`Preview: ${component.title}`}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-200"
-            loading="lazy"
-          />
-          <div className="absolute top-2 right-2">
-            <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-800">
-              🎨 SVG
-            </Badge>
-          </div>
-          
-          {/* Botão de regenerar no hover */}
-          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={(e) => {
-                e.stopPropagation();
-                handleRegeneratePreview();
-              }}
-              className="bg-white/90 hover:bg-white"
-            >
-              <RefreshCw className="w-4 h-4 mr-1" />
-              Regenerar
-            </Button>
-          </div>
-        </div>
-      );
-    }
-
-    // Estado de erro
-    if (previewState.error) {
-      return (
-        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-red-50 to-red-100">
-          <div className="flex flex-col items-center gap-2 text-red-600 p-4 text-center">
-            <AlertCircle className="w-6 h-6" />
-            <div className="text-sm font-medium">Erro no preview</div>
-            <div className="text-xs opacity-75">{previewState.error}</div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleRegeneratePreview}
-              className="mt-2 text-xs"
-            >
-              <RefreshCw className="w-3 h-3 mr-1" />
-              Tentar novamente
-            </Button>
-          </div>
-        </div>
-      );
-    }
-
-    // Fallback visual inteligente
-    return <PreviewFallback component={component} />;
+    // Usar preview embutido (real) para todos os outros casos
+    return <ComponentPreviewEmbed component={component} />;
   };
 
   return (
