@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getComponents } from '@/core/api/components';
@@ -22,7 +21,7 @@ const Components = () => {
     queryKey: ['wordpress-components'],
     queryFn: getComponents,
     staleTime: 5 * 60 * 1000, // 5 minutos
-    cacheTime: 10 * 60 * 1000, // 10 minutos
+    gcTime: 10 * 60 * 1000, // 10 minutos (anteriormente cacheTime)
   });
 
   // Buscar categorias (mantido para compatibilidade com filtros)
