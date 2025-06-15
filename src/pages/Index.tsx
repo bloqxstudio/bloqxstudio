@@ -1,144 +1,149 @@
 
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import React from 'react';
+import FullscreenPageWrapper from '@/components/layout/FullscreenPageWrapper';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import Navbar from '@/components/Navbar';
-import { ArrowRight, Check, MousePointer, Globe } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Link } from 'react-router-dom';
+import { ArrowRight, Code, Palette, Zap, Crown } from 'lucide-react';
+import { useAuth } from '@/features/auth';
+import SubscriptionCard from '@/components/subscription/SubscriptionCard';
 
 const Index = () => {
-  const [language, setLanguage] = useState(localStorage.getItem('language') || 'en');
-  
-  useEffect(() => {
-    localStorage.setItem('language', language);
-  }, [language]);
-  
-  const toggleLanguage = () => {
-    setLanguage(prevLang => prevLang === 'en' ? 'pt' : 'en');
-  };
-  
-  const getTranslation = (en: string, pt: string) => {
-    return language === 'pt' ? pt : en;
-  };
+  const { user, isSubscribed } = useAuth();
 
   return (
-    <div className="min-h-screen flex flex-col bg-background">
-      <Navbar />
-      
-      <div className="fixed top-20 right-4 z-50">
-        <Button 
-          variant="outline" 
-          size="sm" 
-          onClick={toggleLanguage}
-          className="flex items-center gap-1"
-        >
-          <Globe className="h-4 w-4" />
-          {language === 'en' ? 'PT-BR' : 'EN'}
-        </Button>
-      </div>
-      
-      <main className="flex-grow">
-        <section className="py-16 md:py-24 px-4 bg-background text-foreground overflow-hidden relative">
-          <div className="container px-4 md:px-6 relative">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-              <div className="flex flex-col space-y-8 animate-fade-up">
-                <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight lg:text-6xl">
-                  {getTranslation(
-                    'Copy to publish - in seconds',
-                    'Copie para publicar - em segundos'
-                  )}
-                </h1>
-                
-                <p className="text-lg sm:text-xl md:text-2xl text-muted-foreground max-w-[600px]">
-                  {getTranslation(
-                    'Stop designing Elementor websites from scratch. Build your next site in few seconds with our perfectly designed components.',
-                    'Pare de criar sites Elementor do zero. Construa seu próximo site em poucos segundos com nossos componentes perfeitamente desenhados.'
-                  )}
-                </p>
-                
-                <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                  <Button 
-                    asChild 
-                    size="lg" 
-                    className="font-semibold"
-                  >
-                    <Link to="/components">
-                      <MousePointer className="mr-2 h-5 w-5" />
-                      {getTranslation('Browse Components', 'Ver Componentes')}
-                    </Link>
-                  </Button>
-                  
-                  <Button 
-                    asChild 
-                    variant="outline" 
-                    size="lg"
-                  >
-                    <Link to="/register">
-                      {getTranslation('Create Free Account', 'Criar Conta Gratuita')}
-                      <ArrowRight className="ml-2 h-5 w-5" />
-                    </Link>
-                  </Button>
-                </div>
-                
-                <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                  <div className="flex items-center">
-                    <Check className="h-4 w-4 mr-1 text-green-500" />
-                    {getTranslation('One-click copy', 'Cópia com um clique')}
-                  </div>
-                  <div className="flex items-center">
-                    <Check className="h-4 w-4 mr-1 text-green-500" />
-                    {getTranslation('AI-optimized', 'Otimizado por IA')}
-                  </div>
-                  <div className="flex items-center">
-                    <Check className="h-4 w-4 mr-1 text-green-500" />
-                    {getTranslation('Ready to use', 'Pronto para usar')}
-                  </div>
-                </div>
-              </div>
-              
-              <div className="relative flex justify-center lg:justify-end">
-                <div className="w-full max-w-[600px] aspect-video rounded-lg shadow-lg overflow-hidden border">
-                  <iframe
-                      width="100%"
-                      height="100%"
-                      src="https://www.youtube.com/embed/D8EaSEQK0zw?autoplay=1&controls=0&showinfo=0&modestbranding=1&rel=0&mute=1&loop=1&playlist=D8EaSEQK0zw"
-                      title="YouTube video player"
-                      frameBorder="0"
-                      allow="autoplay; encrypted-media"
-                      allowFullScreen
-                  ></iframe>
-                </div>
-              </div>
+    <FullscreenPageWrapper>
+      <div className="flex flex-col min-h-screen">
+        {/* Hero Section */}
+        <section className="py-20 px-4 text-center bg-gradient-to-b from-primary/5 to-background">
+          <div className="container mx-auto max-w-4xl">
+            <div className="mb-6 flex justify-center">
+              <Badge variant="secondary" className="px-4 py-2">
+                <Crown className="w-4 h-4 mr-2" />
+                Biblioteca Premium de Componentes
+              </Badge>
+            </div>
+            
+            <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+              Componentes Prontos
+              <br />
+              para Elementor
+            </h1>
+            
+            <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+              Acelere seu desenvolvimento com nossa coleção premium de componentes para Elementor. 
+              Mais de 500+ componentes profissionais prontos para usar.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button asChild size="lg">
+                <Link to="/components">
+                  <ArrowRight className="mr-2 h-5 w-5" />
+                  Explorar Componentes
+                </Link>
+              </Button>
+              {!user && (
+                <Button asChild variant="outline" size="lg">
+                  <Link to="/register">
+                    Criar Conta Grátis
+                  </Link>
+                </Button>
+              )}
             </div>
           </div>
         </section>
-      </main>
-      
-      <footer className="border-t py-8 bg-background">
-        <div className="container px-4 md:px-6 flex flex-col md:flex-row justify-between items-center gap-4">
-          <div>
-            <p className="text-muted-foreground">
-              &copy; {new Date().getFullYear()} Bloqx Studio. 
-              {getTranslation(
-                ' All rights reserved.',
-                ' Todos os direitos reservados.'
-              )}
+
+        {/* Subscription Section for Logged Users */}
+        {user && (
+          <section className="py-12 px-4">
+            <div className="container mx-auto max-w-2xl">
+              <div className="text-center mb-8">
+                <h2 className="text-2xl font-bold mb-2">
+                  {isSubscribed ? 'Sua Assinatura' : 'Desbloqueie Todo o Potencial'}
+                </h2>
+                <p className="text-muted-foreground">
+                  {isSubscribed 
+                    ? 'Gerencie sua assinatura premium abaixo'
+                    : 'Tenha acesso completo a todos os componentes premium'
+                  }
+                </p>
+              </div>
+              <SubscriptionCard />
+            </div>
+          </section>
+        )}
+
+        {/* Features Section */}
+        <section className="py-20 px-4">
+          <div className="container mx-auto">
+            <div className="text-center mb-16">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                Por que escolher nossos componentes?
+              </h2>
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                Criados por designers e desenvolvedores experientes, nossos componentes 
+                são otimizados para performance e conversão.
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-8">
+              <Card>
+                <CardHeader>
+                  <Code className="h-10 w-10 text-primary mb-4" />
+                  <CardTitle>Código Limpo</CardTitle>
+                  <CardDescription>
+                    Todos os componentes seguem as melhores práticas de desenvolvimento, 
+                    garantindo código limpo e otimizado.
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <Palette className="h-10 w-10 text-primary mb-4" />
+                  <CardTitle>Design Profissional</CardTitle>
+                  <CardDescription>
+                    Designs modernos e responsivos que se adaptam perfeitamente 
+                    a qualquer projeto ou marca.
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <Zap className="h-10 w-10 text-primary mb-4" />
+                  <CardTitle>Implementação Rápida</CardTitle>
+                  <CardDescription>
+                    Importe e customize em segundos. Economize horas de desenvolvimento 
+                    com nossos templates prontos.
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+            </div>
+          </div>
+        </section>
+
+        {/* CTA Section */}
+        <section className="py-20 px-4 bg-primary/5">
+          <div className="container mx-auto text-center">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+              Comece hoje mesmo
+            </h2>
+            <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
+              Junte-se a milhares de desenvolvedores que já aceleram seus projetos 
+              com nossos componentes premium.
             </p>
-          </div>
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" onClick={toggleLanguage} className="text-muted-foreground hover:text-foreground">
-              <Globe className="h-4 w-4 mr-1" />
-              {language === 'en' ? 'PT-BR' : 'EN'}
+            <Button asChild size="lg">
+              <Link to="/components">
+                <ArrowRight className="mr-2 h-5 w-5" />
+                Ver Todos os Componentes
+              </Link>
             </Button>
-            <Link to="/terms" className="text-sm text-muted-foreground hover:text-foreground">
-              {getTranslation('Terms', 'Termos')}
-            </Link>
-            <Link to="/privacy" className="text-sm text-muted-foreground hover:text-foreground">
-              {getTranslation('Privacy', 'Privacidade')}
-            </Link>
           </div>
-        </div>
-      </footer>
-    </div>
+        </section>
+      </div>
+    </FullscreenPageWrapper>
   );
 };
 

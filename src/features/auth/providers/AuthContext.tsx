@@ -10,9 +10,11 @@ type AuthContextType = {
   isLoading: boolean;
   isError: boolean;
   isAdmin: boolean;
+  isSubscribed: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any | null }>;
   signUp: (email: string, password: string) => Promise<{ error: any | null, data: any | null }>;
   signOut: () => Promise<void>;
+  checkSubscription: () => Promise<void>;
 };
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -23,6 +25,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState(false);
 
   // Função para verificar se o usuário é admin consultando o banco
   const checkUserRole = async (userId: string) => {
@@ -46,6 +49,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Função para verificar status da assinatura
+  const checkSubscription = async () => {
+    if (!user) {
+      setIsSubscribed(false);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.functions.invoke('check-subscription');
+      if (!error && data) {
+        setIsSubscribed(data.subscribed || false);
+        console.log('Subscription status:', data.subscribed);
+      }
+    } catch (error) {
+      console.error('Error checking subscription:', error);
+      setIsSubscribed(false);
+    }
+  };
+
   useEffect(() => {
     let mounted = true;
 
@@ -65,10 +87,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const adminStatus = await checkUserRole(session.user.id);
             console.log("Is admin from database:", adminStatus);
             setIsAdmin(adminStatus);
+            
+            // Verificar status da assinatura
+            await checkSubscription();
           }
         }, 0);
       } else {
         setIsAdmin(false);
+        setIsSubscribed(false);
       }
       
       setIsLoading(false);
@@ -97,8 +123,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const adminStatus = await checkUserRole(data.session.user.id);
             console.log("Initial admin check:", adminStatus);
             setIsAdmin(adminStatus);
+            
+            // Verificar status da assinatura
+            await checkSubscription();
           } else {
             setIsAdmin(false);
+            setIsSubscribed(false);
           }
         }
       } catch (err) {
@@ -179,9 +209,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isLoading,
     isError,
     isAdmin,
+    isSubscribed,
     signIn,
     signUp,
-    signOut
+    signOut,
+    checkSubscription
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

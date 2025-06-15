@@ -19,6 +19,7 @@ import UserProfile from '@/pages/UserProfile';
 import AdminPanel from '@/pages/AdminPanel';
 import UserManagement from '@/pages/UserManagement';
 import WordPressIntegration from '@/pages/WordPressIntegration';
+import SubscriptionSuccess from '@/pages/SubscriptionSuccess';
 import NotFound from '@/pages/NotFound';
 
 const queryClient = new QueryClient({
@@ -43,6 +44,7 @@ function App() {
                 <Route path="/component/:id" element={<ComponentDetail />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
+                <Route path="/subscription-success" element={<SubscriptionSuccess />} />
                 
                 {/* Protected Routes */}
                 <Route path="/profile" element={
