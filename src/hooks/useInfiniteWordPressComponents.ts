@@ -12,6 +12,11 @@ interface UseInfiniteWordPressComponentsProps {
   pageSize?: number;
 }
 
+interface ComponentsPageData {
+  components: Component[];
+  page: number;
+}
+
 const COMPONENTS_PER_PAGE = 24;
 
 // Helper function to fetch WordPress posts with pagination
@@ -96,9 +101,9 @@ export const useInfiniteWordPressComponents = ({
     isFetchingNextPage,
     isLoading,
     error,
-  } = useInfiniteQuery({
+  } = useInfiniteQuery<ComponentsPageData, Error>({
     queryKey: ['wordpress-infinite-components', sitesToFetch.map(s => s.id), searchTerm, selectedCategory],
-    queryFn: async ({ pageParam = 1 }) => {
+    queryFn: async ({ pageParam = 1 }): Promise<ComponentsPageData> => {
       const allComponents: Component[] = [];
       
       for (const site of sitesToFetch) {
@@ -108,7 +113,7 @@ export const useInfiniteWordPressComponents = ({
             site.id, 
             site.site_url, 
             site.api_key, 
-            pageParam,
+            pageParam as number,
             Math.ceil(pageSize / sitesToFetch.length) // Distribute pageSize among sites
           );
           
@@ -122,12 +127,13 @@ export const useInfiniteWordPressComponents = ({
       }
       
       console.log(`✅ Page ${pageParam}: ${allComponents.length} components fetched`);
-      return { components: allComponents, page: pageParam };
+      return { components: allComponents, page: pageParam as number };
     },
     getNextPageParam: (lastPage, allPages) => {
       // Simple pagination - in a real scenario you'd check if there are more pages per site
       return allPages.length < 10 ? allPages.length + 1 : undefined; // Limit to 10 pages for now
     },
+    initialPageParam: 1,
     enabled: sitesToFetch.length > 0,
     staleTime: 5 * 60 * 1000, // 5 minutes
     gcTime: 10 * 60 * 1000, // 10 minutes
