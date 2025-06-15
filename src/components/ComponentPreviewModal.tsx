@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Monitor, 
   Tablet, 
@@ -16,7 +17,8 @@ import {
   Check, 
   Loader2,
   AlertCircle,
-  RefreshCw
+  RefreshCw,
+  ExternalLink
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Component } from '@/core/types';
@@ -86,6 +88,30 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
     setIframeKey(prev => prev + 1);
   };
 
+  // Construir URL do post baseado no component
+  const getPostUrl = () => {
+    // Para componentes do superelements.io, usar o padrão de URL
+    if (component.source === 'wordpress' || component.id.startsWith('c')) {
+      return `https://superelements.io/${component.id}/`;
+    }
+    
+    // Se tem um ID numérico, tentar com o padrão c{id}
+    const numericId = component.id.replace(/[^0-9]/g, '');
+    if (numericId) {
+      return `https://superelements.io/c${numericId}/`;
+    }
+    
+    // Fallback para tentar com o ID original
+    return `https://superelements.io/${component.id}/`;
+  };
+
+  const postUrl = getPostUrl();
+
+  // Verificar se deve mostrar preview do post ou fallback
+  const shouldShowPostPreview = () => {
+    return component.source === 'wordpress' || component.id.includes('c') || !isNaN(Number(component.id.replace(/[^0-9]/g, '')));
+  };
+
   // Criar uma visualização melhorada do JSON
   const formatJsonForDisplay = (json: string) => {
     try {
@@ -96,8 +122,8 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
     }
   };
 
-  // Preview URL melhorado com formatação do JSON
-  const previewUrl = `data:text/html;charset=utf-8,${encodeURIComponent(`
+  // JSON preview URL (fallback)
+  const jsonPreviewUrl = `data:text/html;charset=utf-8,${encodeURIComponent(`
     <!DOCTYPE html>
     <html lang="pt-BR">
     <head>
@@ -268,7 +294,7 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
                 Preview: {component.title}
               </DialogTitle>
               <p className="text-sm text-muted-foreground mt-1">
-                Visualização do JSON otimizado para Elementor
+                Visualização do componente renderizado
               </p>
             </div>
             
@@ -291,6 +317,17 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
                   </>
                 )}
               </Button>
+              
+              {shouldShowPostPreview() && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => window.open(postUrl, '_blank')}
+                >
+                  <ExternalLink className="h-4 w-4 mr-1" />
+                  Abrir Post
+                </Button>
+              )}
               
               <Button
                 variant="outline"
@@ -341,48 +378,78 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
         </div>
 
         <div className="px-6 pb-6">
-          <div className="relative bg-gray-100 rounded-lg overflow-hidden border">
-            <div 
-              className="mx-auto transition-all duration-300"
-              style={{ 
-                width: currentViewport.width,
-                maxWidth: '100%'
-              }}
-            >
-              {isLoading && (
-                <div className="absolute inset-0 bg-white/80 flex items-center justify-center z-10">
-                  <div className="flex items-center gap-2 text-gray-600">
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    <span>Carregando preview...</span>
-                  </div>
-                </div>
-              )}
+          <Tabs defaultValue="preview" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="preview">Preview Visual</TabsTrigger>
+              <TabsTrigger value="json">Código JSON</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="preview" className="mt-4">
+              <div className="relative bg-gray-100 rounded-lg overflow-hidden border">
+                <div 
+                  className="mx-auto transition-all duration-300"
+                  style={{ 
+                    width: currentViewport.width,
+                    maxWidth: '100%'
+                  }}
+                >
+                  {isLoading && (
+                    <div className="absolute inset-0 bg-white/80 flex items-center justify-center z-10">
+                      <div className="flex items-center gap-2 text-gray-600">
+                        <Loader2 className="h-5 w-5 animate-spin" />
+                        <span>Carregando preview...</span>
+                      </div>
+                    </div>
+                  )}
 
-              {hasError && (
-                <div className="absolute inset-0 bg-white flex items-center justify-center z-10">
-                  <div className="text-center">
-                    <AlertCircle className="h-8 w-8 text-red-500 mx-auto mb-2" />
-                    <p className="text-gray-600 mb-4">Erro ao carregar preview</p>
-                    <Button onClick={handleRefresh} size="sm">
-                      <RefreshCw className="h-4 w-4 mr-1" />
-                      Tentar novamente
-                    </Button>
-                  </div>
-                </div>
-              )}
+                  {hasError && (
+                    <div className="absolute inset-0 bg-white flex items-center justify-center z-10">
+                      <div className="text-center">
+                        <AlertCircle className="h-8 w-8 text-red-500 mx-auto mb-2" />
+                        <p className="text-gray-600 mb-4">Erro ao carregar preview</p>
+                        <Button onClick={handleRefresh} size="sm">
+                          <RefreshCw className="h-4 w-4 mr-1" />
+                          Tentar novamente
+                        </Button>
+                      </div>
+                    </div>
+                  )}
 
-              <iframe
-                key={iframeKey}
-                src={previewUrl}
-                className="w-full border-0"
-                style={{ height: currentViewport.height }}
-                onLoad={handleIframeLoad}
-                onError={handleIframeError}
-                title={`Preview: ${component.title}`}
-                sandbox="allow-scripts allow-same-origin"
-              />
-            </div>
-          </div>
+                  <iframe
+                    key={`preview-${iframeKey}`}
+                    src={shouldShowPostPreview() ? postUrl : undefined}
+                    className="w-full border-0"
+                    style={{ height: currentViewport.height }}
+                    onLoad={handleIframeLoad}
+                    onError={handleIframeError}
+                    title={`Preview: ${component.title}`}
+                    sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+                  />
+                </div>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="json" className="mt-4">
+              <div className="relative bg-gray-100 rounded-lg overflow-hidden border">
+                <div 
+                  className="mx-auto transition-all duration-300"
+                  style={{ 
+                    width: currentViewport.width,
+                    maxWidth: '100%'
+                  }}
+                >
+                  <iframe
+                    key={`json-${iframeKey}`}
+                    src={jsonPreviewUrl}
+                    className="w-full border-0"
+                    style={{ height: currentViewport.height }}
+                    title={`JSON Preview: ${component.title}`}
+                    sandbox="allow-scripts allow-same-origin"
+                  />
+                </div>
+              </div>
+            </TabsContent>
+          </Tabs>
         </div>
       </DialogContent>
     </Dialog>
