@@ -1,23 +1,23 @@
 
-import React, { useState } from 'react';
-import { useInfiniteWordPressComponents } from '@/hooks/useInfiniteWordPressComponents';
+import React, { useState, useCallback } from 'react';
+import { useOptimizedWordPressComponents } from '@/hooks/useOptimizedWordPressComponents';
 import { useSelectedComponents } from '@/shared/contexts/SelectedComponentsContext';
 import ComponentsHeader from '@/components/components/ComponentsHeader';
-import InfiniteComponentsGrid from '@/components/components/InfiniteComponentsGrid';
-import ComponentSearch from '@/components/filters/ComponentSearch';
+import OptimizedInfiniteGrid from '@/components/components/OptimizedInfiniteGrid';
+import { OptimizedComponentSearch } from '@/components/filters/OptimizedComponentSearch';
 import SelectedComponentsSidebar from '@/components/selection/SelectedComponentsSidebar';
 import SelectionFloatingButton from '@/components/selection/SelectionFloatingButton';
-import { AppSidebar } from '@/components/layout/AppSidebar';
+import { OptimizedAppSidebar } from '@/components/layout/OptimizedAppSidebar';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 
-const ComponentsWithCategories = () => {
+const ComponentsWithCategories: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedSite, setSelectedSite] = useState<string | null>(null);
   const { selectedComponents } = useSelectedComponents();
 
-  // Use infinite scroll hook instead of regular hook
+  // Use hook otimizado com carregamento paralelo
   const {
     components,
     filteredComponents,
@@ -26,23 +26,36 @@ const ComponentsWithCategories = () => {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useInfiniteWordPressComponents({
+  } = useOptimizedWordPressComponents({
     searchTerm,
     selectedCategory,
     selectedSite,
   });
 
-  const handleClearFilters = () => {
+  // Memoized handlers para evitar re-renders
+  const handleSearchChange = useCallback((newSearchTerm: string) => {
+    setSearchTerm(newSearchTerm);
+  }, []);
+
+  const handleClearFilters = useCallback(() => {
     setSearchTerm('');
     setSelectedCategory(null);
     setSelectedSite(null);
-  };
+  }, []);
 
-  const handleRetry = () => {
+  const handleRetry = useCallback(() => {
     window.location.reload();
-  };
+  }, []);
 
-  console.log('🎯 Components with categories rendering:', {
+  const handleCategoryChange = useCallback((category: string | null) => {
+    setSelectedCategory(category);
+  }, []);
+
+  const handleSiteChange = useCallback((site: string | null) => {
+    setSelectedSite(site);
+  }, []);
+
+  console.log('🎯 ComponentsWithCategories rendering (optimized):', {
     totalComponents: components.length,
     filteredComponents: filteredComponents.length,
     selectedCategory,
@@ -57,11 +70,11 @@ const ComponentsWithCategories = () => {
     <div className="flex-1 flex flex-col w-full pt-16">
       <SidebarProvider>
         <div className="flex flex-1 w-full">
-          <AppSidebar
+          <OptimizedAppSidebar
             selectedCategory={selectedCategory}
             selectedSite={selectedSite}
-            onCategoryChange={setSelectedCategory}
-            onSiteChange={setSelectedSite}
+            onCategoryChange={handleCategoryChange}
+            onSiteChange={handleSiteChange}
           />
           
           <SidebarInset className="flex flex-col flex-1 min-w-0">
@@ -73,12 +86,10 @@ const ComponentsWithCategories = () => {
                 components={components}
               />
 
-              {/* Search */}
+              {/* Search otimizado com debounce */}
               <div className="mt-4">
-                <ComponentSearch
-                  searchTerm={searchTerm}
-                  setSearchTerm={setSearchTerm}
-                  onClearSearch={() => setSearchTerm('')}
+                <OptimizedComponentSearch
+                  onSearchChange={handleSearchChange}
                   placeholder="Buscar componentes por título, descrição ou tags..."
                 />
               </div>
@@ -112,9 +123,9 @@ const ComponentsWithCategories = () => {
               )}
             </div>
 
-            {/* Components Grid - área rolável com scroll infinito */}
+            {/* Components Grid - área rolável com scroll infinito otimizado */}
             <div className="flex-1 overflow-auto p-6">
-              <InfiniteComponentsGrid 
+              <OptimizedInfiniteGrid 
                 components={components}
                 filteredComponents={filteredComponents}
                 isLoading={isLoading}

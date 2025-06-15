@@ -22,11 +22,16 @@ import WordPressIntegration from '@/pages/WordPressIntegration';
 import SubscriptionSuccess from '@/pages/SubscriptionSuccess';
 import NotFound from '@/pages/NotFound';
 
+// Ultra-fast configuration with aggressive caching
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 1,
       refetchOnWindowFocus: false,
+      staleTime: 15 * 60 * 1000, // 15 minutes - muito mais agressivo
+      gcTime: 30 * 60 * 1000, // 30 minutes - manter dados em cache por mais tempo
+      refetchOnMount: false, // Não refetch se dados estão no cache
+      refetchOnReconnect: false, // Não refetch automaticamente ao reconectar
     },
   },
 });
