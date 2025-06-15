@@ -1,11 +1,11 @@
-
 import React, { useState, useCallback } from 'react';
 import { useOptimizedWordPressComponents } from '@/hooks/useOptimizedWordPressComponents';
 import { useSelectedComponents } from '@/shared/contexts/SelectedComponentsContext';
 import { useQuery } from '@tanstack/react-query';
 import { getUserWordPressSites } from '@/core/api/wordpress-sites';
 import { getUserWordPressCategories } from '@/core/api/wordpress-categories';
-import { FullscreenLayout } from '@/components/layout/FullscreenLayout';
+import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { MainSidebar } from '@/components/layout/MainSidebar';
 import { ContentHeader } from '@/components/layout/ContentHeader';
 import OptimizedInfiniteGrid from '@/components/components/OptimizedInfiniteGrid';
@@ -17,8 +17,8 @@ const Components = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedSite, setSelectedSite] = useState<string | null>(null);
-  const [selectedComponent, setSelectedComponent] = useState<any>(null);
   const { selectedComponents } = useSelectedComponents();
+  const isMobile = useIsMobile();
 
   // Fetch sites and categories for the header
   const { data: sites = [] } = useQuery({
@@ -71,92 +71,178 @@ const Components = () => {
     setSelectedSite(site);
   }, []);
 
-  console.log('🎯 Components page rendering (new layout):', {
+  console.log('🎯 Components page rendering (responsive layout):', {
     totalComponents: components.length,
     filteredComponents: filteredComponents.length,
     selectedCategory,
     selectedSite,
     isLoading,
     hasError: !!error,
+    isMobile,
   });
 
-  return (
-    <div className="min-h-screen flex w-full bg-background">
-      {/* Fixed Left Sidebar */}
-      <MainSidebar
-        selectedCategory={selectedCategory}
-        selectedSite={selectedSite}
-        onCategoryChange={handleCategoryChange}
-        onSiteChange={handleSiteChange}
-      />
-
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Content Header */}
-        <ContentHeader 
-          onSearchChange={handleSearchChange}
-          searchPlaceholder="Search components by title, description or tags..."
-          selectedSiteId={selectedSite}
-          sites={sites}
+  // Desktop Layout (unchanged)
+  if (!isMobile) {
+    return (
+      <div className="min-h-screen flex w-full bg-background">
+        {/* Fixed Left Sidebar */}
+        <MainSidebar
           selectedCategory={selectedCategory}
-          categories={categories}
+          selectedSite={selectedSite}
+          onCategoryChange={handleCategoryChange}
+          onSiteChange={handleSiteChange}
         />
 
-        {/* Active Filters */}
-        {(selectedCategory || selectedSite || searchTerm) && (
-          <div className="bg-white border-b border-border px-6 py-3">
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Active filters:</span>
-              {searchTerm && (
-                <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
-                  Search: {searchTerm}
-                </span>
-              )}
-              {selectedSite && (
-                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
-                  Site selected
-                </span>
-              )}
-              {selectedCategory && (
-                <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
-                  Category selected
-                </span>
-              )}
-              <button
-                onClick={handleClearFilters}
-                className="text-xs text-muted-foreground hover:text-foreground underline ml-2"
-              >
-                Clear all
-              </button>
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col min-w-0">
+          {/* Content Header */}
+          <ContentHeader 
+            onSearchChange={handleSearchChange}
+            searchPlaceholder="Search components by title, description or tags..."
+            selectedSiteId={selectedSite}
+            sites={sites}
+            selectedCategory={selectedCategory}
+            categories={categories}
+          />
+
+          {/* Active Filters */}
+          {(selectedCategory || selectedSite || searchTerm) && (
+            <div className="bg-white border-b border-border px-6 py-3">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Active filters:</span>
+                {searchTerm && (
+                  <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
+                    Search: {searchTerm}
+                  </span>
+                )}
+                {selectedSite && (
+                  <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                    Site selected
+                  </span>
+                )}
+                {selectedCategory && (
+                  <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
+                    Category selected
+                  </span>
+                )}
+                <button
+                  onClick={handleClearFilters}
+                  className="text-xs text-muted-foreground hover:text-foreground underline ml-2"
+                >
+                  Clear all
+                </button>
+              </div>
             </div>
+          )}
+
+          {/* Components Grid */}
+          <div className="flex-1 overflow-auto p-6">
+            <OptimizedInfiniteGrid 
+              components={components}
+              filteredComponents={filteredComponents}
+              isLoading={isLoading}
+              error={error}
+              handleRetry={handleRetry}
+              fetchNextPage={fetchNextPage}
+              hasNextPage={hasNextPage}
+              isFetchingNextPage={isFetchingNextPage}
+            />
           </div>
+        </div>
+
+        {/* Selection Components */}
+        {selectedComponents.length > 0 && (
+          <SelectionFloatingButton />
         )}
 
-        {/* Components Grid */}
-        <div className="flex-1 overflow-auto p-6">
-          <OptimizedInfiniteGrid 
-            components={components}
-            filteredComponents={filteredComponents}
-            isLoading={isLoading}
-            error={error}
-            handleRetry={handleRetry}
-            fetchNextPage={fetchNextPage}
-            hasNextPage={hasNextPage}
-            isFetchingNextPage={isFetchingNextPage}
-          />
-        </div>
+        <SelectedComponentsSidebar
+          isOpen={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+        />
       </div>
+    );
+  }
 
-      {/* Selection Components */}
-      {selectedComponents.length > 0 && (
-        <SelectionFloatingButton />
-      )}
+  // Mobile Layout (new responsive implementation)
+  return (
+    <SidebarProvider>
+      <div className="min-h-screen flex w-full bg-background">
+        {/* Mobile Sidebar (overlay) */}
+        <MainSidebar
+          selectedCategory={selectedCategory}
+          selectedSite={selectedSite}
+          onCategoryChange={handleCategoryChange}
+          onSiteChange={handleSiteChange}
+        />
 
-      <SelectedComponentsSidebar
-        isOpen={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-      />
-    </div>
+        {/* Main Content Area */}
+        <SidebarInset className="flex flex-col flex-1 min-w-0">
+          {/* Content Header */}
+          <ContentHeader 
+            onSearchChange={handleSearchChange}
+            searchPlaceholder="Search components..."
+            selectedSiteId={selectedSite}
+            sites={sites}
+            selectedCategory={selectedCategory}
+            categories={categories}
+          />
+
+          {/* Active Filters */}
+          {(selectedCategory || selectedSite || searchTerm) && (
+            <div className="bg-white border-b border-border px-4 py-3">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-sm text-muted-foreground">Filters:</span>
+                {searchTerm && (
+                  <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
+                    Search: {searchTerm}
+                  </span>
+                )}
+                {selectedSite && (
+                  <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                    Site
+                  </span>
+                )}
+                {selectedCategory && (
+                  <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
+                    Category
+                  </span>
+                )}
+                <button
+                  onClick={handleClearFilters}
+                  className="text-xs text-muted-foreground hover:text-foreground underline"
+                >
+                  Clear all
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Components Grid */}
+          <div className="flex-1 overflow-auto p-4">
+            <OptimizedInfiniteGrid 
+              components={components}
+              filteredComponents={filteredComponents}
+              isLoading={isLoading}
+              error={error}
+              handleRetry={handleRetry}
+              fetchNextPage={fetchNextPage}
+              hasNextPage={hasNextPage}
+              isFetchingNextPage={isFetchingNextPage}
+            />
+          </div>
+        </SidebarInset>
+
+        {/* Selection Components */}
+        {selectedComponents.length > 0 && (
+          <SelectionFloatingButton />
+        )}
+
+        <SelectedComponentsSidebar
+          isOpen={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+        />
+      </div>
+    </SidebarProvider>
   );
 };
 
