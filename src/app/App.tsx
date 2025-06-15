@@ -45,7 +45,11 @@ function App() {
             <div className="min-h-screen bg-background">
               <Routes>
                 <Route path="/" element={<AuthRedirect />} />
-                <Route path="/components" element={<Components />} />
+                <Route path="/components" element={
+                  <ProtectedRoute>
+                    <Components />
+                  </ProtectedRoute>
+                } />
                 <Route path="/component/:id" element={<ComponentDetail />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
