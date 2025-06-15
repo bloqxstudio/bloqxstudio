@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Component } from '@/core/types';
 import { AlertCircle, Loader2 } from 'lucide-react';
+import { useIntersectionObserver } from '@/hooks/useIntersectionObserver';
 
 interface ComponentPreviewEmbedProps {
   component: Component;
@@ -13,10 +14,14 @@ const ComponentPreviewEmbed: React.FC<ComponentPreviewEmbedProps> = ({
   className = ''
 }) => {
   const [loadState, setLoadState] = useState<'loading' | 'loaded' | 'error'>('loading');
-  const [isVisible, setIsVisible] = useState(false);
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
   const timeoutRef = useRef<NodeJS.Timeout>();
+
+  // Lazy load only when component is visible
+  const { elementRef, isVisible } = useIntersectionObserver({
+    threshold: 0.1,
+    freezeOnceVisible: true,
+  });
 
   // Verificar se é componente WordPress
   const isWordPressComponent = component.source === 'wordpress' && component.slug;
@@ -25,39 +30,16 @@ const ComponentPreviewEmbed: React.FC<ComponentPreviewEmbedProps> = ({
   const getRealPostUrl = () => {
     if (!isWordPressComponent || !component.source_site || !component.slug) return null;
     
-    // Garantir que source_site tenha protocol
     let siteUrl = component.source_site;
     if (!siteUrl.startsWith('http://') && !siteUrl.startsWith('https://')) {
       siteUrl = `https://${siteUrl}`;
     }
     
-    // Remover trailing slash
     siteUrl = siteUrl.replace(/\/$/, '');
-    
-    // Construir URL completa do post
     return `${siteUrl}/${component.slug}/`;
   };
 
   const previewUrl = getRealPostUrl();
-
-  // Intersection Observer para lazy loading
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    if (containerRef.current) {
-      observer.observe(containerRef.current);
-    }
-
-    return () => observer.disconnect();
-  }, []);
 
   // Timeout para fallback em caso de carregamento lento
   useEffect(() => {
@@ -66,7 +48,7 @@ const ComponentPreviewEmbed: React.FC<ComponentPreviewEmbedProps> = ({
         if (loadState === 'loading') {
           setLoadState('error');
         }
-      }, 8000); // 8 segundos timeout para sites externos
+      }, 6000); // Reduzido para 6 segundos
     }
 
     return () => {
@@ -82,23 +64,12 @@ const ComponentPreviewEmbed: React.FC<ComponentPreviewEmbedProps> = ({
       clearTimeout(timeoutRef.current);
     }
 
-    // Tentar injetar CSS para forçar viewport desktop
+    // Tentar injetar CSS para forçar viewport desktop (simplified)
     try {
       const iframe = iframeRef.current;
-      if (iframe && iframe.contentWindow) {
+      if (iframe?.contentWindow) {
         const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
         if (iframeDoc) {
-          // Remover meta viewport existente
-          const existingViewports = iframeDoc.querySelectorAll('meta[name="viewport"]');
-          existingViewports.forEach(meta => meta.remove());
-          
-          // Adicionar meta viewport desktop
-          const meta = iframeDoc.createElement('meta');
-          meta.name = 'viewport';
-          meta.content = 'width=1200, initial-scale=1.0, user-scalable=no';
-          iframeDoc.head.appendChild(meta);
-          
-          // Adicionar CSS para forçar largura mínima
           const style = iframeDoc.createElement('style');
           style.textContent = `
             body { 
@@ -106,16 +77,12 @@ const ComponentPreviewEmbed: React.FC<ComponentPreviewEmbedProps> = ({
               width: 1200px !important;
               overflow-x: hidden !important;
             }
-            .elementor-section-wrap { 
-              min-width: 1200px !important; 
-            }
           `;
           iframeDoc.head.appendChild(style);
         }
       }
     } catch (error) {
-      // Ignorar erros de cross-origin, o iframe ainda funcionará
-      console.log('Could not inject desktop CSS due to cross-origin restrictions');
+      // Ignorar erros de cross-origin
     }
   };
 
@@ -131,10 +98,10 @@ const ComponentPreviewEmbed: React.FC<ComponentPreviewEmbedProps> = ({
     <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4">
       {loadState === 'error' ? (
         <>
-          <AlertCircle className="w-8 h-8 text-gray-400 mb-2" />
+          <AlertCircle className="w-6 h-6 text-gray-400 mb-2" />
           <div className="text-center">
             <div className="text-sm font-medium text-gray-600">Preview indisponível</div>
-            <div className="text-xs text-gray-500">Use o botão Visualizar para ver</div>
+            <div className="text-xs text-gray-500">Use o botão Visualizar</div>
           </div>
         </>
       ) : (
@@ -153,20 +120,20 @@ const ComponentPreviewEmbed: React.FC<ComponentPreviewEmbedProps> = ({
 
   return (
     <div 
-      ref={containerRef}
+      ref={elementRef}
       className={`relative w-full h-full overflow-hidden ${className}`}
     >
       {/* Loading state */}
       {loadState === 'loading' && isVisible && previewUrl && (
         <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 z-10">
           <div className="flex flex-col items-center gap-2">
-            <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
-            <div className="text-xs text-blue-700">Carregando preview...</div>
+            <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
+            <div className="text-xs text-blue-700">Carregando...</div>
           </div>
         </div>
       )}
 
-      {/* WordPress iframe preview - usando URL real do post */}
+      {/* WordPress iframe preview - apenas se visível */}
       {isVisible && previewUrl && loadState !== 'error' ? (
         <iframe
           ref={iframeRef}
@@ -182,6 +149,7 @@ const ComponentPreviewEmbed: React.FC<ComponentPreviewEmbedProps> = ({
           onError={handleIframeError}
           title={`Preview: ${component.title}`}
           sandbox="allow-scripts allow-same-origin"
+          loading="lazy"
         />
       ) : (
         renderFallback()

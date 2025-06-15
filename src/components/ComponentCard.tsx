@@ -3,12 +3,13 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Copy, Check, Eye, Loader2, RefreshCw, AlertCircle, Edit } from 'lucide-react';
+import { Copy, Check, Eye, Edit } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/features/auth';
 import { cleanElementorJson } from '@/utils/json/cleaners';
 import { Component } from '@/core/types';
 import { usePreviewGenerator } from '@/hooks/usePreviewGenerator';
+import { useIntersectionObserver } from '@/hooks/useIntersectionObserver';
 import ComponentPreviewModal from './ComponentPreviewModal';
 import ComponentPreviewEmbed from './ComponentPreviewEmbed';
 
@@ -28,25 +29,41 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
   const { user } = useAuth();
   const [copied, setCopied] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [shouldLoadPreview, setShouldLoadPreview] = useState(false);
   
-  const { generatePreview, getPreviewState, regeneratePreview } = usePreviewGenerator();
+  const { generatePreview, getPreviewState } = usePreviewGenerator();
   const previewState = getPreviewState(component.id);
+
+  // Intersection observer for lazy loading
+  const { elementRef, isVisible } = useIntersectionObserver({
+    threshold: 0.1,
+    freezeOnceVisible: true,
+  });
 
   // Verificar se é um componente do WordPress com URL válida
   const isWordPressComponent = component.source === 'wordpress' && component.slug;
 
-  // Gerar preview automaticamente apenas se não for WordPress e não houver imagem
+  // Lazy load preview when component becomes visible
   useEffect(() => {
-    const shouldGeneratePreview = !isWordPressComponent &&
-                                 !component.preview_image && 
-                                 !previewState.previewUrl && 
-                                 !previewState.isGenerating && 
-                                 !previewState.error;
+    if (isVisible && !shouldLoadPreview) {
+      setShouldLoadPreview(true);
+      
+      // Delay preview generation slightly to avoid blocking the UI
+      const timer = setTimeout(() => {
+        const shouldGeneratePreview = !isWordPressComponent &&
+                                     !component.preview_image && 
+                                     !previewState.previewUrl && 
+                                     !previewState.isGenerating && 
+                                     !previewState.error;
 
-    if (shouldGeneratePreview) {
-      generatePreview(component);
+        if (shouldGeneratePreview) {
+          generatePreview(component);
+        }
+      }, 100);
+
+      return () => clearTimeout(timer);
     }
-  }, [component, generatePreview, previewState, isWordPressComponent]);
+  }, [isVisible, shouldLoadPreview, component, generatePreview, previewState, isWordPressComponent]);
 
   const handleCopyCode = async () => {
     if (!user) {
@@ -68,7 +85,6 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
       console.error('Error processing and copying JSON:', error);
-      // Se falhar na limpeza, tentar copiar o código original
       try {
         await navigator.clipboard.writeText(component.json_code || component.code || '[]');
         setCopied(true);
@@ -98,8 +114,18 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
     }
   };
 
-  // Usar preview original se disponível, senão usar preview embutido
   const getPreviewContent = () => {
+    // Only load preview if component is visible
+    if (!shouldLoadPreview) {
+      return (
+        <div className="w-full h-full bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+          <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
+            <div className="text-lg">📝</div>
+          </div>
+        </div>
+      );
+    }
+
     // Preview original tem prioridade absoluta
     if (component.preview_image) {
       return (
@@ -119,7 +145,7 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
       );
     }
 
-    // Usar preview embutido (real) para todos os outros casos
+    // Usar preview embutido para outros casos
     return <ComponentPreviewEmbed component={component} />;
   };
 
@@ -138,7 +164,10 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
 
   return (
     <>
-      <Card className="group hover:shadow-lg transition-all duration-200 border border-border/50 hover:border-border">
+      <Card 
+        ref={elementRef}
+        className="group hover:shadow-lg transition-all duration-200 border border-border/50 hover:border-border"
+      >
         <CardContent className="p-0">
           <div className="aspect-video bg-gray-50 rounded-t-lg overflow-hidden relative">
             {getPreviewContent()}

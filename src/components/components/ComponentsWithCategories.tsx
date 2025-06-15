@@ -1,10 +1,9 @@
 
 import React, { useState } from 'react';
-import { useWordPressDirectComponents } from '@/hooks/useWordPressDirectComponents';
+import { useInfiniteWordPressComponents } from '@/hooks/useInfiniteWordPressComponents';
 import { useSelectedComponents } from '@/shared/contexts/SelectedComponentsContext';
-import FullscreenPageWrapper from '@/components/layout/FullscreenPageWrapper';
 import ComponentsHeader from '@/components/components/ComponentsHeader';
-import ComponentsGrid from '@/components/components/ComponentsGrid';
+import InfiniteComponentsGrid from '@/components/components/InfiniteComponentsGrid';
 import ComponentSearch from '@/components/filters/ComponentSearch';
 import SelectedComponentsSidebar from '@/components/selection/SelectedComponentsSidebar';
 import SelectionFloatingButton from '@/components/selection/SelectionFloatingButton';
@@ -18,13 +17,16 @@ const ComponentsWithCategories = () => {
   const [selectedSite, setSelectedSite] = useState<string | null>(null);
   const { selectedComponents } = useSelectedComponents();
 
-  // Fetch components directly from WordPress
+  // Use infinite scroll hook instead of regular hook
   const {
     components,
     filteredComponents,
     isLoading,
     error,
-  } = useWordPressDirectComponents({
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteWordPressComponents({
     searchTerm,
     selectedCategory,
     selectedSite,
@@ -37,7 +39,6 @@ const ComponentsWithCategories = () => {
   };
 
   const handleRetry = () => {
-    // The query will automatically retry due to React Query
     window.location.reload();
   };
 
@@ -47,7 +48,9 @@ const ComponentsWithCategories = () => {
     selectedCategory,
     selectedSite,
     isLoading,
-    hasError: !!error
+    hasError: !!error,
+    hasNextPage,
+    isFetchingNextPage,
   });
 
   return (
@@ -109,14 +112,17 @@ const ComponentsWithCategories = () => {
               )}
             </div>
 
-            {/* Components Grid - área rolável */}
+            {/* Components Grid - área rolável com scroll infinito */}
             <div className="flex-1 overflow-auto p-6">
-              <ComponentsGrid 
+              <InfiniteComponentsGrid 
                 components={components}
                 filteredComponents={filteredComponents}
                 isLoading={isLoading}
                 error={error}
                 handleRetry={handleRetry}
+                fetchNextPage={fetchNextPage}
+                hasNextPage={hasNextPage}
+                isFetchingNextPage={isFetchingNextPage}
               />
             </div>
           </SidebarInset>
