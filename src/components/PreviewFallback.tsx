@@ -8,7 +8,6 @@ import {
   Square, 
   Video, 
   List,
-  Button as ButtonIcon,
   Layers
 } from 'lucide-react';
 
@@ -53,7 +52,7 @@ const PreviewFallback: React.FC<PreviewFallbackProps> = ({ component, className 
       elementIcons.push(<Image key="image" className="w-4 h-4" />);
     }
     if (jsonString.includes('button')) {
-      elementIcons.push(<ButtonIcon key="button" className="w-4 h-4" />);
+      elementIcons.push(<Square key="button" className="w-4 h-4" />);
     }
     if (jsonString.includes('video')) {
       elementIcons.push(<Video key="video" className="w-4 h-4" />);
