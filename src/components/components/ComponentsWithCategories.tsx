@@ -54,7 +54,7 @@ const ComponentsWithCategories = () => {
   });
 
   return (
-    <div className="flex-1 flex flex-col w-full pt-16">
+    <div className="flex-1 flex flex-col w-full">
       <SidebarProvider>
         <div className="flex flex-1 w-full">
           <AppSidebar
