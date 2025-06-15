@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -60,24 +59,69 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
   // Check if it's a WordPress component
   const isWordPressComponent = component.source === 'wordpress' && component.slug;
   
-  // Build real WordPress post URL
+  // Build correct WordPress post URL
   const getRealPostUrl = () => {
-    if (!isWordPressComponent || !component.source_site || !component.slug) return null;
+    if (!isWordPressComponent) return null;
     
-    // Ensure source_site has protocol
-    let siteUrl = component.source_site;
-    if (!siteUrl.startsWith('http://') && !siteUrl.startsWith('https://')) {
-      siteUrl = `https://${siteUrl}`;
+    console.log('Modal URL construction for component:', {
+      wordpress_post_url: component.wordpress_post_url,
+      source_site: component.source_site,
+      slug: component.slug,
+      component_id: component.id
+    });
+    
+    // Priority 1: Use direct WordPress post URL if available
+    if (component.wordpress_post_url) {
+      let url = component.wordpress_post_url;
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        url = `https://${url}`;
+      }
+      console.log('Modal using direct WordPress URL:', url);
+      return url;
     }
     
-    // Remove trailing slash
-    siteUrl = siteUrl.replace(/\/$/, '');
+    // Priority 2: Construct from source_site and slug
+    if (component.source_site && component.slug) {
+      let siteUrl = component.source_site;
+      
+      // Ensure the site URL has protocol and is a valid domain
+      if (!siteUrl.startsWith('http://') && !siteUrl.startsWith('https://')) {
+        // Check if it looks like a domain name
+        if (siteUrl.includes('.') && !siteUrl.includes('/')) {
+          siteUrl = `https://${siteUrl}`;
+        } else {
+          console.warn('Modal: Invalid source_site format:', siteUrl);
+          return null;
+        }
+      }
+      
+      // Remove trailing slash
+      siteUrl = siteUrl.replace(/\/$/, '');
+      
+      // Ensure slug doesn't start with slash
+      const cleanSlug = component.slug.replace(/^\//, '');
+      
+      const constructedUrl = `${siteUrl}/${cleanSlug}/`;
+      console.log('Modal constructed WordPress URL:', constructedUrl);
+      return constructedUrl;
+    }
     
-    // Build complete post URL
-    return `${siteUrl}/${component.slug}/`;
+    console.warn('Modal: No valid URL data for WordPress component:', component.id);
+    return null;
   };
 
   const postUrl = getRealPostUrl();
+
+  // Log the final URL being used in modal
+  useEffect(() => {
+    if (isOpen) {
+      if (postUrl) {
+        console.log('Modal final preview URL:', postUrl);
+      } else {
+        console.log('Modal: No preview URL available for component:', component.id);
+      }
+    }
+  }, [isOpen, postUrl, component.id]);
 
   // Reset states when modal opens
   useEffect(() => {
@@ -146,7 +190,7 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
   };
 
   const renderPreviewContent = () => {
-    if (!isWordPressComponent) {
+    if (!isWordPressComponent || !postUrl) {
       return (
         <div className="flex items-center justify-center h-full bg-gray-50 rounded-lg">
           <div className="text-center p-8">
@@ -154,8 +198,19 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
             <h3 className="font-semibold text-gray-900 mb-2">
               Component Preview Unavailable
             </h3>
-            <p className="text-gray-600 max-w-sm">
-              This component doesn't have a preview URL available. 
+            <p className="text-gray-600 max-w-sm mb-4">
+              {!isWordPressComponent 
+                ? "This component doesn't have a preview URL available."
+                : "No valid WordPress URL found for this component."
+              }
+            </p>
+            {component.source_site && (
+              <p className="text-xs text-gray-500 break-all">
+                Source: {component.source_site}
+                {component.slug && ` / ${component.slug}`}
+              </p>
+            )}
+            <p className="text-gray-600 mt-4">
               Use the "Copy JSON" button to import into Elementor.
             </p>
           </div>

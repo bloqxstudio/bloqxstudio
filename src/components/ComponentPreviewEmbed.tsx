@@ -26,29 +26,68 @@ const ComponentPreviewEmbed: React.FC<ComponentPreviewEmbedProps> = ({
   // Check if it's a WordPress component
   const isWordPressComponent = component.source === 'wordpress';
   
-  // Use real WordPress link if available, otherwise build URL
+  // Build correct WordPress URL
   const getPreviewUrl = () => {
     if (!isWordPressComponent) return null;
     
-    // Priority for the real post link
+    console.log('Component data for URL construction:', {
+      wordpress_post_url: component.wordpress_post_url,
+      source_site: component.source_site,
+      slug: component.slug,
+      component_id: component.id
+    });
+    
+    // Priority 1: Use direct WordPress post URL if available
     if (component.wordpress_post_url) {
-      return component.wordpress_post_url;
+      // Ensure the URL has protocol
+      let url = component.wordpress_post_url;
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        url = `https://${url}`;
+      }
+      console.log('Using direct WordPress URL:', url);
+      return url;
     }
     
-    // Fallback to manual construction if available
+    // Priority 2: Construct from source_site and slug
     if (component.source_site && component.slug) {
       let siteUrl = component.source_site;
+      
+      // Ensure the site URL has protocol and is a valid domain
       if (!siteUrl.startsWith('http://') && !siteUrl.startsWith('https://')) {
-        siteUrl = `https://${siteUrl}`;
+        // Check if it looks like a domain name
+        if (siteUrl.includes('.') && !siteUrl.includes('/')) {
+          siteUrl = `https://${siteUrl}`;
+        } else {
+          console.warn('Invalid source_site format:', siteUrl);
+          return null;
+        }
       }
+      
+      // Remove trailing slash
       siteUrl = siteUrl.replace(/\/$/, '');
-      return `${siteUrl}/${component.slug}/`;
+      
+      // Ensure slug doesn't start with slash
+      const cleanSlug = component.slug.replace(/^\//, '');
+      
+      const constructedUrl = `${siteUrl}/${cleanSlug}/`;
+      console.log('Constructed WordPress URL:', constructedUrl);
+      return constructedUrl;
     }
     
+    console.warn('No valid URL data for WordPress component:', component.id);
     return null;
   };
 
   const previewUrl = getPreviewUrl();
+
+  // Log the final URL being used
+  useEffect(() => {
+    if (previewUrl) {
+      console.log('Final preview URL:', previewUrl);
+    } else {
+      console.log('No preview URL available for component:', component.id);
+    }
+  }, [previewUrl, component.id]);
 
   // Timeout for fallback in case of slow loading
   useEffect(() => {
@@ -57,7 +96,7 @@ const ComponentPreviewEmbed: React.FC<ComponentPreviewEmbedProps> = ({
         if (loadState === 'loading') {
           setLoadState('error');
         }
-      }, 6000); // Reduced to 6 seconds
+      }, 6000);
     }
 
     return () => {
@@ -96,6 +135,7 @@ const ComponentPreviewEmbed: React.FC<ComponentPreviewEmbedProps> = ({
   };
 
   const handleIframeError = () => {
+    console.error('Iframe loading error for URL:', previewUrl);
     setLoadState('error');
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
@@ -109,8 +149,15 @@ const ComponentPreviewEmbed: React.FC<ComponentPreviewEmbedProps> = ({
         <>
           <AlertCircle className="w-6 h-6 text-gray-400 mb-2" />
           <div className="text-center">
-            <div className="text-sm font-medium text-gray-600">Component preview unavailable</div>
-            <div className="text-xs text-gray-500">Use the "View Post" button</div>
+            <div className="text-sm font-medium text-gray-600">Preview unavailable</div>
+            <div className="text-xs text-gray-500">
+              {previewUrl ? 'Unable to load site' : 'No valid URL'}
+            </div>
+            {previewUrl && (
+              <div className="text-xs text-gray-400 mt-1 break-all">
+                {previewUrl}
+              </div>
+            )}
           </div>
         </>
       ) : (
@@ -139,7 +186,7 @@ const ComponentPreviewEmbed: React.FC<ComponentPreviewEmbedProps> = ({
         <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-blue-50 to-blue-100 z-10">
           <div className="flex flex-col items-center gap-2">
             <Loader2 className="w-5 h-5 animate-spin text-blue-600" />
-            <div className="text-xs text-blue-700">Loading component preview...</div>
+            <div className="text-xs text-blue-700">Loading preview...</div>
           </div>
         </div>
       )}
