@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -27,6 +26,7 @@ import {
 import { toast } from 'sonner';
 import { Component } from '@/core/types';
 import { getStandardTransformedJson } from '@/utils/json';
+import { useViewportHeight } from '@/hooks/useViewportHeight';
 
 interface ComponentPreviewModalProps {
   isOpen: boolean;
@@ -49,6 +49,7 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
   const [iframeKey, setIframeKey] = useState(0);
   const [copied, setCopied] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
+  const viewportHeight = useViewportHeight();
 
   const viewportConfig = {
     desktop: { width: '1400px', height: '800px', label: 'Desktop' },
@@ -57,6 +58,9 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
   };
 
   const currentViewport = viewportConfig[viewportSize];
+
+  // Calculate dynamic max height for preview container
+  const previewMaxHeight = Math.min(viewportHeight - 200, 800); // Reserve 200px for header/controls
 
   // Check if it's a WordPress component
   const isWordPressComponent = component.source === 'wordpress' && component.slug;
@@ -244,7 +248,10 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
     }
 
     return (
-      <div className="relative rounded-lg overflow-auto border-0 h-full bg-gradient-to-br from-gray-100 via-gray-50 to-blue-50/30">
+      <div 
+        className="relative rounded-lg overflow-auto border-0 bg-gradient-to-br from-gray-100 via-gray-50 to-blue-50/30"
+        style={{ maxHeight: `${previewMaxHeight}px` }}
+      >
         <div className="absolute inset-0 opacity-5">
           <div 
             className="w-full h-full"
