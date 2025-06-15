@@ -4,8 +4,9 @@ import { Link, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronRight, Database, Globe, Layers } from 'lucide-react';
+import { ChevronRight, Database, Globe, Layers, Users, Video } from 'lucide-react';
 import { getUserWordPressCategories } from '@/core/api/wordpress-categories';
 import { getUserWordPressSites } from '@/core/api/wordpress-sites';
 
@@ -78,30 +79,40 @@ export const MainSidebar: React.FC<MainSidebarProps> = ({
             <Button
               variant={isActive('/components') ? 'secondary' : 'ghost'}
               className="w-full justify-start"
-              asChild
-            >
-              <Link to="/components">
-                <Database className="h-4 w-4 mr-3" />
-                The Vault
-                <span className="ml-auto text-xs text-muted-foreground">
-                  {totalComponents}
-                </span>
-              </Link>
-            </Button>
-
-            <Button
-              variant="ghost"
-              className="w-full justify-start"
               onClick={() => {
                 onCategoryChange(null);
                 onSiteChange(null);
               }}
             >
-              <Layers className="h-4 w-4 mr-3" />
+              <Database className="h-4 w-4 mr-3" />
               All Components
               <span className="ml-auto text-xs text-muted-foreground">
                 {totalComponents}
               </span>
+            </Button>
+
+            <Button
+              variant="ghost"
+              className="w-full justify-start"
+              disabled
+            >
+              <Users className="h-4 w-4 mr-3" />
+              AGENTES
+              <Badge variant="secondary" className="ml-auto text-xs">
+                em breve
+              </Badge>
+            </Button>
+
+            <Button
+              variant="ghost"
+              className="w-full justify-start"
+              disabled
+            >
+              <Video className="h-4 w-4 mr-3" />
+              VIDEOS
+              <Badge variant="secondary" className="ml-auto text-xs">
+                em breve
+              </Badge>
             </Button>
           </div>
 

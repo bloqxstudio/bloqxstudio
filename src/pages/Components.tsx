@@ -55,10 +55,6 @@ const Components = () => {
     setSelectedSite(site);
   }, []);
 
-  const handleComponentSelect = useCallback((component: any) => {
-    setSelectedComponent(component);
-  }, []);
-
   console.log('🎯 Components page rendering (new layout):', {
     totalComponents: components.length,
     filteredComponents: filteredComponents.length,
@@ -127,18 +123,9 @@ const Components = () => {
             fetchNextPage={fetchNextPage}
             hasNextPage={hasNextPage}
             isFetchingNextPage={isFetchingNextPage}
-            onComponentSelect={handleComponentSelect}
           />
         </div>
       </div>
-
-      {/* Right Resource Panel - será implementado depois */}
-      {/* {selectedComponent && (
-        <ResourcePanel 
-          component={selectedComponent} 
-          onClose={() => setSelectedComponent(null)}
-        />
-      )} */}
 
       {/* Selection Components */}
       {selectedComponents.length > 0 && (
