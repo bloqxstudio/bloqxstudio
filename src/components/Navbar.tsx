@@ -20,7 +20,7 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center space-x-8">
-            <Link to="/" className="flex items-center">
+            <Link to="/components" className="flex items-center">
               <span className="text-xl font-bold text-primary">Superelements</span>
             </Link>
             
@@ -33,28 +33,20 @@ const Navbar = () => {
                 <Link to="/components">Biblioteca</Link>
               </Button>
               
-              <Button 
-                variant={isActive('/superelements') ? 'default' : 'ghost'} 
-                asChild 
-                size="sm"
-              >
-                <Link to="/superelements">Superelements</Link>
-              </Button>
-              
-              {user && (
-                <Button 
-                  variant={isActive('/wordpress') ? 'default' : 'ghost'} 
-                  asChild 
-                  size="sm"
-                >
-                  <Link to="/wordpress">WordPress</Link>
-                </Button>
-              )}
-              
               {isAdmin && (
-                <Button variant={isActive('/admin') ? 'default' : 'ghost'} asChild size="sm">
-                  <Link to="/admin">Admin</Link>
-                </Button>
+                <>
+                  <Button 
+                    variant={isActive('/wordpress') ? 'default' : 'ghost'} 
+                    asChild 
+                    size="sm"
+                  >
+                    <Link to="/wordpress">WordPress</Link>
+                  </Button>
+                  
+                  <Button variant={isActive('/admin') ? 'default' : 'ghost'} asChild size="sm">
+                    <Link to="/admin">Admin</Link>
+                  </Button>
+                </>
               )}
             </div>
           </div>

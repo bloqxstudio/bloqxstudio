@@ -5,12 +5,10 @@ import { Toaster } from 'sonner';
 import { AuthProvider } from '@/features/auth';
 import { SelectedComponentsProvider } from '@/shared/contexts/SelectedComponentsContext';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import Navbar from '@/components/Navbar';
 
 // Pages
 import Index from '@/pages/Index';
 import Components from '@/pages/Components';
-import SuperelementsComponents from '@/pages/SuperelementsComponents';
 import ComponentDetail from '@/pages/ComponentDetail';
 import ComponentCreate from '@/pages/ComponentCreate';
 import ComponentEdit from '@/pages/ComponentEdit';
@@ -39,11 +37,9 @@ function App() {
         <SelectedComponentsProvider>
           <Router>
             <div className="min-h-screen bg-background">
-              <Navbar />
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/components" element={<Components />} />
-                <Route path="/superelements" element={<SuperelementsComponents />} />
                 <Route path="/component/:id" element={<ComponentDetail />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
@@ -64,13 +60,13 @@ function App() {
                     <UserComponentEdit />
                   </ProtectedRoute>
                 } />
+                
+                {/* Admin Routes */}
                 <Route path="/wordpress" element={
-                  <ProtectedRoute>
+                  <ProtectedRoute adminOnly>
                     <WordPressIntegration />
                   </ProtectedRoute>
                 } />
-                
-                {/* Admin Routes */}
                 <Route path="/admin" element={
                   <ProtectedRoute adminOnly>
                     <AdminPanel />
