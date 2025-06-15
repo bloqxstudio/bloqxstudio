@@ -50,7 +50,7 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
 
   const handleCopyCode = async () => {
     if (!user) {
-      toast.error('Você precisa estar logado para copiar o código');
+      toast.error('You need to be logged in to copy the code');
       return;
     }
 
@@ -64,18 +64,18 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
 
       await navigator.clipboard.writeText(processedJson);
       setCopied(true);
-      toast.success('JSON otimizado copiado! Pronto para colar no Elementor');
+      toast.success('Optimized JSON copied! Ready to paste in Elementor');
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
-      console.error('Erro ao processar e copiar JSON:', error);
+      console.error('Error processing and copying JSON:', error);
       // Se falhar na limpeza, tentar copiar o código original
       try {
         await navigator.clipboard.writeText(component.json_code || component.code || '[]');
         setCopied(true);
-        toast.success('Código copiado!');
+        toast.success('Code copied!');
         setTimeout(() => setCopied(false), 2000);
       } catch (copyError) {
-        toast.error('Erro ao copiar o código');
+        toast.error('Error copying code');
       }
     }
   };
@@ -93,7 +93,7 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
         false
       );
     } catch (error) {
-      console.error('Erro ao processar JSON para preview:', error);
+      console.error('Error processing JSON for preview:', error);
       return component.json_code || component.code || '[]';
     }
   };
@@ -152,12 +152,6 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
               {getSourceBadge()}
             </div>
 
-            {component.description && (
-              <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
-                {component.description}
-              </p>
-            )}
-
             {component.slug && (
               <div className="mb-2">
                 <Badge variant="outline" className="text-xs">
@@ -192,7 +186,7 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
               className="flex-1"
             >
               <Eye className="h-4 w-4 mr-1" />
-              {isWordPressComponent ? 'Ver Site' : 'Visualizar'}
+              {isWordPressComponent ? 'View Site' : 'Preview'}
             </Button>
             
             <Button
@@ -205,12 +199,12 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
               {copied ? (
                 <>
                   <Check className="h-4 w-4 mr-1" />
-                  Copiado!
+                  Copied!
                 </>
               ) : (
                 <>
                   <Copy className="h-4 w-4 mr-1" />
-                  Copiar
+                  Copy
                 </>
               )}
             </Button>
