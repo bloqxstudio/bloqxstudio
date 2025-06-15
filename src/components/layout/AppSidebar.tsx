@@ -63,8 +63,11 @@ export function AppSidebar({
     }
   };
 
+  // Safely handle categories array - ensure it's always an array before using reduce
+  const categoriesArray = Array.isArray(categories) ? categories : [];
+  
   // Group categories by site
-  const categoriesBySite = categories.reduce((acc, category) => {
+  const categoriesBySite = categoriesArray.reduce((acc, category) => {
     const siteKey = category.wordpress_site_id;
     if (!acc[siteKey]) {
       acc[siteKey] = {
@@ -76,10 +79,13 @@ export function AppSidebar({
     return acc;
   }, {} as Record<string, { site: any; categories: WordPressCategory[] }>);
 
+  // Safely calculate total post count
+  const totalPostCount = categoriesArray.reduce((sum, cat) => sum + (cat.post_count || 0), 0);
+
   console.log('🎯 AppSidebar state:', {
     selectedCategory,
     selectedSite,
-    categoriesCount: categories.length,
+    categoriesCount: categoriesArray.length,
     sitesCount: sites.length,
     categoriesBySite: Object.keys(categoriesBySite),
   });
@@ -119,7 +125,7 @@ export function AppSidebar({
                 >
                   <span>Todos os Componentes</span>
                   <span className="ml-auto text-xs text-muted-foreground">
-                    ({categories.reduce((sum, cat) => sum + cat.post_count, 0)})
+                    ({totalPostCount})
                   </span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -158,7 +164,7 @@ export function AppSidebar({
                       {site?.site_name || site?.site_url || 'WordPress Site'}
                     </span>
                     <span className="text-xs text-muted-foreground">
-                      {siteCategories.reduce((sum, cat) => sum + cat.post_count, 0)}
+                      {siteCategories.reduce((sum, cat) => sum + (cat.post_count || 0), 0)}
                     </span>
                   </button>
                 </SidebarGroupLabel>
@@ -181,7 +187,7 @@ export function AppSidebar({
                           >
                             <span className="truncate">{category.name}</span>
                             <span className="text-xs text-muted-foreground">
-                              ({category.post_count})
+                              ({category.post_count || 0})
                             </span>
                           </SidebarMenuButton>
                         </SidebarMenuItem>
