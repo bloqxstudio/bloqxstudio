@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -44,7 +45,7 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
   const [copied, setCopied] = useState(false);
 
   const viewportConfig = {
-    desktop: { width: '100%', height: '600px', label: 'Desktop' },
+    desktop: { width: '1400px', height: '800px', label: 'Desktop' },
     tablet: { width: '768px', height: '600px', label: 'Tablet' },
     mobile: { width: '375px', height: '600px', label: 'Mobile' },
   };
@@ -132,8 +133,8 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-6xl max-h-[90vh] p-0">
-        <DialogHeader className="p-6 pb-4">
+      <DialogContent className="max-w-[95vw] max-h-[95vh] p-0 overflow-hidden">
+        <DialogHeader className="p-6 pb-4 flex-shrink-0">
           <div className="flex items-center justify-between">
             <div>
               <DialogTitle className="text-xl font-semibold">
@@ -196,7 +197,7 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
           </div>
         </DialogHeader>
 
-        <div className="px-6 pb-4">
+        <div className="px-6 pb-4 flex-shrink-0">
           <div className="flex items-center gap-2">
             <span className="text-sm font-medium">Viewport:</span>
             <div className="flex gap-1">
@@ -232,13 +233,13 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
           </div>
         </div>
 
-        <div className="px-6 pb-6">
-          <div className="relative bg-gray-100 rounded-lg overflow-hidden border">
+        <div className="px-6 pb-6 flex-1 min-h-0">
+          <div className="relative bg-gray-100 rounded-lg overflow-auto border h-full">
             <div 
-              className="mx-auto transition-all duration-300"
+              className="mx-auto transition-all duration-300 min-h-full"
               style={{ 
                 width: currentViewport.width,
-                maxWidth: '100%'
+                minWidth: viewportSize === 'desktop' ? currentViewport.width : 'auto'
               }}
             >
               {isLoading && (
@@ -266,7 +267,7 @@ const ComponentPreviewModal: React.FC<ComponentPreviewModalProps> = ({
               <iframe
                 key={`preview-${iframeKey}`}
                 src={postUrl || undefined}
-                className="w-full border-0"
+                className="w-full border-0 block"
                 style={{ height: currentViewport.height }}
                 onLoad={handleIframeLoad}
                 onError={handleIframeError}
