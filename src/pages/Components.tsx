@@ -2,6 +2,9 @@
 import React, { useState, useCallback } from 'react';
 import { useOptimizedWordPressComponents } from '@/hooks/useOptimizedWordPressComponents';
 import { useSelectedComponents } from '@/shared/contexts/SelectedComponentsContext';
+import { useQuery } from '@tanstack/react-query';
+import { getUserWordPressSites } from '@/core/api/wordpress-sites';
+import { getUserWordPressCategories } from '@/core/api/wordpress-categories';
 import { FullscreenLayout } from '@/components/layout/FullscreenLayout';
 import { MainSidebar } from '@/components/layout/MainSidebar';
 import { ContentHeader } from '@/components/layout/ContentHeader';
@@ -16,6 +19,19 @@ const Components = () => {
   const [selectedSite, setSelectedSite] = useState<string | null>(null);
   const [selectedComponent, setSelectedComponent] = useState<any>(null);
   const { selectedComponents } = useSelectedComponents();
+
+  // Fetch sites and categories for the header
+  const { data: sites = [] } = useQuery({
+    queryKey: ['wordpress-sites'],
+    queryFn: getUserWordPressSites,
+    staleTime: 15 * 60 * 1000,
+  });
+
+  const { data: categories = [] } = useQuery({
+    queryKey: ['wordpress-categories'],
+    queryFn: getUserWordPressCategories,
+    staleTime: 15 * 60 * 1000,
+  });
 
   // Use hook otimizado com carregamento paralelo
   const {
@@ -80,6 +96,10 @@ const Components = () => {
         <ContentHeader 
           onSearchChange={handleSearchChange}
           searchPlaceholder="Search components by title, description or tags..."
+          selectedSiteId={selectedSite}
+          sites={sites}
+          selectedCategory={selectedCategory}
+          categories={categories}
         />
 
         {/* Active Filters */}
