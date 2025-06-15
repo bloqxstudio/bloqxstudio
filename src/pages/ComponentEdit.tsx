@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { getComponentById, getCategories } from '@/core/api';
+import { getComponent, getCategories } from '@/core/api';
 import { useAuth } from '@/features/auth';
 import { toast } from 'sonner';
 import Navbar from '@/components/Navbar';
@@ -46,7 +46,7 @@ const ComponentEdit = () => {
 
   const { data: component, isLoading: isLoadingComponent } = useQuery({
     queryKey: ['component', id],
-    queryFn: () => id ? getComponentById(id) : Promise.reject('ID não fornecido'),
+    queryFn: () => id ? getComponent(id) : Promise.reject('ID não fornecido'),
     enabled: !!id,
     meta: {
       onError: (error: Error) => {

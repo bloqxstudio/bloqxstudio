@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/features/auth';
-import { getComponentById } from '@/core/api';
+import { getComponent } from '@/core/api';
 import { Component } from '@/core/types/database';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -50,7 +50,7 @@ const ComponentDetail = () => {
 
   const { data: component, isLoading, error } = useQuery({
     queryKey: ['component', id],
-    queryFn: () => getComponentById(id || ''),
+    queryFn: () => getComponent(id || ''),
     enabled: !!id,
   });
 

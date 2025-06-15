@@ -14,7 +14,7 @@ export const getComponents = async (): Promise<Component[]> => {
 
     // Auto-sync categories if we have WordPress components without category info
     const wpComponentsWithoutCategories = (data || []).filter(
-      component => component.source === 'wordpress' && 
+      (component: any) => component.source === 'wordpress' && 
       component.wordpress_site_id && 
       !component.wordpress_category_id
     );
@@ -22,7 +22,7 @@ export const getComponents = async (): Promise<Component[]> => {
     if (wpComponentsWithoutCategories.length > 0) {
       console.log('Found WordPress components without category info, triggering sync...');
       // Get unique site IDs
-      const siteIds = [...new Set(wpComponentsWithoutCategories.map(c => c.wordpress_site_id))];
+      const siteIds = [...new Set(wpComponentsWithoutCategories.map((c: any) => c.wordpress_site_id))];
       
       // Sync categories for these sites (don't await to avoid blocking)
       siteIds.forEach(siteId => {
@@ -102,4 +102,10 @@ export const deleteComponent = async (id: string): Promise<void> => {
     console.error('Error deleting component:', error);
     throw error;
   }
+};
+
+// Add placeholder for uploadComponentImage function (if needed by other files)
+export const uploadComponentImage = async (file: File): Promise<string> => {
+  // This is a placeholder - implement actual image upload logic here
+  throw new Error('Image upload not implemented yet');
 };
