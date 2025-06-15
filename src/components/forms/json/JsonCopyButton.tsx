@@ -41,7 +41,7 @@ const JsonCopyButton: React.FC<JsonCopyButtonProps> = ({
 
       let finalJsonContent = rawJsonContent;
 
-      // Apply standard BloqxKit transformation if enabled
+      // Apply standard Elementor transformation if enabled
       if (useStandardTransform) {
         try {
           finalJsonContent = getStandardTransformedJson(rawJsonContent);
@@ -55,7 +55,7 @@ const JsonCopyButton: React.FC<JsonCopyButtonProps> = ({
       setCopied(true);
       
       const successMessage = useStandardTransform 
-        ? 'JSON padrão BloqxKit copiado! Pronto para o Elementor.'
+        ? 'JSON Elementor padrão copiado! Perfeito para colar no Elementor.'
         : 'Código copiado para a área de transferência!';
       
       toast.success(successMessage);
@@ -89,7 +89,7 @@ const JsonCopyButton: React.FC<JsonCopyButtonProps> = ({
           Copiar JSON
           {showBadge && (
             <Badge variant="outline" className="ml-2">
-              BloqxKit
+              Elementor
             </Badge>
           )}
         </>

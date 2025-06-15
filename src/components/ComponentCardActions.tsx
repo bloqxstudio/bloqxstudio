@@ -26,17 +26,16 @@ const ComponentCardActions: React.FC<ComponentCardActionsProps> = ({
     }
 
     try {
-      // Use the EXACT same transformation as JsonTransformer
-      const transformedJson = getStandardTransformedJson(
-        component.json_code || component.code || '[]'
-      );
+      // Use the centralized transformation for EXACT Supabase/Elementor compatibility
+      const sourceJson = component.json_code || component.code || '[]';
+      const elementorStandardJson = getStandardTransformedJson(sourceJson);
 
-      await navigator.clipboard.writeText(transformedJson);
+      await navigator.clipboard.writeText(elementorStandardJson);
       setCopied(true);
-      toast.success('BloqxKit standard JSON copied to clipboard! Ready for Elementor.');
+      toast.success('Elementor-compatible JSON copied! Perfect for pasting into Elementor.');
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
-      console.error('Error transforming and copying JSON:', error);
+      console.error('Error generating Elementor JSON:', error);
       
       // Fallback: try to copy original code
       try {
@@ -70,7 +69,7 @@ const ComponentCardActions: React.FC<ComponentCardActionsProps> = ({
         onClick={handleCopyCode}
         disabled={copied}
         className="flex-1"
-        title="Copy BloqxKit Standard JSON"
+        title="Copy Elementor Standard JSON"
       >
         {copied ? (
           <>

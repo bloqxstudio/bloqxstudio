@@ -47,13 +47,13 @@ const JsonTransformer = () => {
     setIsProcessing(true);
     
     try {
-      // Use the SAME centralized transformation function for consistency
+      // Use the SAME centralized transformation function for perfect consistency
       const transformedJson = getStandardTransformedJson(currentJson);
       form.setValue('jsonCode', transformedJson);
       
       toast.success(getTranslation(
-        'JSON transformed with BloqxKit standard structure successfully!',
-        'JSON transformado com estrutura padrão BloqxKit com sucesso!'
+        'JSON transformed to Elementor standard format successfully!',
+        'JSON transformado para formato padrão Elementor com sucesso!'
       ));
     } catch (e) {
       console.error('Error processing JSON:', e);
@@ -151,8 +151,8 @@ const JsonTransformer = () => {
           />
           <Label htmlFor="apply-structure-toggle" className="font-medium">
             {getTranslation(
-              'Apply BloqxKit Standard Structure',
-              'Aplicar Estrutura Padrão BloqxKit'
+              'Apply Elementor Standard Structure',
+              'Aplicar Estrutura Padrão Elementor'
             )}
           </Label>
         </div>
@@ -161,8 +161,8 @@ const JsonTransformer = () => {
           <div className="mb-4 p-3 border border-green-200 rounded-md bg-green-50">
             <p className="text-sm text-green-700">
               {getTranslation(
-                'BloqxKit standard structure will be applied: Section → Padding → Row → Column → Content Groups → Widgets. Perfect for Elementor.',
-                'A estrutura padrão BloqxKit será aplicada: Seção → Padding → Linha → Coluna → Grupos de Conteúdo → Widgets. Perfeito para o Elementor.'
+                'Elementor standard structure will be applied: Proper container hierarchy with exact Supabase compatibility. Perfect for direct paste into Elementor.',
+                'A estrutura padrão Elementor será aplicada: Hierarquia de containers correta com compatibilidade exata do Supabase. Perfeito para colar diretamente no Elementor.'
               )}
             </p>
           </div>
