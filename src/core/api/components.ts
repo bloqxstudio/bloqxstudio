@@ -130,6 +130,9 @@ const getWordPressSiteComponents = async (siteId: string, siteUrl: string, apiKe
       const tags = extractTags(post.title.rendered, post.content.rendered);
       const description = `Componente de ${siteName}: ${post.title.rendered}`;
 
+      // Garantir que temos a URL completa do site sem protocol para source_site
+      const cleanSiteUrl = siteUrl.replace(/^https?:\/\//, '').replace(/\/$/, '');
+
       return {
         id: `${siteId}-${post.id}`,
         title: post.title.rendered || 'Sem título',
@@ -139,13 +142,13 @@ const getWordPressSiteComponents = async (siteId: string, siteUrl: string, apiKe
         json_code: elementorData,
         preview_image: featuredImage,
         tags,
-        type: 'elementor',
+        type: 'elementor' as const,
         visibility: 'public' as const,
         created_at: post.date,
         updated_at: post.modified,
         created_by: siteId,
         source: 'wordpress' as const,
-        source_site: siteName,
+        source_site: cleanSiteUrl, // URL limpa sem protocol
         slug: post.slug,
         wordpress_site_id: siteId
       };
@@ -238,6 +241,9 @@ export const getComponentById = async (id: string): Promise<Component | null> =>
     const tags = extractTags(post.title.rendered, post.content.rendered);
     const description = `Componente de ${site.site_name || site.site_url}: ${post.title.rendered}`;
 
+    // Garantir que temos a URL completa do site sem protocol
+    const cleanSiteUrl = site.site_url.replace(/^https?:\/\//, '').replace(/\/$/, '');
+
     return {
       id: `${siteId}-${post.id}`,
       title: post.title.rendered || 'Sem título',
@@ -247,13 +253,13 @@ export const getComponentById = async (id: string): Promise<Component | null> =>
       json_code: elementorData,
       preview_image: featuredImage,
       tags,
-      type: 'elementor',
+      type: 'elementor' as const,
       visibility: 'public' as const,
       created_at: post.date,
       updated_at: post.modified,
       created_by: siteId,
       source: 'wordpress' as const,
-      source_site: site.site_name || site.site_url,
+      source_site: cleanSiteUrl, // URL limpa sem protocol
       slug: post.slug,
       wordpress_site_id: siteId
     };

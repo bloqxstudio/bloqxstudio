@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Copy, Check, Eye, Loader2, RefreshCw, AlertCircle, Edit, RotateCcw } from 'lucide-react';
+import { Copy, Check, Eye, Loader2, RefreshCw, AlertCircle, Edit } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '@/features/auth';
 import { cleanElementorJson } from '@/utils/json/cleaners';
@@ -34,7 +34,6 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
 
   // Verificar se é um componente do WordPress com URL válida
   const isWordPressComponent = component.source === 'wordpress' && component.slug;
-  const isOwnSite = component.source === 'wordpress' && component.wordpress_site_id;
 
   // Gerar preview automaticamente apenas se não for WordPress e não houver imagem
   useEffect(() => {
@@ -83,18 +82,6 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
 
   const handlePreview = () => {
     setPreviewOpen(true);
-  };
-
-  const handleEdit = () => {
-    // Implementar navegação para edição do componente próprio
-    console.log('Editar componente:', component.id);
-    toast.info('Funcionalidade de edição em desenvolvimento');
-  };
-
-  const handleSync = async () => {
-    // Implementar sincronização do componente
-    console.log('Sincronizar componente:', component.id);
-    toast.info('Sincronizando componente...');
   };
 
   const handleRegeneratePreview = async () => {
@@ -159,7 +146,7 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
   };
 
   const getSourceBadge = () => {
-    if (isOwnSite) {
+    if (component.source === 'wordpress' && component.source_site) {
       return (
         <Badge variant="outline" className="text-xs bg-green-100 text-green-700 border-green-200">
           <Edit className="h-3 w-3 mr-1" />
@@ -171,78 +158,14 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
     return null;
   };
 
-  const getActionButtons = () => {
-    if (isOwnSite) {
-      // Botões para sites próprios
-      return (
-        <div className="flex gap-2 w-full">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handlePreview}
-            className="flex-1"
-          >
-            <Eye className="h-4 w-4 mr-1" />
-            Visualizar
-          </Button>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleEdit}
-            className="flex-1"
-          >
-            <Edit className="h-4 w-4 mr-1" />
-            Editar
-          </Button>
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleSync}
-            className="flex-1"
-          >
-            <RotateCcw className="h-4 w-4 mr-1" />
-            Sync
-          </Button>
-        </div>
-      );
+  // Construir URL do componente baseado nas informações
+  const getComponentUrl = () => {
+    if (component.source === 'wordpress' && component.source_site && component.slug) {
+      // Remover protocol e trailing slash do source_site
+      const cleanSiteUrl = component.source_site.replace(/^https?:\/\//, '').replace(/\/$/, '');
+      return `https://${cleanSiteUrl}/${component.slug}`;
     }
-
-    // Botões padrão para componentes WordPress
-    return (
-      <div className="flex gap-2 w-full">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handlePreview}
-          className="flex-1"
-        >
-          <Eye className="h-4 w-4 mr-1" />
-          {isWordPressComponent ? 'Ver Site' : 'Visualizar'}
-        </Button>
-        
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleCopyCode}
-          disabled={copied}
-          className="flex-1"
-        >
-          {copied ? (
-            <>
-              <Check className="h-4 w-4 mr-1" />
-              Copiado!
-            </>
-          ) : (
-            <>
-              <Copy className="h-4 w-4 mr-1" />
-              Copiar
-            </>
-          )}
-        </Button>
-      </div>
-    );
+    return null;
   };
 
   return (
@@ -265,6 +188,20 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
               <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
                 {component.description}
               </p>
+            )}
+
+            {/* Exibir URL do componente se disponível */}
+            {getComponentUrl() && (
+              <div className="mb-2">
+                <a 
+                  href={getComponentUrl()} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-xs text-blue-600 hover:text-blue-800 underline"
+                >
+                  {getComponentUrl()}
+                </a>
+              </div>
             )}
 
             {component.slug && (
@@ -293,7 +230,37 @@ const ComponentCard: React.FC<ComponentCardProps> = ({
         </CardContent>
         
         <CardFooter className="p-4 pt-0">
-          {getActionButtons()}
+          <div className="flex gap-2 w-full">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handlePreview}
+              className="flex-1"
+            >
+              <Eye className="h-4 w-4 mr-1" />
+              {isWordPressComponent ? 'Ver Site' : 'Visualizar'}
+            </Button>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleCopyCode}
+              disabled={copied}
+              className="flex-1"
+            >
+              {copied ? (
+                <>
+                  <Check className="h-4 w-4 mr-1" />
+                  Copiado!
+                </>
+              ) : (
+                <>
+                  <Copy className="h-4 w-4 mr-1" />
+                  Copiar
+                </>
+              )}
+            </Button>
+          </div>
         </CardFooter>
       </Card>
 
