@@ -119,8 +119,8 @@ const InfiniteComponentsGrid: React.FC<InfiniteComponentsGridProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Components Grid - 3 colunas */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {/* Components Grid - 4 colunas */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {filteredComponents.map((component, index) => {
           console.log(`🔧 Rendering card ${index + 1}:`, {
             id: component.id,

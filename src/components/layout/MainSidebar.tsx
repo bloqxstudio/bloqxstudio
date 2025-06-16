@@ -101,6 +101,11 @@ export const MainSidebar = ({
   const displayName = user?.email ? user.email.split('@')[0] : 'Usuário';
   const emailInitial = user?.email ? user.email[0].toUpperCase() : 'U';
 
+  // Calculate component counts
+  const getTotalSiteComponents = () => {
+    return sites.reduce((total, site) => total + (site.component_count || 0), 0);
+  };
+
   return (
     <Sidebar variant="sidebar" collapsible="offcanvas">
       <SidebarHeader className="border-b border-border">
@@ -117,7 +122,7 @@ export const MainSidebar = ({
       </SidebarHeader>
 
       <SidebarContent>
-        {/* Main Navigation */}
+        {/* Navegação */}
         <SidebarGroup>
           <SidebarGroupLabel>Navegação</SidebarGroupLabel>
           <SidebarGroupContent>
@@ -131,16 +136,35 @@ export const MainSidebar = ({
                   <span>All components</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
 
+        {/* Libraries */}
+        <SidebarGroup>
+          <SidebarGroupLabel>Libraries</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={isActive('/super-elements-basic')}>
                   <Link to="/super-elements-basic" onClick={handleNavigationClick}>
                     <Layers className="h-4 w-4" />
-                    <span>Super elements basic</span>
+                    <span>Base Super Elements</span>
+                    <Badge variant="outline" className="ml-auto text-xs">
+                      79
+                    </Badge>
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
 
+        {/* Coming Soon */}
+        <SidebarGroup>
+          <SidebarGroupLabel>Coming Soon</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton disabled>
                   <Bot className="h-4 w-4" />
@@ -186,6 +210,11 @@ export const MainSidebar = ({
                     >
                       <Globe className="h-4 w-4" />
                       <span className="truncate">{site.site_name || site.site_url}</span>
+                      {site.component_count && (
+                        <Badge variant="outline" className="ml-auto text-xs">
+                          {site.component_count}
+                        </Badge>
+                      )}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))
