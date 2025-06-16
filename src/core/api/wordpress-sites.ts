@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 export interface WordPressSite {
@@ -10,6 +11,7 @@ export interface WordPressSite {
   elementor_active?: boolean;
   last_sync_at?: string;
   is_active?: boolean;
+  component_count?: number; // Added this property
   created_at: string;
   updated_at: string;
 }
