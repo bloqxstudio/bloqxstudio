@@ -32,7 +32,7 @@ import {
 import { 
   Component, 
   Layers, 
-  Bot, 
+  Wrench, 
   Video, 
   Globe, 
   MoreVertical, 
@@ -88,7 +88,7 @@ export const MainSidebar = ({
 
   const handleSignOut = async () => {
     await signOut();
-    toast.success('Logout realizado com sucesso!');
+    toast.success('Logged out successfully!');
     navigate('/');
     if (isMobile) {
       setOpenMobile(false);
@@ -98,7 +98,7 @@ export const MainSidebar = ({
   const isActive = (path: string) => location.pathname === path;
 
   // Get user display name and avatar
-  const displayName = user?.email ? user.email.split('@')[0] : 'Usuário';
+  const displayName = user?.email ? user.email.split('@')[0] : 'User';
   const emailInitial = user?.email ? user.email[0].toUpperCase() : 'U';
 
   // Calculate component counts
@@ -122,9 +122,9 @@ export const MainSidebar = ({
       </SidebarHeader>
 
       <SidebarContent>
-        {/* Navegação */}
+        {/* Navigation */}
         <SidebarGroup>
-          <SidebarGroupLabel>Navegação</SidebarGroupLabel>
+          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
@@ -146,28 +146,26 @@ export const MainSidebar = ({
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={isActive('/super-elements-basic')}>
-                  <Link to="/super-elements-basic" onClick={handleNavigationClick}>
-                    <Layers className="h-4 w-4" />
-                    <span>Base Super Elements</span>
-                    <Badge variant="outline" className="ml-auto text-xs">
-                      79
-                    </Badge>
-                  </Link>
+                <SidebarMenuButton disabled>
+                  <Layers className="h-4 w-4" />
+                  <span>Base Super Elements</span>
+                  <Badge variant="outline" className="ml-auto text-xs">
+                    79
+                  </Badge>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* Coming Soon */}
+        {/* Tools */}
         <SidebarGroup>
-          <SidebarGroupLabel>Coming Soon</SidebarGroupLabel>
+          <SidebarGroupLabel>Tools</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton disabled>
-                  <Bot className="h-4 w-4" />
+                  <Wrench className="h-4 w-4" />
                   <span>Agents</span>
                   <Badge variant="outline" className="ml-auto text-xs">
                     Coming soon
@@ -195,11 +193,11 @@ export const MainSidebar = ({
             <SidebarMenu>
               {sitesLoading ? (
                 <SidebarMenuItem>
-                  <div className="px-2 py-1 text-sm text-muted-foreground">Carregando sites...</div>
+                  <div className="px-2 py-1 text-sm text-muted-foreground">Loading sites...</div>
                 </SidebarMenuItem>
               ) : sites.length === 0 ? (
                 <SidebarMenuItem>
-                  <div className="px-2 py-1 text-sm text-muted-foreground">Nenhum site conectado</div>
+                  <div className="px-2 py-1 text-sm text-muted-foreground">No sites connected</div>
                 </SidebarMenuItem>
               ) : (
                 sites.map((site) => (
@@ -243,25 +241,25 @@ export const MainSidebar = ({
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
+              <DropdownMenuLabel>My Account</DropdownMenuLabel>
               <DropdownMenuSeparator />
               
               <DropdownMenuItem asChild>
                 <Link to="/profile" onClick={handleNavigationClick} className="cursor-pointer flex w-full items-center">
                   <UserCircle className="mr-2 h-4 w-4" />
-                  <span>Meu Perfil</span>
+                  <span>My Profile</span>
                 </Link>
               </DropdownMenuItem>
               
               <DropdownMenuItem asChild>
                 <Link to="/components" onClick={handleNavigationClick} className="cursor-pointer flex w-full items-center">
                   <Database className="mr-2 h-4 w-4" />
-                  <span>Meus Componentes</span>
+                  <span>My Components</span>
                 </Link>
               </DropdownMenuItem>
               
               <DropdownMenuSeparator />
-              <DropdownMenuLabel>Configurações</DropdownMenuLabel>
+              <DropdownMenuLabel>Settings</DropdownMenuLabel>
               
               <DropdownMenuItem asChild>
                 <Link to="/wordpress" onClick={handleNavigationClick} className="cursor-pointer flex w-full items-center">
@@ -273,19 +271,19 @@ export const MainSidebar = ({
               {isAdmin && (
                 <>
                   <DropdownMenuSeparator />
-                  <DropdownMenuLabel>Administração</DropdownMenuLabel>
+                  <DropdownMenuLabel>Administration</DropdownMenuLabel>
                   
                   <DropdownMenuItem asChild>
                     <Link to="/admin" onClick={handleNavigationClick} className="cursor-pointer flex w-full items-center">
                       <Shield className="mr-2 h-4 w-4" />
-                      <span>Painel Admin</span>
+                      <span>Admin Panel</span>
                     </Link>
                   </DropdownMenuItem>
                   
                   <DropdownMenuItem asChild>
                     <Link to="/admin/users" onClick={handleNavigationClick} className="cursor-pointer flex w-full items-center">
                       <Settings className="mr-2 h-4 w-4" />
-                      <span>Gerenciar Usuários</span>
+                      <span>Manage Users</span>
                     </Link>
                   </DropdownMenuItem>
                 </>
@@ -294,7 +292,7 @@ export const MainSidebar = ({
               <DropdownMenuSeparator />
               <DropdownMenuItem onSelect={handleSignOut} className="cursor-pointer text-destructive focus:text-destructive">
                 <LogOut className="mr-2 h-4 w-4" />
-                <span>Sair</span>
+                <span>Sign out</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

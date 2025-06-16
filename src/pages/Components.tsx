@@ -11,6 +11,7 @@ import { ContentHeader } from '@/components/layout/ContentHeader';
 import OptimizedInfiniteGrid from '@/components/components/OptimizedInfiniteGrid';
 import SelectedComponentsSidebar from '@/components/selection/SelectedComponentsSidebar';
 import SelectionFloatingButton from '@/components/selection/SelectionFloatingButton';
+import { Badge } from '@/components/ui/badge';
 
 const Components = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -66,6 +67,35 @@ const Components = () => {
     setSelectedSite(site);
   }, []);
 
+  // Get current view name and counts
+  const getCurrentViewInfo = () => {
+    if (selectedSite) {
+      const site = sites.find(s => s.id === selectedSite);
+      return {
+        title: site?.site_name || site?.site_url || 'Selected Site',
+        count: filteredComponents.length,
+        total: components.length,
+      };
+    }
+    
+    if (selectedCategory) {
+      const category = categories.find(c => c.id === selectedCategory);
+      return {
+        title: category?.name || 'Selected Category',
+        count: filteredComponents.length,
+        total: components.length,
+      };
+    }
+
+    return {
+      title: 'All components',
+      count: filteredComponents.length,
+      total: components.length,
+    };
+  };
+
+  const viewInfo = getCurrentViewInfo();
+
   console.log('🎯 Components page rendering (unified responsive layout):', {
     totalComponents: components.length,
     filteredComponents: filteredComponents.length,
@@ -96,13 +126,34 @@ const Components = () => {
             categories={categories}
           />
 
+          {/* View Title and Component Count */}
+          <div className="bg-white border-b border-border px-4 md:px-6 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <h1 className="text-2xl font-bold text-foreground">
+                  {viewInfo.title}
+                </h1>
+                <Badge variant="secondary" className="text-sm">
+                  {isLoading ? 'Loading...' : `${viewInfo.count} components`}
+                </Badge>
+              </div>
+              
+              {(searchTerm || selectedSite || selectedCategory) && (
+                <button
+                  onClick={handleClearFilters}
+                  className="text-sm text-muted-foreground hover:text-foreground underline"
+                >
+                  Clear all filters
+                </button>
+              )}
+            </div>
+          </div>
+
           {/* Active Filters */}
           {(selectedCategory || selectedSite || searchTerm) && (
             <div className="bg-white border-b border-border px-4 md:px-6 py-3">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-sm text-muted-foreground">
-                  {searchTerm || selectedSite || selectedCategory ? 'Active filters:' : ''}
-                </span>
+                <span className="text-sm text-muted-foreground">Active filters:</span>
                 {searchTerm && (
                   <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
                     Search: {searchTerm}
@@ -110,20 +161,14 @@ const Components = () => {
                 )}
                 {selectedSite && (
                   <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
-                    Site selected
+                    Site filter applied
                   </span>
                 )}
                 {selectedCategory && (
                   <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
-                    Category selected
+                    Category filter applied
                   </span>
                 )}
-                <button
-                  onClick={handleClearFilters}
-                  className="text-xs text-muted-foreground hover:text-foreground underline ml-auto md:ml-2"
-                >
-                  Clear all
-                </button>
               </div>
             </div>
           )}
