@@ -2,7 +2,6 @@
 import React from 'react';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { UserMenu } from './UserMenu';
 import { OptimizedComponentSearch } from '@/components/filters/OptimizedComponentSearch';
 
 interface ContentHeaderProps {
@@ -54,9 +53,9 @@ export const ContentHeader: React.FC<ContentHeaderProps> = ({
           )}
         </div>
 
-        {/* Right: Search Bar and User Menu */}
-        <div className="flex items-center gap-4">
-          {/* Compact Search Bar */}
+        {/* Right: Search Bar Only */}
+        <div className="flex items-center">
+          {/* Search Bar */}
           <div className="w-80">
             {onSearchChange ? (
               <OptimizedComponentSearch
@@ -75,9 +74,6 @@ export const ContentHeader: React.FC<ContentHeaderProps> = ({
               </div>
             )}
           </div>
-
-          {/* User Menu */}
-          <UserMenu />
         </div>
       </div>
     </div>

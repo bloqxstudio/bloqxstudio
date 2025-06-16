@@ -1,9 +1,11 @@
 
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { getUserWordPressSites } from '@/core/api/wordpress-sites';
 import { useAuth } from '@/features/auth';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { toast } from 'sonner';
 import {
   Sidebar,
   SidebarContent,
@@ -23,9 +25,23 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Component, Layers, Bot, Video, Globe, MoreVertical, UserCircle } from 'lucide-react';
+import { 
+  Component, 
+  Layers, 
+  Bot, 
+  Video, 
+  Globe, 
+  MoreVertical, 
+  UserCircle, 
+  Database, 
+  Settings, 
+  Shield, 
+  LogOut 
+} from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
 interface MainSidebarProps {
@@ -37,7 +53,8 @@ export const MainSidebar = ({
   selectedSite = null,
   onSiteChange = () => {},
 }: MainSidebarProps) => {
-  const { user } = useAuth();
+  const { user, isAdmin, signOut } = useAuth();
+  const navigate = useNavigate();
   const location = useLocation();
   const isMobile = useIsMobile();
   const { setOpenMobile } = useSidebar();
@@ -64,6 +81,15 @@ export const MainSidebar = ({
   };
 
   const handleNavigationClick = () => {
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    toast.success('Logout realizado com sucesso!');
+    navigate('/');
     if (isMobile) {
       setOpenMobile(false);
     }
@@ -187,12 +213,59 @@ export const MainSidebar = ({
                 <MoreVertical className="h-4 w-4" />
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              
               <DropdownMenuItem asChild>
                 <Link to="/profile" onClick={handleNavigationClick} className="cursor-pointer flex w-full items-center">
                   <UserCircle className="mr-2 h-4 w-4" />
-                  <span>My Account</span>
+                  <span>Meu Perfil</span>
                 </Link>
+              </DropdownMenuItem>
+              
+              <DropdownMenuItem asChild>
+                <Link to="/components" onClick={handleNavigationClick} className="cursor-pointer flex w-full items-center">
+                  <Database className="mr-2 h-4 w-4" />
+                  <span>Meus Componentes</span>
+                </Link>
+              </DropdownMenuItem>
+              
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel>Configurações</DropdownMenuLabel>
+              
+              <DropdownMenuItem asChild>
+                <Link to="/wordpress" onClick={handleNavigationClick} className="cursor-pointer flex w-full items-center">
+                  <Globe className="mr-2 h-4 w-4" />
+                  <span>WordPress Integration</span>
+                </Link>
+              </DropdownMenuItem>
+              
+              {isAdmin && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel>Administração</DropdownMenuLabel>
+                  
+                  <DropdownMenuItem asChild>
+                    <Link to="/admin" onClick={handleNavigationClick} className="cursor-pointer flex w-full items-center">
+                      <Shield className="mr-2 h-4 w-4" />
+                      <span>Painel Admin</span>
+                    </Link>
+                  </DropdownMenuItem>
+                  
+                  <DropdownMenuItem asChild>
+                    <Link to="/admin/users" onClick={handleNavigationClick} className="cursor-pointer flex w-full items-center">
+                      <Settings className="mr-2 h-4 w-4" />
+                      <span>Gerenciar Usuários</span>
+                    </Link>
+                  </DropdownMenuItem>
+                </>
+              )}
+              
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onSelect={handleSignOut} className="cursor-pointer text-destructive focus:text-destructive">
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Sair</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
